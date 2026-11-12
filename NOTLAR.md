@@ -35,10 +35,11 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 - PC/SpektrumAraci.py + protokol.py: ayar aracı (sadece Fatih kullanır, gizleme yok).
 
 ## Görünümler (mod listesi)
-- Spektrum: 0 Klasik, 1 Neon, 2 Orta Dağ, 3 Fıskiye, 4 Renkli Dalga, 5 Işık Çizgisi, 6 Katmanlı Dağ,
-  7 Örgü Şerit, 8 Aurora
-- Animasyon: 9 Alev, 10 Alev Çubuk, 11 Orta Alev, 12 Patlama, 13 Orta Patlama, 14 Alev Halka (açılış),
-  15 Halka, 16 Dalga
+- Klasik (aile 0): 0 Klasik, 1 Neon, 2 Orta Dağ, 3 Fıskiye, 4 Renkli Dalga, 5 Dalga, 6 Katmanlı Dağ
+- Modern (aile 1): 7 Işık Çizgisi, 8 Örgü Şerit, 9 Aurora
+- Animasyon (aile 2): 10 Alev, 11 Alev Çubuk, 12 Orta Alev, 13 Alev Halka (açılış), 14 Patlama, 15 Orta Patlama, 16 Halka
+- Ortam (aile 3): henüz yok. Android sekmesi aileye değil Kind'a bakar (0 müzikli -> Müzik, 1 müziksiz -> Ortam);
+  aile sadece gruplama/sıra (PC'de başlık). Sıra değişince kayıtlı ayarlar kendiliğinden varsayılana döner (Layout CRC).
 - Silindi (beğenilmedi): Plazma, Kutup Işığı, Işık Girdabı (akışkan buhar denemesi, 128x32'de ekranı dolduramadı).
 - Her görünümde Hız (0 = tempoya göre). Vuruşa tepki verenlerde Tepki (Sakin/Normal/Hareketli).
 - Alev rengi: bloklu seçim (Ateş, Pembe, Mor, Mavi gaz, Buz, Yeşil).

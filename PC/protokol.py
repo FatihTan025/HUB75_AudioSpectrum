@@ -9,7 +9,7 @@ SOF = 0xA5
 DURUM = {0: 'tamam', 1: 'bilinmeyen komut', 2: 'bilinmeyen parametre', 3: 'aralik disi',
          4: 'CRC hatasi', 5: 'mesgul', 6: 'desteklenmiyor', 7: 'guncelleme hatasi'}
 TUR = {0: 'bool', 1: 'int', 2: 'enum', 3: 'renk', 4: 'palet', 5: 'ton', 6: 'blok'}
-AILE = {0: 'Spektrum', 1: 'Animasyon', 2: 'Ortam'}
+AILE = {0: 'Klasik', 1: 'Modern', 2: 'Animasyon', 3: 'Ortam'}
 BAYRAK_MOD = 0x01
 BAYRAK_SALT_OKUNUR = 0x02
 BAYRAK_GIZLI = 0x08

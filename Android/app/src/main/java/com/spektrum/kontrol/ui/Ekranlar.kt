@@ -202,8 +202,8 @@ fun AnaEkran(m: AnaModel) {
     ) { ic ->
         Box(Modifier.padding(ic).fillMaxSize()) {
             when (sekme) {
-                Sekme.MUZIK -> ModSekmesi(m, setOf(0, 1), "Cihazda müzik modu yok.")
-                Sekme.ORTAM -> ModSekmesi(m, setOf(2), "Henüz ortam görünümü yok.\nCihaz yazılımı güncellenince burada görünecek.")
+                Sekme.MUZIK -> ModSekmesi(m, muziksiz = false, "Cihazda müzik modu yok.")
+                Sekme.ORTAM -> ModSekmesi(m, muziksiz = true, "Henüz ortam görünümü yok.\nCihaz yazılımı güncellenince burada görünecek.")
                 Sekme.AYARLAR -> AyarlarSekmesi(m)
             }
         }
@@ -232,8 +232,9 @@ private fun UstCubuk(m: AnaModel) {
 
 /** Kaydirmali mod kartlari (resim yerine simdilik bos kart) + o modun ayarlari + parlaklik. */
 @Composable
-private fun ModSekmesi(m: AnaModel, aileler: Set<Int>, bosYazi: String) {
-    val liste: List<Mod> = m.modlar.filter { it.aile in aileler }
+private fun ModSekmesi(m: AnaModel, muziksiz: Boolean, bosYazi: String) {
+    // Sekme: cihazin bildirdigi tur (0 muzikli, 1 muziksiz); sira = cihazdaki sira (aileye gore gruplu)
+    val liste: List<Mod> = m.modlar.filter { (it.tur == 1) == muziksiz }
     if (liste.isEmpty()) {
         Text(bosYazi, color = Soluk, fontSize = 14.sp, textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth().padding(32.dp))

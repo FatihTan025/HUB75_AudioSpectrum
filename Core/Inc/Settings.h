@@ -97,7 +97,7 @@ typedef struct
 {
 	const char		*Name;
 	uint8_t			Kind;			/* 0 = muzik, 1 = muziksiz				*/
-	uint8_t			Family;			/* 0 = spektrum, 1 = animasyon, 2 = ortam */
+	uint8_t			Family;			/* 0 klasik, 1 modern, 2 animasyon, 3 ortam (grup/sira) */
 	uint8_t			Engine;			/* SPEC_Mode							*/
 	uint8_t			NOvr;
 	const int32_t	(*Ovr)[2];		/* { Id, varsayilan }					*/

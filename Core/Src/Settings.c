@@ -38,7 +38,7 @@
 
 static const SET_ModeInfo ModeInfo[] =
 {
-	/* --- Spektrum (aile 0) --- */
+	/* --- Klasik (aile 0) --- */
 	LOOK0("Klasik",							0, SPEC_MODE_CLASSIC),
 	LOOK("Neon",							0, SPEC_MODE_CLASSIC,
 		{ SET_ID_CLS_WIDTH, 4 }, { SET_ID_CLS_TYPE, 1 }, { SET_ID_CLS_PEAK_STYLE, 2 }),
@@ -46,20 +46,22 @@ static const SET_ModeInfo ModeInfo[] =
 		{ SET_ID_CLS_WIDTH, 2 }, { SET_ID_CLS_LAYOUT, 1 }, { SET_ID_CLS_SET, 2 }),
 	LOOK0("F\304\261skiye",					0, SPEC_MODE_FOUNTAIN),	/* Fiskiye */
 	LOOK0("Renkli Dalga",					0, SPEC_MODE_SPECWAVE),
-	LOOK0("I\305\237\304\261k \303\207izgisi",			0, SPEC_MODE_LIGHTLINE),
+	LOOK0("Dalga",							0, SPEC_MODE_WAVE),
 	LOOK0("Katmanl\304\261 Da\304\237",				0, SPEC_MODE_LAYERS),
-	LOOK("\303\226rg\303\274 \305\236erit",				0, SPEC_MODE_WEAVE,
+	/* --- Modern (aile 1) --- */
+	LOOK0("I\305\237\304\261k \303\207izgisi",			1, SPEC_MODE_LIGHTLINE),
+	LOOK("\303\226rg\303\274 \305\236erit",				1, SPEC_MODE_WEAVE,
 		{ SET_ID_PAL, 7 }),
-	LOOK0("Aurora",							0, SPEC_MODE_AURORA),
-	/* --- Animasyon (aile 1) --- */
-	LOOK0("Alev",							1, SPEC_MODE_FIRE),
-	LOOK0("Alev \303\207ubuk",				1, SPEC_MODE_FIRE_BARS),	/* Alev Cubuk */
-	LOOK0("Orta Alev",						1, SPEC_MODE_FIRE_BLUE),	/* Ortadan iki yana */
-	LOOK0("Patlama",						1, SPEC_MODE_BLAST),
-	LOOK0("Orta Patlama",					1, SPEC_MODE_CBLAST),
-	LOOK0("Alev Halka",						1, SPEC_MODE_FIRE_BALL),
-	LOOK0("Halka",							1, SPEC_MODE_RINGS),
-	LOOK0("Dalga",							1, SPEC_MODE_WAVE),
+	LOOK0("Aurora",							1, SPEC_MODE_AURORA),
+	/* --- Animasyon (aile 2) --- */
+	LOOK0("Alev",							2, SPEC_MODE_FIRE),
+	LOOK0("Alev \303\207ubuk",				2, SPEC_MODE_FIRE_BARS),	/* Alev Cubuk */
+	LOOK0("Orta Alev",						2, SPEC_MODE_FIRE_BLUE),	/* Ortadan iki yana */
+	LOOK0("Alev Halka",						2, SPEC_MODE_FIRE_BALL),
+	LOOK0("Patlama",						2, SPEC_MODE_BLAST),
+	LOOK0("Orta Patlama",					2, SPEC_MODE_CBLAST),
+	LOOK0("Halka",							2, SPEC_MODE_RINGS),
+	/* --- Ortam (aile 3, Kind 1 = muziksiz): henuz yok --- */
 };
 
 #define LOOK_COUNT	(sizeof(ModeInfo) / sizeof(ModeInfo[0]))

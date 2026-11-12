@@ -122,7 +122,7 @@ class Yazar {
 data class Bilgi(val protokol: Int, val fw: String, val genislik: Int, val yukseklik: Int, val bitplane: Int,
                  val modSayisi: Int, val paramSayisi: Int, val mod: Int, val guc: Boolean, val ad: String)
 
-/** aile: 0 Spektrum, 1 Animasyon, 2 Ortam */
+/** tur: 0 muzikli, 1 muziksiz (sekmeyi belirler). aile: grup (0 Klasik, 1 Modern, 2 Animasyon, 3 Ortam), sadece siralama/PC */
 data class Mod(val no: Int, val tur: Int, val aile: Int, val ad: String)
 
 data class Tanim(val sira: Int, val toplam: Int, val id: Int, val tur: Int, val bayrak: Int, val maske: Int,

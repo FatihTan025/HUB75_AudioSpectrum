@@ -126,7 +126,7 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
                 modDeger.clear()
                 aktifMod.value = bl.mod
                 guc.value = bl.guc
-                sekme.value = if (ml.firstOrNull { it.no == bl.mod }?.aile == 2) Sekme.ORTAM else Sekme.MUZIK
+                sekme.value = if (ml.firstOrNull { it.no == bl.mod }?.tur == 1) Sekme.ORTAM else Sekme.MUZIK
                 tercih.edit().putString("ad_${b.ad}", bl.ad).apply()
                 cihaz.value = c
                 modDegerYukle(bl.mod)
