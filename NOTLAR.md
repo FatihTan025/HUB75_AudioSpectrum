@@ -58,7 +58,7 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   Partition: Minimal SPIFFS (1.9MB APP with OTA). Wi-Fi+BLE icin modem uykusu zorunlu (setSleep(true)).
   Kartta denenmedi. Android uygulamasi: Kotlin + Compose (siradaki).
 - Android arayuzu (taslak: claude.ai tuvali 'Spektrum Android arayuzu'): LED Chord tarzi, mor zemin + sari vurgu.
-  Sekmeler: Muzik / Ortam / Ayarlar (Muzik = aile 0+1, Ortam = aile 2; Ortam gorunumleri de birer mod). Spektrum-Animasyon ayrimi YOK; tek kaydirmali mod listesi.
+  Sekmeler: Muzik / Ortam / Ayarlar (Muzik = Kind 0 muzikli, Ortam = Kind 1 muziksiz; Ortam gorunumleri de birer mod). Spektrum-Animasyon ayrimi YOK; tek kaydirmali mod listesi.
   Mod adi Android'de gosterilmez (sadece resim + sira no). PC aracinda adlar kalir.
   Resim moda ADIYLA baglanir (sira degisirse kaymasin); bilinmeyen mod -> genel resim.
   Mod resimleri: SpecDisplay.c PC'de derlenip ornek muzikle her modun kisa animasyonu uretilecek.
