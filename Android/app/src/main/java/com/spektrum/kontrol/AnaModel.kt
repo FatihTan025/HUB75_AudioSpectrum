@@ -64,6 +64,12 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
     val wifi = mutableStateOf<WifiDurum?>(null)
 
     /** Kullanicinin verdigi ad (cihazin yayin adi -> ad), listede gostermek icin telefonda tutulur. */
+    /** Hata mesaji; yeni dokunusla iptal edilen eski gonderim (CancellationException) hata degildir */
+    private fun hata(e: Exception, on: String = "") {
+        if (e is kotlinx.coroutines.CancellationException) throw e
+        mesaj.value = on + (e.message ?: e.javaClass.simpleName)
+    }
+
     fun gorunenAd(yayinAdi: String) = tercih.getString("ad_$yayinAdi", null)
 
     // =========================================================================
@@ -135,7 +141,7 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
                 kopru.value = try { c.kopruBilgi() } catch (_: Exception) { null }   // UART'tan bagliysa kopru yok
             } catch (e: Exception) {
                 c.kapat()
-                mesaj.value = "Bağlanılamadı: ${e.message}"
+                hata(e, "Bağlanılamadı: ")
             } finally {
                 baglaniyor.value = null
             }
@@ -185,7 +191,7 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
         modIs?.cancel()
         modIs = viewModelScope.launch {
             delay(150)
-            try { cihaz.value?.mod(no) } catch (e: Exception) { mesaj.value = e.message }
+            try { cihaz.value?.mod(no) } catch (e: Exception) { hata(e) }
         }
     }
 
@@ -204,7 +210,7 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
                 if (uygulanan != deger) {
                     if (m == MOD_GENEL) genel[t.id] = uygulanan else modDeger[m] = (modDeger[m] ?: emptyMap()) + (t.id to uygulanan)
                 }
-            } catch (e: Exception) { mesaj.value = e.message }
+            } catch (e: Exception) { hata(e) }
         }
     }
 
@@ -235,7 +241,7 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
     // --- Genel islemler ---------------------------------------------------------
     fun gucDegistir() {
         val c = cihaz.value ?: return
-        viewModelScope.launch { try { guc.value = c.guc(!guc.value) } catch (e: Exception) { mesaj.value = e.message } }
+        viewModelScope.launch { try { guc.value = c.guc(!guc.value) } catch (e: Exception) { hata(e) } }
     }
 
     val otoAcik get() = (genel[AyarId.OTO_SN] ?: 0) > 0
@@ -262,14 +268,14 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
                     z.get(java.util.Calendar.DAY_OF_MONTH), z.get(java.util.Calendar.MONTH) + 1, z.get(java.util.Calendar.YEAR))
                 cihazSaat.value = c.saatOku()
                 mesaj.value = "Saat ayarlandı"
-            } catch (e: Exception) { mesaj.value = e.message }
+            } catch (e: Exception) { hata(e) }
         }
     }
 
     fun adVer(ad: String) {
         val c = cihaz.value ?: return
         viewModelScope.launch {
-            try { c.adVer(ad); bilgi.value = c.bilgi() } catch (e: Exception) { mesaj.value = e.message }
+            try { c.adVer(ad); bilgi.value = c.bilgi() } catch (e: Exception) { hata(e) }
         }
     }
 
@@ -281,14 +287,14 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
                 genel.clear(); genel.putAll(c.hepsi(MOD_GENEL))
                 modDeger.clear(); modDegerYukle(aktifMod.value)
                 mesaj.value = "Fabrika ayarlarına dönüldü."
-            } catch (e: Exception) { mesaj.value = e.message }
+            } catch (e: Exception) { hata(e) }
         }
     }
 
     fun wifiTara() {
         val c = cihaz.value ?: return
         viewModelScope.launch {
-            try { aglar.clear(); aglar.addAll(c.wifiTara()) } catch (e: Exception) { mesaj.value = "Taranamadı: ${e.message}" }
+            try { aglar.clear(); aglar.addAll(c.wifiTara()) } catch (e: Exception) { hata(e, "Taranamadı: ") }
         }
     }
 
@@ -300,7 +306,7 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
     fun wifiAyarla(ad: String, sifre: String) {
         val c = cihaz.value ?: return
         viewModelScope.launch {
-            try { c.wifiAyarla(ad, sifre); delay(6000); wifiDurumSor() } catch (e: Exception) { mesaj.value = e.message }
+            try { c.wifiAyarla(ad, sifre); delay(6000); wifiDurumSor() } catch (e: Exception) { hata(e) }
         }
     }
 
