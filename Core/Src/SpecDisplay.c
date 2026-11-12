@@ -3007,7 +3007,7 @@ static void SnTane(float Fx, float Fy, uint8_t Sekil, uint32_t L)
 	uint8_t K;
 
 	if(L > 255U) L = 255U;
-	K = (uint8_t)(L >> 2);								/* Uclar ~%25 */
+	K = (uint8_t)((L * 90U) >> 8);						/* Uclar ~%35 (orta sonuk, yildiz gibi durmasin) */
 	Add(x, y, (uint8_t)L, (uint8_t)L, (uint8_t)L);
 	if(Sekil == 1U)
 	{
@@ -3021,31 +3021,64 @@ static void SnTane(float Fx, float Fy, uint8_t Sekil, uint32_t L)
 	}
 }
 
-/* Beyaz perde (ruzgar): hayalet gibi soluk beyaz sis, bir kenardan girip ~7.5 s'de
-   obur kenardan cikar; ortasi yogun, kenarlari silik, sekli kivrilarak degisir.
-   25-45 s'de bir gelir. Taneleri itmez. */
+/* Beyaz perde (ruzgar): hayalet gibi soluk beyaz sis, ekranin buyuk kismini kaplar;
+   bir kenardan girip ~7.5 s'de obur kenardan cikar. Iki katman (ana + arkadan gelen ince),
+   ortasi yogun, kenarlari silik, sekli kivrilarak degisir. 25-45 s'de bir gelir.
+   Gectigi yerdeki taneleri hafifce iter (SnPerdeYogun). */
 #define SN_ES_SURE		7.5f
-#define SN_ES_EN		22.0f						/* Perdenin yarim boyu (px)		*/
-#define SN_ES_ISIK		42.0f						/* En yogun yerinin parlakligi	*/
+#define SN_ES_EN		45.0f						/* Perdenin yarim boyu (px)		*/
 
 static void SnPerdeBasla(void)
 {
 	U.Sn.EsYon = (Rand() & 1U) ? 1.0f : -1.0f;
-	U.Sn.EsY   = 10.0f + RandF() * ((float)H - 20.0f);
-	U.Sn.EsK   = 5.0f + RandF() * 4.0f;					/* Kalinlik (px)				*/
+	U.Sn.EsY   = 22.0f + RandF() * ((float)H - 44.0f);	/* Orta cizgi ekranin ortalarinda */
+	U.Sn.EsK   = 20.0f + RandF() * 5.0f;				/* Yarim kalinlik (px)			*/
 	U.Sn.EsT   = 0.0f;
 }
 
-static void SnPerde(void)
+/* Katmanin o anki merkezi (x), orta cizgisi ve yarim kalinligi */
+static float SnPerdeMerkez(uint8_t k)
 {
-	const float u  = U.Sn.EsT / SN_ES_SURE;			/* 0..1 */
-	const float Yol = (float)W + 2.0f * SN_ES_EN;
-	const float c  = (U.Sn.EsYon > 0.0f) ? -SN_ES_EN + Yol * u : (float)W + SN_ES_EN - Yol * u;
-	const int   x0 = (int)(c - SN_ES_EN), x1 = (int)(c + SN_ES_EN) + 1;
-	const float T  = U.Sn.T;
+	const float Yol = (float)W + 2.0f * SN_ES_EN, u = U.Sn.EsT / SN_ES_SURE;
+	float c = (U.Sn.EsYon > 0.0f) ? -SN_ES_EN + Yol * u : (float)W + SN_ES_EN - Yol * u;
+	return k ? c - U.Sn.EsYon * 14.0f : c;				/* Ikinci katman biraz geriden gelir */
+}
+
+static void SnPerdeSerit(uint8_t k, float x, float *yc, float *th)
+{
+	const float T = U.Sn.T;
+	if(!k)
+	{
+		*yc = U.Sn.EsY + 8.0f * sinf(x * 0.06f + T * 0.5f);
+		*th = U.Sn.EsK * (0.65f + 0.35f * sinf(x * 0.10f - T * 0.7f));
+	}
+	else
+	{
+		*yc = U.Sn.EsY + 5.0f + 6.0f * sinf(x * 0.09f - T * 0.4f + 2.0f);
+		*th = U.Sn.EsK * 0.45f * (0.7f + 0.3f * sinf(x * 0.17f + T));
+	}
+}
+
+/* Ana katmanin (x, y)'deki yogunlugu 0..1 (lifsiz): tanelerin itilmesi icin */
+static float SnPerdeYogun(float x, float y)
+{
+	float dx, gx, yc, th, dy, gy;
+	if(U.Sn.EsSonra > 0.0f) return 0.0f;
+	dx = (x - SnPerdeMerkez(0)) / SN_ES_EN;
+	gx = 1.0f - dx * dx;
+	if(gx <= 0.0f) return 0.0f;
+	SnPerdeSerit(0, x, &yc, &th);
+	dy = (y - yc) / th;
+	gy = 1.0f - dy * dy;
+	return (gy > 0.0f) ? gx * gx * gy : 0.0f;
+}
+
+static void SnPerdeKatman(uint8_t k, float Isik)
+{
+	const float c = SnPerdeMerkez(k), T = U.Sn.T;
 	int x, y;
 
-	for(x = x0; x <= x1; x++)
+	for(x = (int)(c - SN_ES_EN); x <= (int)(c + SN_ES_EN) + 1; x++)
 	{
 		float dx, gx, yc, th;
 		if(x < 0 || x >= (int)W) continue;
@@ -3053,8 +3086,7 @@ static void SnPerde(void)
 		gx = 1.0f - dx * dx;							/* Yatayda yumusak uclar		*/
 		if(gx <= 0.0f) continue;
 		gx *= gx;
-		yc = U.Sn.EsY + 4.0f * sinf((float)x * 0.09f + T * 0.6f);			/* Kivrilan orta cizgi	*/
-		th = U.Sn.EsK * (0.65f + 0.35f * sinf((float)x * 0.14f - T * 0.8f));	/* Kalinlik dalgalanir	*/
+		SnPerdeSerit(k, (float)x, &yc, &th);
 		for(y = (int)(yc - th) - 1; y <= (int)(yc + th) + 1; y++)
 		{
 			float dy, gy, lif;
@@ -3063,11 +3095,17 @@ static void SnPerde(void)
 			dy = ((float)y - yc) / th;
 			gy = 1.0f - dy * dy;
 			if(gy <= 0.0f) continue;
-			lif = 0.65f + 0.35f * sinf((float)x * 0.33f + (float)y * 0.7f + T * 1.1f);	/* Ince lifler	*/
-			L = (uint8_t)(SN_ES_ISIK * gx * gy * lif);
+			lif = 0.65f + 0.35f * sinf((float)x * 0.33f + (float)y * 0.7f + T * (1.1f + 0.4f * (float)k));	/* Ince lifler */
+			L = (uint8_t)(Isik * gx * gy * lif);
 			if(L) Add(x, y, L, L, L);
 		}
 	}
+}
+
+static void SnPerde(void)
+{
+	SnPerdeKatman(1, 22.0f);							/* Arkadan gelen ince katman	*/
+	SnPerdeKatman(0, 35.0f);							/* Ana katman					*/
 }
 
 static void SnYeni(uint32_t i, uint8_t Yakin, uint8_t Basta)
@@ -3148,7 +3186,7 @@ static void ModeSnow(void)
 	for(i = 0; i < SN_UZAK; i++)
 	{
 		U.Sn.Uy[i] += U.Sn.Uv[i] * Dt;
-		U.Sn.Ux[i] += U.Sn.Ruzgar * 0.5f * Dt;
+		U.Sn.Ux[i] += (U.Sn.Ruzgar * 0.5f + U.Sn.EsYon * 5.0f * SnPerdeYogun(U.Sn.Ux[i], U.Sn.Uy[i])) * Dt;
 		if(U.Sn.Ux[i] < -2.0f) U.Sn.Ux[i] += (float)W + 4.0f;
 		if(U.Sn.Ux[i] > (float)W + 2.0f) U.Sn.Ux[i] -= (float)W + 4.0f;
 		if(U.Sn.Uy[i] > (float)H + 1.0f) SnYeni(i, 0, 0);
@@ -3185,17 +3223,23 @@ static void ModeSnow(void)
 	{
 		uint32_t L;
 		U.Sn.Yy[i] += U.Sn.Yv[i] * Dt;
-		U.Sn.Yx[i] += (U.Sn.Ruzgar + 2.5f * sinf(U.Sn.T * 1.7f + U.Sn.Yf[i])) * Dt;
+		U.Sn.Yx[i] += (U.Sn.Ruzgar + 2.5f * sinf(U.Sn.T * 1.7f + U.Sn.Yf[i])
+					   + U.Sn.EsYon * 10.0f * SnPerdeYogun(U.Sn.Yx[i], U.Sn.Yy[i])) * Dt;	/* Perde hafifce iter */
 		if(U.Sn.Yx[i] < -3.0f) U.Sn.Yx[i] += (float)W + 6.0f;
 		if(U.Sn.Yx[i] > (float)W + 3.0f) U.Sn.Yx[i] -= (float)W + 6.0f;
 		if(U.Sn.Yy[i] > (float)H + 2.0f) SnYeni(i, 1, 0);
 		if(RandF() < Gdt / 6.0f) U.Sn.Yp[i] = 1.0f;		/* Ortalama 6 s'de bir parlama */
 		U.Sn.Yp[i] *= 0.88f;
-		L = (uint32_t)(140.0f + 5.0f * U.Sn.Yv[i] + 60.0f * U.Sn.Yp[i]);
 		if(i < SN_ARTI)
+		{
+			L = (uint32_t)(92.0f + 3.0f * U.Sn.Yv[i] + 35.0f * U.Sn.Yp[i]);	/* Orta 110-140, parlamada ~175 */
 			SnTane(U.Sn.Yx[i], U.Sn.Yy[i], (((uint32_t)(U.Sn.T * (1.2f + 0.08f * U.Sn.Yv[i]) + U.Sn.Yf[i])) & 1U) ? 2U : 1U, L);
+		}
 		else
+		{
+			L = (uint32_t)(82.0f + 3.0f * U.Sn.Yv[i] + 30.0f * U.Sn.Yp[i]);	/* 100-130 */
 			SnTane(U.Sn.Yx[i], U.Sn.Yy[i], 0U, L);
+		}
 	}
 }
 

@@ -61,9 +61,10 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 - Birbirinin aynısı mod yok; sadece rengi farklıysa ayrı mod sayılmaz.
 - Favoriler: gizli genel ayar SET_ID_FAV (bit n = mod n); Android mod resminde kalp (yalnız müzikli). Oto geçiş
   SET_NextAuto: yalnız müzikli modlar, favori varsa yalnız favoriler (eskiden Ortam modlarına da geçiyordu).
-- Kar: zemin siyah (gece odayı aydınlatmasın); taneler saf beyaz, uzak 1 sönük px, yakın 9 tek parlak px + 7 "+"/"×"
-  (orta parlak, uçlar ~%25; dönüyormuş gibi), ara sıra parlama; yıldızlar sıcak beyaz. Rüzgâr = beyaz perde:
-  hayalet gibi soluk beyaz sis, kenardan girip ~7.5 s'de geçer, 25-45 s'de bir; taneleri itmez.
+- Kar: zemin siyah (gece odayı aydınlatmasın); taneler saf beyaz, uzak 1 sönük px, yakın 9 tek px (100-130) + 7 "+"/"×"
+  (orta 110-140, uçlar ~%35; dönüyormuş gibi), ara sıra parlama; yıldızlar sıcak beyaz. Rüzgâr = beyaz perde: hayalet
+  gibi soluk beyaz sis, ~90 px boy, 40-50 px kalın, iki katman (tepe 35 + 22), ~7.5 s'de geçer, 25-45 s'de bir;
+  geçtiği yerdeki taneleri hafifçe iter (SnPerdeYogun).
 - Alev rengi: Buz kaldırıldı (Mavi gaz ile aynıydı). Katmanlı Dağ/Örgü Şerit renk daireleri ailenin ilk-son rengiyle
   geçişli ("Ad:RRGGBB,RRGGBB", protokol 256 B sınırı: PAL tanımı 229 B). Android Saat satırında kabarık "Ayarla" düğmesi.
 - Renkli Dalga "Kontrast" ayarı kaldırıldı, sabit %150 (SWV_DOLULUK). Açılış/fabrika modu 0 = Klasik.
