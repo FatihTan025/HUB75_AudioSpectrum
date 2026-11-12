@@ -25,6 +25,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
@@ -267,6 +269,14 @@ private fun ModSekmesi(m: AnaModel, muziksiz: Boolean, bosYazi: String) {
                 ModResmi(liste[i].ad, oynat = on, modifier = Modifier.fillMaxSize().padding(horizontal = 10.dp, vertical = 8.dp))
                 Text("${i + 1} / ${liste.size}", color = Soluk, fontSize = 12.sp,
                     modifier = Modifier.align(Alignment.TopEnd).padding(12.dp))
+                if (liste[i].tur == 0) {                 // Kalp: otomatik gecis yalniz favorilerde doner
+                    val fav = m.favori(liste[i].no)
+                    Box(Modifier.align(Alignment.TopStart).size(40.dp).clickable { m.favoriDegistir(liste[i].no) },
+                        contentAlignment = Alignment.Center) {
+                        Icon(if (fav) Icons.Default.Favorite else Icons.Default.FavoriteBorder, "Favori",
+                            tint = if (fav) Color(0xFFFF3B5C) else Color.White.copy(alpha = 0.6f), modifier = Modifier.size(18.dp))
+                    }
+                }
             }
         }
         Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.Center) {

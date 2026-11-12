@@ -161,6 +161,9 @@ static const SET_Param Table[] =
 	{ SET_ID_AUTO_SEC,		SET_TYPE_INT,	0U,		0U,		0,	600, 5,	(int32_t)CFG_AUTO_MODE_SEC,
 	  "Otomatik mod ge\303\247i\305\237i", "Mod", "sn (0 = kapal\304\261)", 0 },	/* Otomatik mod gecisi, kapali */
 
+	{ SET_ID_FAV,			SET_TYPE_INT,	SET_FLAG_HIDDEN, 0U, 0, (int32_t)((1UL << LOOK_COUNT) - 1U), 1, 0,
+	  "Favoriler", "Mod", "", 0 },											/* Uygulamadaki kalpler */
+
 	{ SET_ID_FREQ_LO,		SET_TYPE_INT,	A,		0U,		60,	500, 10, (int32_t)CFG_FREQ_LOW,
 	  "Alt frekans", "Ses", "Hz", ApplyRange },
 	{ SET_ID_FREQ_HI,		SET_TYPE_INT,	A,		0U,		2000, 16000, 500, (int32_t)CFG_FREQ_HIGH,
@@ -436,6 +439,22 @@ const SET_ModeInfo *SET_Mode(uint8_t Mode)
 uint8_t SET_LookCount(void)
 {
 	return (uint8_t)LOOK_COUNT;
+}
+
+/* Otomatik gecis: siradaki muzikli mod; favori varsa yalniz favoriler arasinda.
+   Uygun mod yoksa ayni mod kalir. */
+uint8_t SET_NextAuto(uint8_t Mode)
+{
+	const uint32_t Fav = (uint32_t)SET_Global(SET_ID_FAV);
+	uint8_t i, m;
+
+	for(i = 1U; i <= LOOK_COUNT; i++)
+	{
+		m = (uint8_t)((Mode + i) % LOOK_COUNT);
+		if(ModeInfo[m].Kind == 0U && (!Fav || (Fav & (1UL << m))))
+			return m;
+	}
+	return Mode;
 }
 
 uint8_t SET_Get(uint8_t Mode, uint16_t Id, int32_t *Value)

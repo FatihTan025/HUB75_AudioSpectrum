@@ -51,6 +51,7 @@
 #define SET_ID_FREQ_LO			0x0003U	/* Alt frekans, Hz	*/
 #define SET_ID_FREQ_HI			0x0004U	/* Ust frekans, Hz	*/
 #define SET_ID_SENS				0x0005U	/* Vurus hassasiyeti 0..100	*/
+#define SET_ID_FAV				0x0006U	/* Favori modlar: bit n = mod n (gizli)	*/
 #define SET_ID_CLS_COLOR       0x0101U
 #define SET_ID_CLS_BAR_RGB     0x0102U
 #define SET_ID_CLS_PEAK        0x0103U
@@ -112,6 +113,7 @@ uint8_t				SET_Set(uint8_t Mode, uint16_t Id, int32_t Value, int32_t *Applied);
 int32_t				SET_Global(uint16_t Id);	/* Kisa yol, hata kontrolu yok	*/
 
 uint8_t				SET_GetCurMode(void);
+uint8_t				SET_NextAuto(uint8_t Mode);	/* Oto gecis: siradaki muzikli favori	*/
 void				SET_SetCurMode(uint8_t Mode);
 
 const char			*SET_GetName(void);

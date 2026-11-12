@@ -59,6 +59,8 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 
 ## Kararlar
 - Birbirinin aynısı mod yok; sadece rengi farklıysa ayrı mod sayılmaz.
+- Favoriler: gizli genel ayar SET_ID_FAV (bit n = mod n); Android mod resminde kalp (yalnız müzikli). Oto geçiş
+  SET_NextAuto: yalnız müzikli modlar, favori varsa yalnız favoriler (eskiden Ortam modlarına da geçiyordu).
 - Kar: zemin siyah (gece odayı aydınlatmasın); uzak tane 1 sönük px, yakın 9 tek parlak px + 7 keskin "+"/"×"
   (dönüyormuş gibi), ara sıra parlama; yıldızlar sarımsı; 20-40 s'de bir ~2.5 s kar tozu esintisi (sönük zerreler).
 - Alev rengi: Buz kaldırıldı (Mavi gaz ile aynıydı). Katmanlı Dağ/Örgü Şerit renk daireleri ailenin ilk-son rengiyle

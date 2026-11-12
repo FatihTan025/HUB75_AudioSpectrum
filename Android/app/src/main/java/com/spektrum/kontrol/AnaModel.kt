@@ -223,6 +223,13 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
     private val yazIs = HashMap<Pair<Int, Int>, Job>()
 
     /** Kaydirma cubuklari icin: son deger gecerli, 60 ms'de bir gonderilir. */
+    /** Favoriler (kalp): kartta tek gizli ayar, bit n = mod n. Otomatik gecis yalniz bunlarda doner. */
+    fun favori(no: Int) = ((genel[AyarId.FAV] ?: 0) shr no) and 1 != 0
+    fun favoriDegistir(no: Int) {
+        val t = tanimBul(AyarId.FAV) ?: return
+        ayarYaz(t, (genel[AyarId.FAV] ?: 0) xor (1 shl no), MOD_GENEL)
+    }
+
     fun ayarYaz(t: Tanim, deger: Int, mod: Int) {
         val m = if (t.modBasina) mod else MOD_GENEL
         if (m == MOD_GENEL) genel[t.id] = deger else modDeger[m] = (modDeger[m] ?: emptyMap()) + (t.id to deger)

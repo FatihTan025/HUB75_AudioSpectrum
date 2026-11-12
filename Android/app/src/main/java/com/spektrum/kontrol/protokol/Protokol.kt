@@ -29,7 +29,7 @@ object Tur { const val BOOL = 0; const val INT = 1; const val ENUM = 2; const va
 
 object Bayrak { const val MOD = 0x01; const val SALT_OKUNUR = 0x02; const val GIZLI = 0x08; const val GELISMIS = 0x10 }
 
-object AyarId { const val PARLAKLIK = 0x0001; const val OTO_SN = 0x0002 }
+object AyarId { const val PARLAKLIK = 0x0001; const val OTO_SN = 0x0002; const val FAV = 0x0006 }
 
 const val MOD_GENEL = 0xFF
 const val SOF = 0xA5

@@ -237,7 +237,7 @@ int main(void)
 		if(AutoSec && (HAL_GetTick() - LastModeChange) >= (AutoSec * 1000U))
 		{
 			LastModeChange = HAL_GetTick();
-			SET_SetCurMode((uint8_t)((SET_GetCurMode() + 1U) % SET_LookCount()));
+			SET_SetCurMode(SET_NextAuto(SET_GetCurMode()));
 			PROTO_NotifyMode(SET_GetCurMode());
 		}
 	}
