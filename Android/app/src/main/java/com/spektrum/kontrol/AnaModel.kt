@@ -63,13 +63,13 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
     val aglar = mutableStateListOf<WifiAg>()
     val wifi = mutableStateOf<WifiDurum?>(null)
 
-    /** Kullanicinin verdigi ad (cihazin yayin adi -> ad), listede gostermek icin telefonda tutulur. */
     /** Hata mesaji; yeni dokunusla iptal edilen eski gonderim (CancellationException) hata degildir */
     private fun hata(e: Exception, on: String = "") {
         if (e is kotlinx.coroutines.CancellationException) throw e
         mesaj.value = on + (e.message ?: e.javaClass.simpleName)
     }
 
+    /** Kullanicinin verdigi ad (cihazin yayin adi -> ad), listede gostermek icin telefonda tutulur. */
     fun gorunenAd(yayinAdi: String) = tercih.getString("ad_$yayinAdi", null)
 
     // =========================================================================
