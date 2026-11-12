@@ -49,8 +49,8 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   (DejaVu Sans Bold 30, 21x22 sabit genişlik); Fatih'in fontu gelince SpecDisplay.c'de SN_FONT değişir, dosya silinir.
 - Saat: Saat.c (RTC, LSE, HAL'siz yazmaç). Kristal ~2 s içinde hazır değilse yazılım saati. CMD_TIME 0x40
   Sa Dk Sn [Gün Ay Yıl-2000] ile ayarlanır (yanıt hep 6 bayt; tarih 2000-2099, RTC takvimi). Saat OTOMATİK
-  GÖNDERİLMEZ (kullanıcı kararı): Android Ayarlar > "Saat ve tarih" penceresi (telefon saatiyle dolu gelir,
-  elle değiştirilebilir), PC aracında "Saati ayarla" düğmesi (PC saati). İnternet gerekmez. Kartta henüz denenmedi.
+  GÖNDERİLMEZ (kullanıcı kararı): Android Ayarlar > "Saati ayarla" tek buton (telefonun saati+tarihi, pencere/geri
+  okuma yok), PC aracında "Saati ayarla" düğmesi. İnternet gerekmez. Kartta henüz denenmedi.
 - Ortam: Android sekmesi aileye değil Kind'a bakar (0 müzikli -> Müzik, 1 müziksiz -> Ortam);
   aile sadece gruplama/sıra (PC'de başlık). Sıra değişince kayıtlı ayarlar kendiliğinden varsayılana döner (Layout CRC).
 - Silindi (beğenilmedi): Plazma, Kutup Işığı, Işık Girdabı (akışkan buhar denemesi, 128x32'de ekranı dolduramadı).
@@ -59,6 +59,10 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 
 ## Kararlar
 - Birbirinin aynısı mod yok; sadece rengi farklıysa ayrı mod sayılmaz.
+- Klasik renk: Tek | Hi-Fi | Gökkuşağı | Akan (Renk Seti ve hazır setler kaldırıldı, kullanıcı kararı).
+  Hi-Fi: alt = Sütun Renk tonu, orta -60°, üst -120° (yeşil -> klasik yeşil-sarı-kırmızı; beyaz = klasik).
+- Android: bağlantı koparsa / açılışta son cihaza otomatik bağlanır ("Bırak" deyince yapmaz).
+  Samsung'da pil "Optimize" arka planda ağı kesiyordu -> "Kısıtlanmamış" ile düzeldi.
 - Kullanıcıya mod başına en fazla ~3 ayar. Renk seçimi pencere açmadan (ton çubuğu / bloklar).
 - Android asıl arayüz (LED Chord tarzı, resimle mod seçimi). ESP32 köprü: BLE (NUS) + WiFi TCP 5000.
 - ESP32 kopru (ESP32/SpektrumKopru, surum 2.0): Wi-Fi AP + ev agi + BLE NUS ayni anda, saydam. 0x7F alt komutlari:

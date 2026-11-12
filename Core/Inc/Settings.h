@@ -58,10 +58,6 @@
 #define SET_ID_CLS_WIDTH       0x0106U
 #define SET_ID_CLS_TYPE        0x0107U
 #define SET_ID_CLS_SHAPE       0x0108U
-#define SET_ID_CLS_SET         0x0109U
-#define SET_ID_CLS_LO          0x010AU
-#define SET_ID_CLS_MID         0x010BU
-#define SET_ID_CLS_HI          0x010CU
 #define SET_ID_CLS_BLEND       0x010DU
 #define SET_ID_CLS_PEAK_COL    0x0110U
 #define SET_ID_CLS_LAYOUT      0x0112U

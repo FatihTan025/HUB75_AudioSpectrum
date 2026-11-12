@@ -419,17 +419,44 @@ uint8_t SPEC_Speed = 2, SPEC_React = 1, SPEC_ShowNo = 0;
 uint8_t SPEC_LineSel = 0;						/* Isik Cizgisi renk ailesi (Settings.c yazar)	*/
 uint8_t SPEC_Contrast = 120;					/* Renkli Dalga, % (50..150)	*/
 
-SPEC_ClsCfg SPEC_Cls = { 3, 0, 0, 1, 0, 0, 1, 0, 0,
-                         0x00C8FFUL, 0x00E0FFUL, 0x0040FFUL, 0xA000FFUL, 0xFFFFFFUL };
+SPEC_ClsCfg SPEC_Cls = { 3, 0, 0, 1, 0, 1, 0, 0, 0x00FF00UL, 0xFFFFFFUL };
 
-const uint32_t SPEC_ClsSets[5][3] =
+/* Hi-Fi uclu renk: alt = Bar tonu, orta = -60, ust = -120 derece (yesil -> sari -> kirmizi).
+   Bar beyaz/soluksa klasik Hi-Fi. SPEC_ClsApply hesaplar. */
+static uint32_t HfLo = 0x00FF00UL, HfMid = 0xFFFF00UL, HfHi = 0xFF0000UL;
+
+static uint32_t TonRenk(int32_t h)						/* Tam doygun, tam parlak ton (derece) */
 {
-	{ 0x00FF00UL, 0xFFFF00UL, 0xFF0000UL },		/* Hi-Fi				*/
-	{ 0x00E0FFUL, 0x0040FFUL, 0xA000FFUL },		/* Okyanus				*/
-	{ 0x8000C0UL, 0xFF2000UL, 0xFFA000UL },		/* Gun batimi			*/
-	{ 0x000090UL, 0x0080FFUL, 0xFFFFFFUL },		/* Buz					*/
-	{ 0xFF00A0UL, 0x8000FFUL, 0x00FFFFUL }		/* Neon					*/
-};
+	uint32_t r, g, b;
+
+	h = ((h % 360) + 360) % 360;
+	switch(h / 60)
+	{
+	case 0:  r = 255; g = (uint32_t)(255 * h / 60);         b = 0;   break;
+	case 1:  r = (uint32_t)(255 * (120 - h) / 60); g = 255; b = 0;   break;
+	case 2:  r = 0;   g = 255; b = (uint32_t)(255 * (h - 120) / 60); break;
+	case 3:  r = 0;   g = (uint32_t)(255 * (240 - h) / 60); b = 255; break;
+	case 4:  r = (uint32_t)(255 * (h - 240) / 60); g = 0;   b = 255; break;
+	default: r = 255; g = 0;   b = (uint32_t)(255 * (360 - h) / 60); break;
+	}
+	return (r << 16) | (g << 8) | b;
+}
+
+static void HiFiHesapla(uint32_t c)
+{
+	int32_t r = (int32_t)((c >> 16) & 255U), g = (int32_t)((c >> 8) & 255U), b = (int32_t)(c & 255U);
+	int32_t mx = r > g ? (r > b ? r : b) : (g > b ? g : b), mn = r < g ? (r < b ? r : b) : (g < b ? g : b), d = mx - mn, h;
+
+	if(mx == 0 || d * 4 < mx)							/* Beyaz/soluk: klasik Hi-Fi */
+	{
+		HfLo = 0x00FF00UL; HfMid = 0xFFFF00UL; HfHi = 0xFF0000UL;
+		return;
+	}
+	if(mx == r)      h = 60 * (g - b) / d;
+	else if(mx == g) h = 120 + 60 * (b - r) / d;
+	else             h = 240 + 60 * (r - g) / d;
+	HfLo = TonRenk(h); HfMid = TonRenk(h - 60); HfHi = TonRenk(h - 120);
+}
 
 static uint32_t Mix(uint32_t a, uint32_t b, uint32_t t)		/* t: 0..256 */
 {
@@ -451,7 +478,7 @@ static uint32_t ClsColor(uint32_t k, uint32_t Row, uint32_t Area)
 	case 0:	return c->Bar;
 	case 1:
 	{
-		uint32_t Lo = c->Lo, Mi = c->Mid, Hi = c->Hi;	/* Hazir set secilince bunlara kopyalanir */
+		uint32_t Lo = HfLo, Mi = HfMid, Hi = HfHi;
 		uint32_t t  = (Area > 1U) ? Row * 256U / (Area - 1U) : 0U;
 		if(c->Blend)									/* Bolgeli: %60 / %25 / %15 */
 			return (t < 154U) ? Lo : (t < 218U) ? Mi : Hi;
@@ -518,6 +545,7 @@ void SPEC_ClsApply(void)
 {
 	if(SPEC_Cls.Width < 1U) SPEC_Cls.Width = 1U;
 	if(SPEC_Cls.Width > 4U) SPEC_Cls.Width = 4U;
+	HiFiHesapla(SPEC_Cls.Bar);
 	if(Mode == SPEC_MODE_CLASSIC)
 		Nb = SPEC_ClsBands();
 }

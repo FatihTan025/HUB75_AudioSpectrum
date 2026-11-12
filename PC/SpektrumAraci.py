@@ -771,9 +771,8 @@ class Uygulama:
     def SaatBas(self):
         """Bilgisayarin saat ve tarihini karta yazar."""
         C, Su = self.Cihaz, time.localtime()
-        self.Is.Yap(lambda: (C.SaatAyarla(Su.tm_hour, Su.tm_min, Su.tm_sec, Su.tm_mday, Su.tm_mon, Su.tm_year), C.SaatOku())[1],
-                    lambda z: self.Durum('Saat ayarlandı: %02d:%02d  %02d.%02d.%d' % (z[0], z[1], z[3], z[4], z[5]) if z
-                                         else 'Saat ayarlandı (kart yazılımı tarihi desteklemiyor)', VURGU),
+        self.Is.Yap(lambda: C.SaatAyarla(Su.tm_hour, Su.tm_min, Su.tm_sec, Su.tm_mday, Su.tm_mon, Su.tm_year),
+                    lambda _: self.Durum('Saat ayarlandı: %02d:%02d  %02d.%02d.%d' % (Su.tm_hour, Su.tm_min, Su.tm_mday, Su.tm_mon, Su.tm_year), VURGU),
                     lambda e: self.Durum(str(e), KIRMIZI))
 
     # --- Karttan gelenler ------------------------------------------------------

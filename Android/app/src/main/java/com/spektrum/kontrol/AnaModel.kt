@@ -49,7 +49,6 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
     val bilgi = mutableStateOf<Bilgi?>(null)
     val surumUyari = mutableStateOf(false)
     val kopru = mutableStateOf<KopruBilgi?>(null)
-    val cihazSaat = mutableStateOf<IntArray?>(null)        // sa dk sn gun ay yil (okundugu an)
 
     // --- Icerik (cihazdan) ---
     val modlar = mutableStateListOf<Mod>()
@@ -80,6 +79,13 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
         else lm.isProviderEnabled(LocationManager.GPS_PROVIDER) || lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
 
+    /**
+     * Otomatik yeniden baglanma: baglanti koparsa (ya da uygulama acilinca) son cihaz
+     * taramada gorulur gorulmez kendiliginden baglanilir. Kullanici "Birak" derse yapilmaz.
+     */
+    private var otoHedef: String? = tercih.getString("son_cihaz", null)
+    private var otoSekme: Sekme? = null
+
     fun taramaBaslat() {
         konumKapali.value = Build.VERSION.SDK_INT in 23..30 && !konumAcik()
         kesif?.durdur()
@@ -100,6 +106,11 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
         else {
             val e = bulunanlar[i]
             bulunanlar[i] = e.copy(ble = b.ble ?: e.ble, ipler = (e.ipler + b.ipler).distinct(), rssi = b.rssi ?: e.rssi)
+        }
+        val h = otoHedef
+        if (h != null && b.ad == h && cihaz.value == null && baglaniyor.value == null) {
+            otoHedef = null                         // tek deneme; yeniden kopunca tekrar kurulur
+            viewModelScope.launch { delay(800); bulunanlar.firstOrNull { it.ad == h }?.let { baglan(it) } }   // diger yollar da gelsin
         }
     }
 
@@ -143,9 +154,9 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
                 modDeger.clear()
                 aktifMod.value = bl.mod
                 guc.value = bl.guc
-                sekme.value = if (ml.firstOrNull { it.no == bl.mod }?.tur == 1) Sekme.ORTAM else Sekme.MUZIK
-                tercih.edit().putString("ad_${b.ad}", bl.ad).apply()
-                cihazSaat.value = try { c.saatOku() } catch (_: Exception) { null }   // Saat otomatik gonderilmez
+                sekme.value = otoSekme ?: if (ml.firstOrNull { it.no == bl.mod }?.tur == 1) Sekme.ORTAM else Sekme.MUZIK
+                otoSekme = null
+                tercih.edit().putString("ad_${b.ad}", bl.ad).putString("son_cihaz", b.ad).apply()
                 cihaz.value = c
                 modDegerYukle(bl.mod)
                 kopru.value = try { c.kopruBilgi() } catch (_: Exception) { null }   // UART'tan bagliysa kopru yok
@@ -161,13 +172,17 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
     fun birak() {
         cihaz.value?.kapat()
         cihaz.value = null
+        otoHedef = null
+        tercih.edit().remove("son_cihaz").apply()
         taramaBaslat()
     }
 
     private fun koptu(m: String) {
         if (cihaz.value == null) return
         cihaz.value = null
-        mesaj.value = m
+        otoHedef = tercih.getString("son_cihaz", null)
+        otoSekme = sekme.value
+        mesaj.value = if (otoHedef != null) "$m · yeniden bağlanılıyor" else m
         taramaBaslat()
     }
 
@@ -264,19 +279,14 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
         ayarYaz(t, sure, MOD_GENEL)
     }
 
-    fun saatOku() {
-        val c = cihaz.value ?: return
-        viewModelScope.launch { cihazSaat.value = try { c.saatOku() } catch (_: Exception) { null } }
-    }
-
-    /** Kullanici "Saati ayarla" ile sectigi saat ve tarihi gonderir */
-    fun saatAyarla(z: java.util.Calendar) {
+    /** "Saati ayarla": telefonun saati ve tarihi karta gider (otomatik gonderilmez) */
+    fun saatAyarla() {
         val c = cihaz.value ?: return
         viewModelScope.launch {
             try {
+                val z = java.util.Calendar.getInstance()
                 c.saatAyarla(z.get(java.util.Calendar.HOUR_OF_DAY), z.get(java.util.Calendar.MINUTE), z.get(java.util.Calendar.SECOND),
                     z.get(java.util.Calendar.DAY_OF_MONTH), z.get(java.util.Calendar.MONTH) + 1, z.get(java.util.Calendar.YEAR))
-                cihazSaat.value = c.saatOku()
                 mesaj.value = "Saat ayarlandı"
             } catch (e: Exception) { hata(e) }
         }

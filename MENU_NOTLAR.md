@@ -20,8 +20,8 @@ telefon asil kontrol, panel menusu sade olacak.
 
 ## Kararlar
 - Modun TUM kullanici ayarlari menude (ayri "panelde goster" bayragi yok). Ayar simgeleri simdilik yok.
-- Adlar OSD'ye sigsin diye kisaltildi: Genislik, Sutun Renk, Renk Seti, Tepe Renk, Alev Renk;
-  Renk secenekleri Tek / Kademe / Gokkusagi / Akan. Kural: "AD: DEGER" en cok 21 karakter.
+- Adlar OSD'ye sigsin diye kisaltildi: Genislik, Sutun Renk, Tepe Renk, Alev Renk;
+  Renk secenekleri Tek / Hi-Fi / Gokkusagi / Akan. Kural: "AD: DEGER" en cok 21 karakter.
   Denetim: Tools/Onizleme/osd_kontrol.py (uret.sh basinda da calisir). Adlar CRC'ye girmez, kayit sifirlanmaz.
 
 - Renk ayarlarinda beyaz: seridin basinda beyaz bolum; encoder mordan sonra beyaza gecer (Android'de de ayni).

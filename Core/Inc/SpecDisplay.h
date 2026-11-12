@@ -48,18 +48,15 @@ typedef struct
 	uint8_t		Width;		/* 1..4 px									*/
 	uint8_t		Type;		/* 0 duz, 1 neon cerceve					*/
 	uint8_t		Shape;		/* 0 yukari, 1 sarkan, 2 simetrik			*/
-	uint8_t		ColorMode;	/* 0 tek renk, 1 yukseklik, 2 yatay gokkusagi, 3 akan */
-	uint8_t		Set;		/* Yukseklik seti 0..4 hazir, 5 ozel (bilgi)	*/
+	uint8_t		ColorMode;	/* 0 tek renk, 1 Hi-Fi (alttan uste, Bar tonundan), 2 yatay gokkusagi, 3 akan */
 	uint8_t		Blend;		/* 0 yumusak, 1 bolgeli						*/
 	uint8_t		Peak;		/* 0 kapali, 1 nokta, 2 top					*/
 	uint8_t		PeakColor;	/* 0 sabit (PeakRGB), 1 bant rengi			*/
 	uint8_t		Layout;		/* 0 bas solda, 1 bas ortada (iki yana ayna)	*/
-	uint32_t	Bar, Lo, Mid, Hi, PeakRGB;
+	uint32_t	Bar, PeakRGB;
 } SPEC_ClsCfg;
 extern SPEC_ClsCfg SPEC_Cls;
 
-/* Hazir yukseklik setleri: secilince Settings.c Lo/Mid/Hi'ye kopyalar */
-extern const uint32_t SPEC_ClsSets[5][3];
 
 /* Hareket (her gorunumun kendi degeri, Settings.c yazar)
    SPEC_Speed: 0 yavas, 1 normal, 2 yuksek, 3 cok yuksek -- tempoya gore; cubuk dususunu etkilemez

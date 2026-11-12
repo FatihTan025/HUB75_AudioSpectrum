@@ -42,9 +42,9 @@ static const SET_ModeInfo ModeInfo[] =
 	/* --- Klasik (aile 0) --- */
 	LOOK0("Klasik",							0, SPEC_MODE_CLASSIC),
 	LOOK("Neon",							0, SPEC_MODE_CLASSIC,
-		{ SET_ID_CLS_WIDTH, 4 }, { SET_ID_CLS_TYPE, 1 }, { SET_ID_CLS_PEAK_STYLE, 2 }),
+		{ SET_ID_CLS_WIDTH, 4 }, { SET_ID_CLS_TYPE, 1 }, { SET_ID_CLS_PEAK_STYLE, 2 }, { SET_ID_CLS_BAR_RGB, 0x00C8FF }),
 	LOOK("Orta Da\304\237",					0, SPEC_MODE_CLASSIC,	/* Orta Dag */
-		{ SET_ID_CLS_WIDTH, 2 }, { SET_ID_CLS_LAYOUT, 1 }, { SET_ID_CLS_SET, 2 }),
+		{ SET_ID_CLS_WIDTH, 2 }, { SET_ID_CLS_LAYOUT, 1 }, { SET_ID_CLS_BAR_RGB, 0xFF0080 }),	/* Hi-Fi: pembe -> mor -> mavi */
 	LOOK0("F\304\261skiye",					0, SPEC_MODE_FOUNTAIN),	/* Fiskiye */
 	LOOK0("Renkli Dalga",					0, SPEC_MODE_SPECWAVE),
 	LOOK0("Dalga",							0, SPEC_MODE_WAVE),
@@ -90,10 +90,6 @@ static void ApplyClassic(uint8_t Mode, int32_t Value)
 	SPEC_Cls.Width     = (uint8_t)SET_Global(SET_ID_CLS_WIDTH);
 	SPEC_Cls.Type      = (uint8_t)SET_Global(SET_ID_CLS_TYPE);
 	SPEC_Cls.Shape     = (uint8_t)SET_Global(SET_ID_CLS_SHAPE);
-	SPEC_Cls.Set       = (uint8_t)SET_Global(SET_ID_CLS_SET);
-	SPEC_Cls.Lo        = (uint32_t)SET_Global(SET_ID_CLS_LO);
-	SPEC_Cls.Mid       = (uint32_t)SET_Global(SET_ID_CLS_MID);
-	SPEC_Cls.Hi        = (uint32_t)SET_Global(SET_ID_CLS_HI);
 	SPEC_Cls.Blend     = (uint8_t)SET_Global(SET_ID_CLS_BLEND);
 	SPEC_Cls.Layout    = (uint8_t)SET_Global(SET_ID_CLS_LAYOUT);
 	SPEC_Cls.PeakColor = (uint8_t)SET_Global(SET_ID_CLS_PEAK_COL);
@@ -186,22 +182,10 @@ static const SET_Param Table[] =
 	{ SET_ID_CLS_SHAPE, SET_TYPE_ENUM, SET_FLAG_PER_MODE, CLS_MASK, 0, 2, 1, 0,
 	  "\305\236ekil", "Bant", "Yukar\304\261|Sarkan|Simetrik", ApplyClassic },
 	{ SET_ID_CLS_COLOR, SET_TYPE_ENUM, SET_FLAG_PER_MODE, CLS_MASK, 0, 3, 1, 1,
-	  "Renk", "Renk", "Tek|Kademe|G\303\266kku\305\237a\304\237\304\261|Akan", ApplyClassic },
-	{ SET_ID_CLS_BAR_RGB, SET_TYPE_COLOR, SET_FLAG_PER_MODE, CLS_MASK, 0, 0xFFFFFF, 1, 0x00C8FF,
+	  "Renk", "Renk", "Tek|Hi-Fi|G\303\266kku\305\237a\304\237\304\261|Akan", ApplyClassic },
+	{ SET_ID_CLS_BAR_RGB, SET_TYPE_COLOR, SET_FLAG_PER_MODE, CLS_MASK, 0, 0xFFFFFF, 1, 0x00FF00,
 	  "S\303\274tun Renk", "Renk", "", ApplyClassic,
-	  SET_ID_CLS_COLOR, 0, 0 },
-	{ SET_ID_CLS_SET, SET_TYPE_ENUM, SET_FLAG_PER_MODE, CLS_MASK, 0, 5, 1, 0,
-	  "Renk Seti", "Renk", "Hi-Fi|Okyanus|G\303\274n bat\304\261m\304\261|Buz|Neon|\303\226zel", ApplyClassic,
-	  SET_ID_CLS_COLOR, 1, 1 },
-	{ SET_ID_CLS_LO, SET_TYPE_COLOR, SET_FLAG_PER_MODE | A, CLS_MASK, 0, 0xFFFFFF, 1, 0x00FF00,
-	  "Alt renk", "Renk", "", ApplyClassic,
-	  SET_ID_CLS_COLOR, 1, 1 },
-	{ SET_ID_CLS_MID, SET_TYPE_COLOR, SET_FLAG_PER_MODE | A, CLS_MASK, 0, 0xFFFFFF, 1, 0xFFFF00,
-	  "Orta renk", "Renk", "", ApplyClassic,
-	  SET_ID_CLS_COLOR, 1, 1 },
-	{ SET_ID_CLS_HI, SET_TYPE_COLOR, SET_FLAG_PER_MODE | A, CLS_MASK, 0, 0xFFFFFF, 1, 0xFF0000,
-	  "\303\234st renk", "Renk", "", ApplyClassic,
-	  SET_ID_CLS_COLOR, 1, 1 },
+	  SET_ID_CLS_COLOR, 0, 1 },
 	{ SET_ID_CLS_BLEND, SET_TYPE_ENUM, SET_FLAG_PER_MODE | A, CLS_MASK, 0, 1, 1, 0,
 	  "Ge\303\247i\305\237", "Renk", "Yumu\305\237ak|B\303\266lgeli", ApplyClassic,
 	  SET_ID_CLS_COLOR, 1, 1 },
@@ -317,8 +301,7 @@ static uint8_t Available(uint16_t Index, uint8_t Mode)
 		return 0U;
 	switch(Table[Index].Id)							/* Neon: 5 px sabit, tek renk tup */
 	{
-	case SET_ID_CLS_WIDTH: case SET_ID_CLS_COLOR: case SET_ID_CLS_SET:
-	case SET_ID_CLS_LO: case SET_ID_CLS_MID: case SET_ID_CLS_HI: case SET_ID_CLS_BLEND:
+	case SET_ID_CLS_WIDTH: case SET_ID_CLS_COLOR: case SET_ID_CLS_BLEND:
 	{
 		int t = Find(SET_ID_CLS_TYPE);
 		if(t >= 0 && *Cell((uint16_t)t, Mode) == 1)
@@ -340,46 +323,6 @@ static int32_t Clamp(const SET_Param *p, int32_t v)
 		v = p->Min + ((v - p->Min + p->Step / 2) / p->Step) * p->Step;
 	if(v > p->Max) v = p->Max;
 	return v;
-}
-
-/* ==========================================================================
-   Bagli ayarlar: hazir renk seti secilince renk cubuklari ona gelir,
-   cubuk oynatilinca secim "Ozel" olur. Ayni gorunumun hucreleri.
-   ========================================================================== */
-static int32_t *LinkCell(uint16_t Id, uint8_t Mode)
-{
-	int i = Find(Id);
-	return (i >= 0 && Available((uint16_t)i, Mode)) ? Cell((uint16_t)i, Mode) : 0;
-}
-
-static void LinkSet(uint16_t Id, uint8_t Mode, int32_t v)
-{
-	int32_t *p = LinkCell(Id, Mode);
-	if(p) *p = v;
-}
-
-static void Link(uint16_t Id, uint8_t Mode)
-{
-	int32_t *p = LinkCell(Id, Mode);
-
-	if(!p)
-		return;
-	switch(Id)
-	{
-	case SET_ID_CLS_SET:
-		if(*p < 5)
-		{
-			LinkSet(SET_ID_CLS_LO,  Mode, (int32_t)SPEC_ClsSets[*p][0]);
-			LinkSet(SET_ID_CLS_MID, Mode, (int32_t)SPEC_ClsSets[*p][1]);
-			LinkSet(SET_ID_CLS_HI,  Mode, (int32_t)SPEC_ClsSets[*p][2]);
-		}
-		break;
-	case SET_ID_CLS_LO: case SET_ID_CLS_MID: case SET_ID_CLS_HI:
-		LinkSet(SET_ID_CLS_SET, Mode, 5);
-		break;
-	default:
-		break;
-	}
 }
 
 static void ApplyOne(uint16_t Index, uint8_t Mode)
@@ -420,11 +363,6 @@ static void Defaults(SET_Store *s)
 		else
 			s->Global[Slot[i]] = Table[i].Def;
 	}
-	if(s == &Live)							/* Cubuklar secili setle baslasin	*/
-		for(uint8_t m = 0; m < LOOK_COUNT; m++)
-		{
-			Link(SET_ID_CLS_SET, m);
-		}
 }
 
 static uint8_t Valid(const SET_Store *s)
@@ -540,7 +478,6 @@ uint8_t SET_Set(uint8_t Mode, uint16_t Id, int32_t Value, int32_t *Applied)
 
 	v = Clamp(&Table[i], Value);
 	*Cell((uint16_t)i, Mode) = v;
-	Link(Table[i].Id, Mode);				/* Bagli ayarlari esitle			*/
 	if(!(Table[i].Flags & SET_FLAG_PER_MODE) || Mode == Live.Mode)
 		ApplyOne((uint16_t)i, Mode);
 	if(Applied)

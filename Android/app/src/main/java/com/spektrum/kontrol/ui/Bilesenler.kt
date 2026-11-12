@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -23,6 +25,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
@@ -58,6 +61,7 @@ val Sari = Color(0xFFFFD23F)
 val SariYazi = Color(0xFF2A1A00)
 val Soluk = Color(0xFFE4DCFF)
 val Pasif = Color(0xFFB9AEEB)
+val IzKoyu = Color(0xFF2A1A78)     // Kaydirma cubugunun bos tarafi (zeminden belirgin)
 
 fun rgbRenk(v: Int) = Color(0xFF000000.toInt() or (v and 0xFFFFFF))
 fun tonRenk(h: Float) = Color(android.graphics.Color.HSVToColor(floatArrayOf(h.coerceIn(0f, 359.9f), 1f, 1f)))
@@ -69,7 +73,7 @@ fun Baslik(yazi: String) = Text(yazi, color = Color.White, fontSize = 14.sp, fon
 /** Ayar satiri: ad solda (altinda secili deger kucuk), denetim sagda; tek satir, sayfa uzamasin. */
 @Composable
 fun TekSatir(ad: String, alt: String? = null, denetim: @Composable () -> Unit) {
-    Row(Modifier.fillMaxWidth().height(44.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth().heightIn(min = 52.dp), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.width(96.dp)) {
             Text(ad, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
             if (!alt.isNullOrEmpty()) Text(alt, color = Pasif, fontSize = 11.sp, maxLines = 1)
@@ -113,6 +117,7 @@ fun AyarSatiri(t: Tanim, deger: Int, degisti: (Int) -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Cubuk(deger: Int, min: Int, max: Int, adim: Int, degisti: (Int) -> Unit) {
     val adimSayisi = if (adim > 0 && max > min) ((max - min) / adim - 1).coerceIn(0, 200) else 0
@@ -121,9 +126,21 @@ fun Cubuk(deger: Int, min: Int, max: Int, adim: Int, degisti: (Int) -> Unit) {
         onValueChange = { v: Float -> val a = maxOf(1, adim); degisti(min + ((v - min) / a).roundToInt() * a) },
         valueRange = min.toFloat()..maxOf(min + 1, max).toFloat(),
         steps = adimSayisi,
-        colors = SliderDefaults.colors(thumbColor = Color.White, activeTrackColor = Sari, inactiveTrackColor = MorKoyu,
-            activeTickColor = Color.Transparent, inactiveTickColor = Color.Transparent)
+        thumb = { Tutamac() },
+        track = { st ->
+            val ar = st.valueRange.endInclusive - st.valueRange.start
+            val f = if (ar > 0f) ((st.value - st.valueRange.start) / ar).coerceIn(0f, 1f) else 0f
+            Box(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)).background(IzKoyu)) {
+                Box(Modifier.fillMaxWidth(f).fillMaxHeight().background(Sari))
+            }
+        }
     )
+}
+
+/** Kaydirma ve renk cubugu tutamaci: siyah daire, beyaz halka (mor zeminde secilsin) */
+@Composable
+fun Tutamac() {
+    Box(Modifier.size(22.dp).shadow(3.dp, CircleShape).clip(CircleShape).background(Color.Black).border(2.dp, Color.White, CircleShape))
 }
 
 @Composable
@@ -136,9 +153,9 @@ fun Secmeli(secenekler: List<String>, secili: Int, sec: (Int) -> Unit) {
             val on = i == secili
             Box(
                 Modifier.clip(RoundedCornerShape(18.dp)).background(if (on) Sari else Color.Transparent)
-                    .clickable { sec(i) }.padding(horizontal = 12.dp, vertical = 7.dp),
+                    .clickable { sec(i) }.padding(horizontal = 14.dp, vertical = 8.dp),
                 contentAlignment = Alignment.Center
-            ) { Text(s, color = if (on) SariYazi else Soluk, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1) }
+            ) { Text(s, color = if (on) SariYazi else Soluk, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1) }
         }
     }
 }
@@ -191,11 +208,7 @@ fun RenkCubugu(konum: Float, beyaz: Boolean, degisti: (Float) -> Unit) {
                     }
                 }
         )
-        Box(
-            Modifier.offset(x = (g - 22.dp) * konum.coerceIn(0f, 1f)).size(22.dp)
-                .shadow(3.dp, CircleShape).clip(CircleShape).background(Color.White)
-                .border(2.dp, MorKoyu, CircleShape)
-        )
+        Box(Modifier.offset(x = (g - 22.dp) * konum.coerceIn(0f, 1f))) { Tutamac() }
     }
 }
 
