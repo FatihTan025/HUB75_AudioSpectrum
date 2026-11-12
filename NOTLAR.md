@@ -3,6 +3,11 @@
 Yeni oturum: önce bunu oku. Kurallar: Türkçe, kısa cevap. Fatih "başla" demeden kod yazma.
 Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum değiştirmiş olabilir).
 
+## GitHub
+- Ozel depo: github.com/FatihTan025/HUB75_AudioSpectrum (asil kaynak burasi; ev ve is PC'si buradan ceker).
+- Android/ degisince APK otomatik derlenir: Releases > son-apk > Spektrum.apk (telefondan indirip kur).
+- Derleme ciktilari (Debug/, build/, __pycache__) depoya girmez (.gitignore).
+
 ## Donanım
 - STM32F446RC, 180 MHz. Panel: 2×P5 64×32 = 128×32 (sürücü mantıksal 64×64), 1/8 tarama.
 - 8 bit-plane (en az 7). RAM ~101 KB / 128 KB. Yığın 0x1000.
