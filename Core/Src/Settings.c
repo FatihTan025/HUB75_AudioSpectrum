@@ -180,18 +180,18 @@ static const SET_Param Table[] =
 
 	/* --- Klasik (her alanin okunur hali yaninda) --- */
 	{ SET_ID_CLS_WIDTH, SET_TYPE_INT, SET_FLAG_PER_MODE, CLS_MASK, 1, 4, 1, 3,
-	  "Bant geni\305\237li\304\237i", "Bant", "px", ApplyClassic },
+	  "Geni\305\237lik", "Bant", "px", ApplyClassic },
 	{ SET_ID_CLS_TYPE, SET_TYPE_ENUM, SET_FLAG_PER_MODE | H, CLS_MASK, 0, 1, 1, 0,
 	  "\303\207ubuk tipi", "Bant", "D\303\274z|Neon \303\247er\303\247eve", ApplyClassic },
 	{ SET_ID_CLS_SHAPE, SET_TYPE_ENUM, SET_FLAG_PER_MODE, CLS_MASK, 0, 2, 1, 0,
 	  "\305\236ekil", "Bant", "Yukar\304\261|Sarkan|Simetrik", ApplyClassic },
 	{ SET_ID_CLS_COLOR, SET_TYPE_ENUM, SET_FLAG_PER_MODE, CLS_MASK, 0, 3, 1, 1,
-	  "Renk", "Renk", "Tek renk|Y\303\274kseklik renkleri|Yatay g\303\266kku\305\237a\304\237\304\261|Akan g\303\266kku\305\237a\304\237\304\261", ApplyClassic },
+	  "Renk", "Renk", "Tek|Kademe|G\303\266kku\305\237a\304\237\304\261|Akan", ApplyClassic },
 	{ SET_ID_CLS_BAR_RGB, SET_TYPE_COLOR, SET_FLAG_PER_MODE, CLS_MASK, 0, 0xFFFFFF, 1, 0x00C8FF,
-	  "Bant rengi", "Renk", "", ApplyClassic,
+	  "S\303\274tun Renk", "Renk", "", ApplyClassic,
 	  SET_ID_CLS_COLOR, 0, 0 },
 	{ SET_ID_CLS_SET, SET_TYPE_ENUM, SET_FLAG_PER_MODE, CLS_MASK, 0, 5, 1, 0,
-	  "Renk seti", "Renk", "Hi-Fi|Okyanus|G\303\274n bat\304\261m\304\261|Buz|Neon|\303\226zel", ApplyClassic,
+	  "Renk Seti", "Renk", "Hi-Fi|Okyanus|G\303\274n bat\304\261m\304\261|Buz|Neon|\303\226zel", ApplyClassic,
 	  SET_ID_CLS_COLOR, 1, 1 },
 	{ SET_ID_CLS_LO, SET_TYPE_COLOR, SET_FLAG_PER_MODE | A, CLS_MASK, 0, 0xFFFFFF, 1, 0x00FF00,
 	  "Alt renk", "Renk", "", ApplyClassic,
@@ -213,14 +213,14 @@ static const SET_Param Table[] =
 	  "Tepe renk kayna\304\237\304\261", "Tepe", "Sabit renk|Bant rengi", ApplyClassic,	/* Gorunume sabit */
 	  SET_ID_CLS_PEAK, 1, 3 },
 	{ SET_ID_CLS_PEAK_RGB, SET_TYPE_COLOR, SET_FLAG_PER_MODE, CLS_MASK, 0, 0xFFFFFF, 1, 0xFFFFFF,
-	  "Tepe rengi", "Tepe", "", ApplyClassic,
+	  "Tepe Renk", "Tepe", "", ApplyClassic,
 	  SET_ID_CLS_PEAK_COL, 0, 0 },
 	{ SET_ID_CLS_LAYOUT, SET_TYPE_ENUM, SET_FLAG_PER_MODE | H, CLS_MASK, 0, 1, 1, 0,
 	  "Yerle\305\237im", "Ekstra", "Bas solda|Bas ortada", ApplyClassic },			/* Yerlesim: gorunume sabit (Ayna, Orta Dag) */
 
 	/* --- Alev modlari: bloklu renk cubugu (hazir paletler) --- */
 	{ SET_ID_FIRE_COLOR,	SET_TYPE_SWATCH, SET_FLAG_PER_MODE, FIRE_MASK, 0, 5, 1, 0,
-	  "Alev rengi", "Alev",
+	  "Alev Renk", "Alev",
 	  "Ate\305\237:FF7A10|Pembe:FF3C8C|Mor:A040FF|Mavi gaz:2C7CFF|Buz:A8E4FF|Ye\305\237il:50E040",	/* Ates ... Yesil */
 	  ApplyFire },
 

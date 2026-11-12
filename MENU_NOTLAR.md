@@ -18,6 +18,12 @@ telefon asil kontrol, panel menusu sade olacak.
   (sigmazsa yalniz deger). Renk/ton ayarlarinda altinda gokkusagi seridi + imlec (ust 13 satir).
 - Cikista kisa "TAMAM".
 
+## Kararlar
+- Modun TUM kullanici ayarlari menude (ayri "panelde goster" bayragi yok). Ayar simgeleri simdilik yok.
+- Adlar OSD'ye sigsin diye kisaltildi: Genislik, Sutun Renk, Renk Seti, Tepe Renk, Alev Renk;
+  Renk secenekleri Tek / Kademe / Gokkusagi / Akan. Kural: "AD: DEGER" en cok 21 karakter.
+  Denetim: Tools/Onizleme/osd_kontrol.py (uret.sh basinda da calisir). Adlar CRC'ye girmez, kayit sifirlanmaz.
+
 ## Dosyalar
 Menu.c/.h (mantik), SpecDisplay.c (SPEC_Osd, OsdCiz, Font57), Buttons.c (kisa/uzun), main.c (baglanti).
 Kartta henuz denenmedi.

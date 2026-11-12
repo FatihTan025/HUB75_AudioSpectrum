@@ -2,6 +2,7 @@
 # Mod onizlemelerini firmware'in kendi cizim koduyla uretir ve Android uygulamasina koyar.
 # Linux/WSL/Git Bash: sh Tools/Onizleme/uret.sh   (gcc, python3 + numpy + pillow gerekir)
 set -e
+python3 "$(dirname "$0")/osd_kontrol.py" > /dev/null || { python3 "$(dirname "$0")/osd_kontrol.py"; exit 1; }   # OSD yazilari sigiyor mu
 KOK=$(cd "$(dirname "$0")/../.." && pwd)
 GEC=$(mktemp -d)
 cp "$KOK"/Core/Inc/*.h "$GEC"/
