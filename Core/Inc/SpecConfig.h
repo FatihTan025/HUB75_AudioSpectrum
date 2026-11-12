@@ -106,7 +106,7 @@
 #define CFG_BEAT_BRIGHT_BOOST	25U		/* Vurusta ek parlaklik, % (0 = kapali)	*/
 #define CFG_HUE_SPEED			40.0f	/* Renk donme hizi, derece/s			*/
 #define CFG_TRAIL				200U	/* Iz birakan modlarda iz uzunlugu 0..250 */
-#define CFG_START_MODE			13U		/* Acilis modu: 13 = Alev Halka			*/
+#define CFG_START_MODE			0U		/* Acilis / fabrika modu: 0 = Klasik	*/
 #define CFG_AUTO_MODE_SEC		0U		/* >0: bu kadar saniyede bir otomatik gec */
 #define CFG_SHOW_MODE_MS		800U	/* Mod degisince sol ustte numara		*/
 #define CFG_SHOW_FREQ			0		/* 1: sag ustte tepe frekansi (test)	*/

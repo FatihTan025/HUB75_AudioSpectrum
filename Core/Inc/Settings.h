@@ -65,7 +65,6 @@
 #define SET_ID_SPEED           0x0120U
 #define SET_ID_REACT           0x0121U
 #define SET_ID_FIRE_COLOR		0x0206U	/* Alev rengi: hazir paletlerden biri	*/
-#define SET_ID_CONTRAST		0x0207U	/* Renkli Dalga: kontrast %			*/
 #define SET_ID_LL_COLOR		0x0208U	/* Isik Cizgisi: renk ailesi (blok)	*/
 #define SET_ID_PAL		0x0209U	/* Katmanli Dag / Orgu Serit: renk ailesi (8)	*/
 

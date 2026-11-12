@@ -417,7 +417,6 @@ static void UpdateBars(void)
    ========================================================================== */
 uint8_t SPEC_Speed = 2, SPEC_React = 1, SPEC_ShowNo = 0;
 uint8_t SPEC_LineSel = 0;						/* Isik Cizgisi renk ailesi (Settings.c yazar)	*/
-uint8_t SPEC_Contrast = 120;					/* Renkli Dalga, % (50..150)	*/
 
 SPEC_ClsCfg SPEC_Cls = { 3, 0, 0, 1, 0, 1, 0, 0, 0x00FF00UL, 0xFFFFFFUL };
 
@@ -1754,7 +1753,8 @@ static void SwvBuildColors(void)
 	U.Swv.Ready = 1;
 }
 
-/* Kontrast: >100 golgeleri acar, <100 yalniz guclu bolgeleri parlak birakir */
+/* Renkli Dalga doluluk egrisi (sabit %150): zayif bolgeleri de aydinlatir */
+#define SWV_DOLULUK		150U
 static void SwvBuildLut(uint8_t Contrast)
 {
 	const float Inv = 100.0f / (float)Contrast;
@@ -1794,7 +1794,7 @@ static void ModeSpecWave(void)
 	uint16_t Gain;
 
 	if(!U.Swv.Ready)					SwvBuildColors();
-	if(U.Swv.LutC != SPEC_Contrast)		SwvBuildLut(SPEC_Contrast);
+	if(U.Swv.LutC != SWV_DOLULUK)		SwvBuildLut(SWV_DOLULUK);
 
 	/* Vurus zarfi: Tepki ayari SPEC_Draw'da Kick/Hit'i zaten suzdu */
 	if(SPEC_Kick)		Imp = SPEC_KickPower;

@@ -43,7 +43,7 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 ## Görünümler (mod listesi)
 - Klasik (aile 0): 0 Klasik, 1 Neon, 2 Orta Dağ, 3 Fıskiye, 4 Renkli Dalga, 5 Dalga, 6 Katmanlı Dağ
 - Modern (aile 1): 7 Işık Çizgisi, 8 Örgü Şerit, 9 Aurora
-- Animasyon (aile 2): 10 Alev, 11 Alev Çubuk, 12 Orta Alev, 13 Alev Halka (açılış), 14 Patlama, 15 Orta Patlama, 16 Halka
+- Animasyon (aile 2): 10 Alev, 11 Alev Çubuk, 12 Orta Alev, 13 Alev Halka, 14 Patlama, 15 Orta Patlama, 16 Halka
 - Ortam (aile 3, müziksiz): 17 Kar -- gece gökyüzü, hızlı parlayan yıldızlar, uzak kar saatin arkasında,
   yakın kar önünde; saat soluk gölge (34,40,58). Kar birikmesi yok (32 px'de anlamsız). Geçici font: Font_SaatGecici.h
   (DejaVu Sans Bold 30, 21x22 sabit genişlik); Fatih'in fontu gelince SpecDisplay.c'de SN_FONT değişir, dosya silinir.
@@ -59,6 +59,7 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 
 ## Kararlar
 - Birbirinin aynısı mod yok; sadece rengi farklıysa ayrı mod sayılmaz.
+- Renkli Dalga "Kontrast" ayarı kaldırıldı, sabit %150 (SWV_DOLULUK). Açılış/fabrika modu 0 = Klasik.
 - Klasik renk: Tek | Hi-Fi | Gökkuşağı | Akan (Renk Seti ve hazır setler kaldırıldı, kullanıcı kararı).
   Hi-Fi: alt = Sütun Renk tonu, orta -60°, üst -120° (yeşil -> klasik yeşil-sarı-kırmızı; beyaz = klasik).
 - Android: bağlantı koparsa / açılışta son cihaza otomatik bağlanır ("Bırak" deyince yapmaz).

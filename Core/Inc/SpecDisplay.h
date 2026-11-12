@@ -63,7 +63,6 @@ extern SPEC_ClsCfg SPEC_Cls;
    SPEC_React: 0 sakin (sadece guclu bas), 1 normal, 2 hareketli (her vurus)
    SPEC_ShowNo: mod degisince sol ustte gosterilen numara (gorunum no)	*/
 extern uint8_t SPEC_Speed, SPEC_React, SPEC_ShowNo;
-extern uint8_t SPEC_Contrast;	/* Renkli Dalga: kontrast %, 50..150	*/
 extern uint8_t SPEC_Pal;						/* Katmanli Dag / Orgu Serit: renk ailesi 0..7	*/
 extern uint8_t SPEC_LineSel;				/* Isik Cizgisi: renk ailesi 0..7 (0 = kirmizi>sari, orijinal)	*/
 void    SPEC_ClsApply(void);

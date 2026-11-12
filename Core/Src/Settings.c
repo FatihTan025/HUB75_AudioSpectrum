@@ -115,12 +115,6 @@ static void ApplyMotion(uint8_t Mode, int32_t Value)
 	SPEC_React = (uint8_t)SET_Global(SET_ID_REACT);
 }
 
-static void ApplyContrast(uint8_t Mode, int32_t Value)
-{
-	(void)Mode;
-	SPEC_Contrast = (uint8_t)Value;
-}
-
 static void ApplyRange(uint8_t Mode, int32_t Value)
 {
 	(void)Mode;  (void)Value;
@@ -213,10 +207,6 @@ static const SET_Param Table[] =
 	  "H\304\261z", "Hareket", "Yava\305\237|Normal|Y\303\274ksek|\303\207ok y\303\274ksek", ApplyMotion },	/* Hiz; hepsi tempoya gore */
 	{ SET_ID_REACT,			SET_TYPE_ENUM,	SET_FLAG_PER_MODE, REACT_MASK, 0, 2, 1, 1,
 	  "Tepki", "Hareket", "Sakin|Normal|Hareketli", ApplyMotion },
-
-	/* --- Renkli Dalga --- */
-	{ SET_ID_CONTRAST,		SET_TYPE_INT,	SET_FLAG_PER_MODE, (1UL << SPEC_MODE_SPECWAVE), 50, 150, 10, 120,
-	  "Kontrast", "G\303\266r\303\274n\303\274m", "%", ApplyContrast },
 
 	/* --- Isik Cizgisi: cizgi rengi soldan saga iki renk arasinda gecer --- */
 	{ SET_ID_LL_COLOR, SET_TYPE_SWATCH, SET_FLAG_PER_MODE, (1UL << SPEC_MODE_LIGHTLINE), 0, 7, 1, 0,
