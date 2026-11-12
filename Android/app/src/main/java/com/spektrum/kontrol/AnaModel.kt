@@ -20,6 +20,7 @@ import com.spektrum.kontrol.protokol.Okur
 import com.spektrum.kontrol.protokol.Olay
 import com.spektrum.kontrol.protokol.PROTOKOL_SURUM
 import com.spektrum.kontrol.protokol.Tanim
+import com.spektrum.kontrol.protokol.Tasima
 import com.spektrum.kontrol.protokol.TcpTasima
 import com.spektrum.kontrol.protokol.WifiAg
 import com.spektrum.kontrol.protokol.WifiDurum
