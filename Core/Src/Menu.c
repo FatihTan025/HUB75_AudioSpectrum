@@ -65,6 +65,16 @@ static int32_t RgbTon(uint32_t c)
 	return (h + 360) % 360;
 }
 
+/* Renk ayari konumu: 0 = beyaz, 1..36 = ton (k-1)*10 derece. Encoder mordan sonra beyaza gecer. */
+#define RENK_KONUM	(1 + 360 / TON_ADIM)
+
+static uint8_t Beyazmi(uint32_t c)
+{
+	int32_t r = (int32_t)((c >> 16) & 0xFF), g = (int32_t)((c >> 8) & 0xFF), b = (int32_t)(c & 0xFF);
+	int32_t mx = r > g ? (r > b ? r : b) : (g > b ? g : b), mn = r < g ? (r < b ? r : b) : (g < b ? g : b);
+	return (mx > 0 && (mx - mn) * 4 < mx) ? 1U : 0U;			/* Doygunluk < %25 */
+}
+
 static uint32_t TonRgb(int32_t h)
 {
 	uint32_t r, g, b;
@@ -97,7 +107,7 @@ static void Goster(uint32_t Now)
 	case SET_TYPE_ENUM:
 	case SET_TYPE_SWATCH:	Secenek(d->Options, v - d->Min, Deger, sizeof(Deger));	break;
 	case SET_TYPE_HUE:		Ton = v;									break;
-	case SET_TYPE_COLOR:	Ton = RgbTon((uint32_t)v);					break;
+	case SET_TYPE_COLOR:	Ton = Beyazmi((uint32_t)v) ? SPEC_OSD_BEYAZ : RgbTon((uint32_t)v);	break;
 	default:				snprintf(Deger, sizeof(Deger), "%ld", (long)v);	break;
 	}
 	if((int32_t)(AdBitis - Now) > 0 || !Deger[0])
@@ -156,7 +166,13 @@ void MENU_Degistir(int32_t Adim)
 	{
 	case SET_TYPE_BOOL:		v = !v;															break;
 	case SET_TYPE_HUE:		v = ((v + Adim * TON_ADIM) % 360 + 360) % 360;					break;
-	case SET_TYPE_COLOR:	v = (int32_t)TonRgb(((RgbTon((uint32_t)v) + Adim * TON_ADIM) % 360 + 360) % 360);	break;
+	case SET_TYPE_COLOR:
+	{
+		int32_t k = Beyazmi((uint32_t)v) ? 0 : 1 + (RgbTon((uint32_t)v) + TON_ADIM / 2) / TON_ADIM % (RENK_KONUM - 1);
+		k = ((k + Adim) % RENK_KONUM + RENK_KONUM) % RENK_KONUM;
+		v = (k == 0) ? 0xFFFFFF : (int32_t)TonRgb((k - 1) * TON_ADIM);
+		break;
+	}
 	default:
 		v += Adim * ((d->Step > 0) ? d->Step : 1);
 		if(v < d->Min) v = d->Min;

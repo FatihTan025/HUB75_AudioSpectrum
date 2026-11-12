@@ -67,7 +67,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spektrum.kontrol.AnaModel
 import com.spektrum.kontrol.Bulunan
-import com.spektrum.kontrol.KENDI_AG_AD
+import com.spektrum.kontrol.KENDI_AG_IP
 import com.spektrum.kontrol.Sekme
 import com.spektrum.kontrol.protokol.AyarId
 import com.spektrum.kontrol.protokol.MOD_GENEL
@@ -151,11 +151,13 @@ fun BaglanEkrani(m: AnaModel) {
 @Composable
 private fun CihazSatiri(m: AnaModel, b: Bulunan, secili: Boolean, tikla: () -> Unit) {
     val ad = m.gorunenAd(b.ad) ?: b.ad
-    val alt = when {
-        b.ad == KENDI_AG_AD -> "192.168.4.1"
-        ad != b.ad -> b.ad
-        else -> if (b.ip != null) "ev ağında" else "yakında"
-    }
+    // Ulasilabilen yollar; baglanirken bu siraya gore denenir (calisan secilir)
+    val yollar = buildList {
+        if (b.ipler.any { it != KENDI_AG_IP }) add("ev ağı")
+        if (KENDI_AG_IP in b.ipler) add("doğrudan")
+        if (b.ble != null) add("Bluetooth")
+    }.joinToString(" · ")
+    val alt = if (ad != b.ad) "${b.ad} · $yollar" else yollar
     Row(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(if (secili) MorSecili else Color.Transparent)
             .clickable(onClick = tikla).padding(horizontal = 12.dp, vertical = 14.dp),
@@ -267,18 +269,19 @@ private fun ModSekmesi(m: AnaModel, muziksiz: Boolean, bosYazi: String) {
                     modifier = Modifier.align(Alignment.TopEnd).padding(12.dp))
             }
         }
-        Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalArrangement = Arrangement.Center) {
+        Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.Center) {
             liste.indices.forEach { i ->
                 Box(Modifier.padding(3.dp).size(6.dp).clip(CircleShape).background(if (i == sayfa.currentPage) Sari else Color(0xFF8C77E8)))
             }
         }
-        Column(Modifier.padding(horizontal = 22.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
+        Column(Modifier.padding(horizontal = 18.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             m.modAyarlari(mod).forEach { t -> AyarSatiri(t, m.deger(t, mod)) { m.ayarYaz(t, it, mod) } }
             m.tanimBul(AyarId.PARLAKLIK)?.let { t ->
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Parlaklık", color = Soluk, fontSize = 13.sp, modifier = Modifier.padding(end = 8.dp))
-                    Box(Modifier.weight(1f)) { Cubuk(m.deger(t, MOD_GENEL), t.min, t.max, t.adim) { m.ayarYaz(t, it, MOD_GENEL) } }
-                    Text("%${m.deger(t, MOD_GENEL)}", color = Soluk, fontSize = 13.sp, modifier = Modifier.padding(start = 8.dp))
+                TekSatir("Parlaklık") {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.weight(1f)) { Cubuk(m.deger(t, MOD_GENEL), t.min, t.max, t.adim) { m.ayarYaz(t, it, MOD_GENEL) } }
+                        Text("%${m.deger(t, MOD_GENEL)}", color = Soluk, fontSize = 12.sp, modifier = Modifier.padding(start = 6.dp))
+                    }
                 }
             }
             Spacer(Modifier.height(80.dp))      // Oto dugmesinin altinda kalmasin
@@ -297,23 +300,27 @@ private fun AyarlarSekmesi(m: AnaModel) {
     var saatPencere by remember { mutableStateOf(false) }
     val b = m.bilgi.value
 
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Grup("CİHAZ") {
             Satir("Cihaz adı", b?.ad ?: "") { adPencere = true }
             Satir("Saat ve tarih", m.cihazSaat.value?.let { z -> "%02d:%02d · %02d.%02d.%d".format(z[0], z[1], z[3], z[4], z[5]) } ?: "") {
                 m.saatOku(); saatPencere = true }
             m.tanimBul(AyarId.OTO_SN)?.let { t ->
-                Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
-                    Row { Baslik("Oto geçiş süresi"); Spacer(Modifier.weight(1f))
-                        val d = m.deger(t, MOD_GENEL); Text(if (d == 0) "Kapalı" else "$d sn", color = Soluk, fontSize = 13.sp) }
-                    Cubuk(m.deger(t, MOD_GENEL), t.min, t.max, t.adim) { m.ayarYaz(t, it, MOD_GENEL) }
+                Box(Modifier.padding(horizontal = 14.dp, vertical = 2.dp)) {
+                    TekSatir("Oto geçiş") {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            val d = m.deger(t, MOD_GENEL)
+                            Box(Modifier.weight(1f)) { Cubuk(d, t.min, t.max, t.adim) { m.ayarYaz(t, it, MOD_GENEL) } }
+                            Text(if (d == 0) "Kapalı" else "$d sn", color = Soluk, fontSize = 12.sp, modifier = Modifier.padding(start = 6.dp))
+                        }
+                    }
                 }
             }
         }
         // Cihazin bildirdigi diger genel ayarlar (panel modeli, ses kaynagi... firmware ekledikce burada cikar)
         val genel = m.genelAyarlar()
         if (genel.isNotEmpty()) Grup("GENEL") {
-            genel.forEach { t -> Box(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) { AyarSatiri(t, m.deger(t, MOD_GENEL)) { m.ayarYaz(t, it, MOD_GENEL) } } }
+            genel.forEach { t -> Box(Modifier.padding(horizontal = 14.dp, vertical = 2.dp)) { AyarSatiri(t, m.deger(t, MOD_GENEL)) { m.ayarYaz(t, it, MOD_GENEL) } } }
         }
         Grup("BAĞLANTI") {
             if (m.kopru.value != null) Satir("Ev ağı (Wi-Fi)", "") { m.wifiDurumSor(); agPencere = true }

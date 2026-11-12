@@ -56,7 +56,8 @@ class Cihaz(val tasima: Tasima) {
     }
 
     // --- Komutlar ---------------------------------------------------------------
-    suspend fun bilgi() = Coz.bilgi(komut(Kom.INFO).second)
+    /** zamanMs: ilk komutta uzun tutulur (ESP32 Wi-Fi uyku modunda ilk paketler gec gelebilir) */
+    suspend fun bilgi(zamanMs: Long = 400) = Coz.bilgi(komut(Kom.INFO, zamanMs = zamanMs).second)
 
     suspend fun modlar(): List<Mod> {
         val liste = ArrayList<Mod>()
@@ -108,7 +109,7 @@ class Cihaz(val tasima: Tasima) {
     }
 
     // --- ESP32 kopru (0x7F, STM32'ye gitmez) -----------------------------------
-    suspend fun kopruBilgi() = Coz.kopruBilgi(komut(Kom.BRIDGE, byteArrayOf(0), zamanMs = 1000).second)
+    suspend fun kopruBilgi(zamanMs: Long = 1000) = Coz.kopruBilgi(komut(Kom.BRIDGE, byteArrayOf(0), zamanMs = zamanMs).second)
     suspend fun wifiTara() = Coz.wifiAglar(komut(Kom.BRIDGE, byteArrayOf(1), zamanMs = 8000, deneme = 1).second)
     suspend fun wifiDurum() = Coz.wifiDurum(komut(Kom.BRIDGE, byteArrayOf(3), zamanMs = 1000).second)
 

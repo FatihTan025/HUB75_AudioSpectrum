@@ -11,7 +11,9 @@ import android.content.Context
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
 import android.os.ParcelUuid
+import com.spektrum.kontrol.protokol.Cihaz
 import com.spektrum.kontrol.protokol.Nus
+import com.spektrum.kontrol.protokol.TcpTasima
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -19,8 +21,13 @@ import kotlinx.coroutines.launch
 import java.net.InetSocketAddress
 import java.net.Socket
 
-/** Ayni cihaz Bluetooth ve Wi-Fi'de ayni adla (Spektrum-XXXX) gorunur; tek satirda birlesir. */
-data class Bulunan(val ad: String, val ble: BluetoothDevice? = null, val ip: String? = null, val rssi: Int? = null)
+/**
+ * Ayni cihaz Bluetooth, ev agi ve kendi aginda ayni adla (Spektrum-XXXX) gorunur; tek satirda birlesir.
+ * ipler: ev agi adresi ve/veya 192.168.4.1 (kendi agi).
+ */
+data class Bulunan(val ad: String, val ble: BluetoothDevice? = null, val ipler: List<String> = emptyList(), val rssi: Int? = null) {
+    val ip get() = ipler.firstOrNull()
+}
 
 const val KENDI_AG_IP = "192.168.4.1"
 const val KENDI_AG_AD = "Cihazın kendi ağı"
@@ -66,12 +73,14 @@ class Kesif(private val ctx: Context, private val kapsam: CoroutineScope, privat
         }
         nsdDinleyici = d
         try { nsd.discoverServices("_spektrum._tcp", NsdManager.PROTOCOL_DNS_SD, d) } catch (_: Exception) { }
-        // Cihazin kendi agi
+        // Cihazin kendi agi: adini kopruden sor, ayni cihazin diger yollariyla birlessin
         kapsam.launch(Dispatchers.IO) {
             try {
                 Socket().use { it.connect(InetSocketAddress(KENDI_AG_IP, 5000), 600) }
-                bildir(Bulunan(KENDI_AG_AD, ip = KENDI_AG_IP))
-            } catch (_: Exception) { }
+            } catch (_: Exception) { return@launch }
+            val t = TcpTasima(KENDI_AG_IP, kapsam = kapsam)
+            val ad = try { t.ac(); Cihaz(t).kopruBilgi(1500).ad } catch (_: Exception) { null } finally { t.kapat() }
+            bildir(Bulunan(ad ?: KENDI_AG_AD, ipler = listOf(KENDI_AG_IP)))
         }
     }
 
@@ -83,7 +92,7 @@ class Kesif(private val ctx: Context, private val kapsam: CoroutineScope, privat
             override fun onServiceResolved(s: NsdServiceInfo) {
                 @Suppress("DEPRECATION")
                 val ip = s.host?.hostAddress
-                if (ip != null) bildir(Bulunan(s.serviceName, ip = ip))
+                if (ip != null) bildir(Bulunan(s.serviceName, ipler = listOf(ip)))
                 bitti.complete(Unit)
             }
         })

@@ -3373,13 +3373,14 @@ static void OsdCiz(void)
 		x0 += 6;
 	}
 
-	if(OsdTon >= 0)										/* Renk: gokkusagi seridi + imlec */
+	if(OsdTon >= 0)										/* Renk: beyaz + gokkusagi seridi + imlec */
 	{
-		const int ix = (int)((uint32_t)OsdTon * (W - 1U) / 359U);
+		const int Bz = 6;								/* Bastaki beyaz bolum (px) */
+		const int ix = (OsdTon >= SPEC_OSD_BEYAZ) ? Bz / 2 : Bz + (int)((uint32_t)OsdTon * (W - 1U - Bz) / 359U);
 		for(x = 0; x < (int)W; x++)
 		{
-			uint8_t r, g, b;
-			Hue((uint32_t)x * 767U / (W - 1U), &r, &g, &b);
+			uint8_t r = 255, g = 255, b = 255;
+			if(x >= Bz) Hue((uint32_t)(x - Bz) * 767U / (W - 1U - Bz), &r, &g, &b);
 			Set(x, 10, r >> 1, g >> 1, b >> 1);
 			Set(x, 11, r >> 1, g >> 1, b >> 1);
 		}

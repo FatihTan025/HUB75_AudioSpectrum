@@ -98,30 +98,39 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
         if (i < 0) bulunanlar.add(b)
         else {
             val e = bulunanlar[i]
-            bulunanlar[i] = e.copy(ble = b.ble ?: e.ble, ip = b.ip ?: e.ip, rssi = b.rssi ?: e.rssi)
+            bulunanlar[i] = e.copy(ble = b.ble ?: e.ble, ipler = (e.ipler + b.ipler).distinct(), rssi = b.rssi ?: e.rssi)
         }
     }
 
     // =========================================================================
-    /** Wi-Fi varsa o (hizli), yoksa Bluetooth. */
+    /** Yollar sirayla denenir: ev agi, kendi agi (Wi-Fi hizli), sonra Bluetooth; ilk cevap veren kalir. */
     fun baglan(b: Bulunan) {
         if (baglaniyor.value != null) return
         kesif?.durdur(); kesif = null; taraniyor.value = false
         baglaniyor.value = b.ad
         mesaj.value = null
         viewModelScope.launch {
-            val tasima = when {
-                b.ip != null -> TcpTasima(b.ip, kapsam = viewModelScope)
-                b.ble != null -> BleTasima(getApplication<Application>(), b.ble)
-                else -> null
+            val yollar: List<() -> Tasima> =
+                b.ipler.sortedBy { it == KENDI_AG_IP }.map { ip -> { TcpTasima(ip, kapsam = viewModelScope) } } +
+                listOfNotNull(b.ble?.let { d -> { BleTasima(getApplication<Application>(), d) } })
+            var bulunanC: Cihaz? = null
+            var bulunanB: Bilgi? = null
+            var sonHata: Exception? = null
+            for (yol in yollar) {
+                val a = Cihaz(yol())
+                try { a.ac(); bulunanB = a.bilgi(zamanMs = 1500); bulunanC = a; break }
+                catch (e: Exception) { a.kapat(); if (e is kotlinx.coroutines.CancellationException) throw e; sonHata = e }
             }
-            if (tasima == null) { baglaniyor.value = null; return@launch }
-            val c = Cihaz(tasima)
+            val c = bulunanC
+            val bl = bulunanB
+            if (c == null || bl == null) {
+                hata(sonHata ?: IllegalStateException("ulaşılabilir yol yok"), "Bağlanılamadı: ")
+                baglaniyor.value = null
+                return@launch
+            }
             try {
-                c.ac()
-                tasima.kopma = { m -> viewModelScope.launch(Dispatchers.Main) { koptu(m) } }
+                c.tasima.kopma = { m -> viewModelScope.launch(Dispatchers.Main) { koptu(m) } }
                 c.olay = { tur, veri -> viewModelScope.launch(Dispatchers.Main) { olay(tur, veri) } }
-                val bl = c.bilgi()
                 val ml = c.modlar()
                 val tl = c.tanimlar()
                 val gn = c.hepsi(MOD_GENEL)

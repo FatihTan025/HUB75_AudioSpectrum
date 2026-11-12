@@ -61,49 +61,54 @@ val Pasif = Color(0xFFB9AEEB)
 
 fun rgbRenk(v: Int) = Color(0xFF000000.toInt() or (v and 0xFFFFFF))
 fun tonRenk(h: Float) = Color(android.graphics.Color.HSVToColor(floatArrayOf(h.coerceIn(0f, 359.9f), 1f, 1f)))
-fun rgbTon(v: Int): Float { val hsv = FloatArray(3); android.graphics.Color.colorToHSV(0xFF000000.toInt() or v, hsv); return hsv[0] }
 fun tonRgb(h: Float) = android.graphics.Color.HSVToColor(floatArrayOf(h, 1f, 1f)) and 0xFFFFFF
-
-private val tonFircasi = Brush.horizontalGradient(listOf(0f, 60f, 120f, 180f, 240f, 300f, 359f).map { tonRenk(it) })
 
 @Composable
 fun Baslik(yazi: String) = Text(yazi, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
 
+/** Ayar satiri: ad solda (altinda secili deger kucuk), denetim sagda; tek satir, sayfa uzamasin. */
+@Composable
+fun TekSatir(ad: String, alt: String? = null, denetim: @Composable () -> Unit) {
+    Row(Modifier.fillMaxWidth().height(44.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.width(96.dp)) {
+            Text(ad, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+            if (!alt.isNullOrEmpty()) Text(alt, color = Pasif, fontSize = 11.sp, maxLines = 1)
+        }
+        Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) { denetim() }
+    }
+}
+
 /**
  * Cihazdan gelen bir ayar tanimini turune gore cizer:
- * ton/renk = ton cubugu, blok = renk bloklari, enum = secmeli dugmeler, bool = anahtar, int = kaydirma cubugu.
+ * ton = ton cubugu, renk = beyaz + ton cubugu, blok = renk bloklari, enum = secmeli dugmeler,
+ * bool = anahtar, int = kaydirma cubugu.
  */
 @Composable
 fun AyarSatiri(t: Tanim, deger: Int, degisti: (Int) -> Unit) {
     when (t.tur) {
-        Tur.BOOL -> Row(Modifier.fillMaxWidth().height(48.dp), verticalAlignment = Alignment.CenterVertically) {
-            Baslik(t.ad); Spacer(Modifier.weight(1f))
-            Switch(checked = deger != 0, onCheckedChange = { degisti(if (it) 1 else 0) }, enabled = !t.saltOkunur,
-                colors = SwitchDefaults.colors(checkedTrackColor = Sari, checkedThumbColor = Color.White,
-                    uncheckedTrackColor = MorKoyu, uncheckedThumbColor = Pasif, uncheckedBorderColor = MorKoyu))
-        }
-        Tur.ENUM -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Baslik(t.ad)
-            Secmeli(t.secenekler, deger - t.min) { degisti(t.min + it) }
-        }
-        Tur.BLOK -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Baslik(t.ad)
-            Bloklar(t.bloklar, deger - t.min) { degisti(t.min + it) }
-        }
-        Tur.TON -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Baslik(t.ad)
-            TonCubugu(deger.toFloat() * 360f / (t.max + 1).coerceAtLeast(1)) { degisti((it * (t.max + 1) / 360f).toInt().coerceIn(t.min, t.max)) }
-        }
-        Tur.RENK -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Baslik(t.ad)
-            TonCubugu(rgbTon(deger)) { degisti(tonRgb(it)) }
-        }
-        else -> Column {   // INT (ve bilinmeyen turler: sayi gibi)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Baslik(t.ad); Spacer(Modifier.weight(1f))
-                Text("$deger ${t.secenek}".trim(), color = Soluk, fontSize = 13.sp)
+        Tur.BOOL -> TekSatir(t.ad) {
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                Switch(checked = deger != 0, onCheckedChange = { degisti(if (it) 1 else 0) }, enabled = !t.saltOkunur,
+                    colors = SwitchDefaults.colors(checkedTrackColor = Sari, checkedThumbColor = Color.White,
+                        uncheckedTrackColor = MorKoyu, uncheckedThumbColor = Pasif, uncheckedBorderColor = MorKoyu))
             }
-            Cubuk(deger, t.min, t.max, t.adim, degisti)
+        }
+        Tur.ENUM -> TekSatir(t.ad) { Secmeli(t.secenekler, deger - t.min) { degisti(t.min + it) } }
+        Tur.BLOK -> TekSatir(t.ad, t.bloklar.getOrNull(deger - t.min)?.first) { Bloklar(t.bloklar, deger - t.min) { degisti(t.min + it) } }
+        Tur.TON -> TekSatir(t.ad) {
+            RenkCubugu(deger.toFloat() / (t.max + 1).coerceAtLeast(1), beyaz = false) {
+                degisti((it * (t.max + 1)).toInt().coerceIn(t.min, t.max))
+            }
+        }
+        Tur.RENK -> TekSatir(t.ad) {
+            RenkCubugu(rgbKonum(deger), beyaz = true) { degisti(konumRgb(it)) }
+        }
+        else -> TekSatir(t.ad) {   // INT (ve bilinmeyen turler: sayi gibi)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.weight(1f)) { Cubuk(deger, t.min, t.max, t.adim, degisti) }
+                Text("$deger ${t.secenek}".trim(), color = Soluk, fontSize = 12.sp, maxLines = 1,
+                    modifier = Modifier.padding(start = 6.dp))
+            }
         }
     }
 }
@@ -124,55 +129,72 @@ fun Cubuk(deger: Int, min: Int, max: Int, adim: Int, degisti: (Int) -> Unit) {
 @Composable
 fun Secmeli(secenekler: List<String>, secili: Int, sec: (Int) -> Unit) {
     Row(
-        Modifier.clip(RoundedCornerShape(22.dp)).background(MorKoyu).padding(4.dp).horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        Modifier.clip(RoundedCornerShape(20.dp)).background(MorKoyu).padding(3.dp).horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(2.dp)
     ) {
         secenekler.forEachIndexed { i, s ->
             val on = i == secili
             Box(
                 Modifier.clip(RoundedCornerShape(18.dp)).background(if (on) Sari else Color.Transparent)
-                    .clickable { sec(i) }.padding(horizontal = 16.dp, vertical = 9.dp),
+                    .clickable { sec(i) }.padding(horizontal = 12.dp, vertical = 7.dp),
                 contentAlignment = Alignment.Center
-            ) { Text(s, color = if (on) SariYazi else Soluk, fontSize = 13.sp, fontWeight = FontWeight.SemiBold) }
+            ) { Text(s, color = if (on) SariYazi else Soluk, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1) }
         }
     }
 }
 
 @Composable
 fun Bloklar(bloklar: List<Pair<String, Int>>, secili: Int, sec: (Int) -> Unit) {
-    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        bloklar.forEachIndexed { i, (ad, rgb) ->
-            Column(Modifier.width(52.dp).clickable { sec(i) }, horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(
-                    Modifier.size(44.dp).clip(CircleShape).background(rgbRenk(rgb))
-                        .border(3.dp, if (i == secili) Sari else Color.Transparent, CircleShape)
-                )
-                Text(ad, color = Soluk, fontSize = 10.sp, textAlign = TextAlign.Center, maxLines = 1)
-            }
+    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically) {
+        bloklar.forEachIndexed { i, (_, rgb) ->
+            Box(
+                Modifier.size(32.dp).clip(CircleShape).clickable { sec(i) }
+                    .border(3.dp, if (i == secili) Sari else Color.Transparent, CircleShape)
+                    .padding(4.dp).clip(CircleShape).background(rgbRenk(rgb))
+            )
         }
     }
 }
 
-/** Ton 0..360 secen gokkusagi cubugu. */
+/** Renk cubugunda beyaz bolumun payi (bastan) */
+private const val BEYAZ = 0.08f
+private val tonDuraklari = listOf(0f, 60f, 120f, 180f, 240f, 300f, 359f)
+private val tonFircasi = Brush.horizontalGradient(tonDuraklari.map { tonRenk(it) })
+private val beyazTonFircasi = Brush.horizontalGradient(
+    *(listOf(0f to Color.White, BEYAZ to Color.White) +
+      tonDuraklari.map { BEYAZ + (1f - BEYAZ) * it / 359f to tonRenk(it) }).toTypedArray()
+)
+
+/** RGB <-> cubuk konumu (0..1). Doygunlugu dusuk renk = beyaz bolum. */
+fun rgbKonum(v: Int): Float {
+    val hsv = FloatArray(3); android.graphics.Color.colorToHSV(0xFF000000.toInt() or v, hsv)
+    return if (hsv[1] < 0.25f) BEYAZ / 2 else BEYAZ + (1f - BEYAZ) * hsv[0] / 359f
+}
+fun konumRgb(k: Float): Int = if (k < BEYAZ) 0xFFFFFF else tonRgb(((k - BEYAZ) / (1f - BEYAZ)).coerceIn(0f, 1f) * 359f)
+
+/** Renk cubugu: konum 0..1; beyaz = basta beyaz bolum (renk ayarlari). */
 @Composable
-fun TonCubugu(ton: Float, degisti: (Float) -> Unit) {
+fun RenkCubugu(konum: Float, beyaz: Boolean, degisti: (Float) -> Unit) {
     val guncel by rememberUpdatedState(degisti)      // pointerInput(Unit) eski lambdayi tutmasin
     BoxWithConstraints(Modifier.fillMaxWidth().height(28.dp), contentAlignment = Alignment.CenterStart) {
         val g = maxWidth
         Box(
-            Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(6.dp)).background(tonFircasi)
+            Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(6.dp))
+                .background(if (beyaz) beyazTonFircasi else tonFircasi)
                 .pointerInput(Unit) {
                     awaitEachGesture {
                         val d = awaitFirstDown()
-                        fun al(x: Float) = guncel((x / size.width).coerceIn(0f, 1f) * 359f)
+                        fun al(x: Float) = guncel((x / size.width).coerceIn(0f, 0.999f))
                         al(d.position.x)
                         drag(d.id) { al(it.position.x) }
                     }
                 }
         )
         Box(
-            Modifier.offset(x = (g - 24.dp) * (ton / 359f).coerceIn(0f, 1f)).size(24.dp)
+            Modifier.offset(x = (g - 22.dp) * konum.coerceIn(0f, 1f)).size(22.dp)
                 .shadow(3.dp, CircleShape).clip(CircleShape).background(Color.White)
+                .border(2.dp, MorKoyu, CircleShape)
         )
     }
 }

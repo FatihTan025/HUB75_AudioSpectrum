@@ -24,6 +24,8 @@ telefon asil kontrol, panel menusu sade olacak.
   Renk secenekleri Tek / Kademe / Gokkusagi / Akan. Kural: "AD: DEGER" en cok 21 karakter.
   Denetim: Tools/Onizleme/osd_kontrol.py (uret.sh basinda da calisir). Adlar CRC'ye girmez, kayit sifirlanmaz.
 
+- Renk ayarlarinda beyaz: seridin basinda beyaz bolum; encoder mordan sonra beyaza gecer (Android'de de ayni).
+
 ## Dosyalar
 Menu.c/.h (mantik), SpecDisplay.c (SPEC_Osd, OsdCiz, Font57), Buttons.c (kisa/uzun), main.c (baglanti).
 Kartta henuz denenmedi.
