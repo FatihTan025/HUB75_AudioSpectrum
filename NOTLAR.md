@@ -69,7 +69,7 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   geçişli ("Ad:RRGGBB,RRGGBB", protokol 256 B sınırı: PAL tanımı 229 B). Android Saat satırında kabarık "Ayarla" düğmesi.
 - Renkli Dalga "Kontrast" ayarı kaldırıldı, sabit %150 (SWV_DOLULUK). Açılış/fabrika modu 0 = Klasik.
 - Klasik renk: Tek | Hi-Fi | Gökkuşağı | Akan (Renk Seti ve hazır setler kaldırıldı, kullanıcı kararı).
-  Hi-Fi: alt = Sütun Renk tonu, orta -60°, üst -120° (yeşil -> klasik yeşil-sarı-kırmızı; beyaz = klasik).
+  Hi-Fi: alt = Sütun Renk tonu, orta -60°, üst -120° (yeşil -> klasik yeşil-sarı-kırmızı; beyaz = griden beyaza kademe).
 - Android: bağlantı koparsa / açılışta son cihaza otomatik bağlanır ("Bırak" deyince yapmaz).
   Samsung'da pil "Optimize" arka planda ağı kesiyordu -> "Kısıtlanmamış" ile düzeldi.
 - Kullanıcıya mod başına en fazla ~3 ayar. Renk seçimi pencere açmadan (ton çubuğu / bloklar).

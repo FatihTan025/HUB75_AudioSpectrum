@@ -422,7 +422,7 @@ uint8_t SPEC_LineSel = 0;						/* Isik Cizgisi renk ailesi (Settings.c yazar)	*/
 SPEC_ClsCfg SPEC_Cls = { 3, 0, 0, 1, 0, 1, 0, 0, 0x00FF00UL, 0xFFFFFFUL };
 
 /* Hi-Fi uclu renk: alt = Bar tonu, orta = -60, ust = -120 derece (yesil -> sari -> kirmizi).
-   Bar beyaz/soluksa klasik Hi-Fi. SPEC_ClsApply hesaplar. */
+   Bar beyaz/soluksa beyaz kademe (griden beyaza). SPEC_ClsApply hesaplar. */
 static uint32_t HfLo = 0x00FF00UL, HfMid = 0xFFFF00UL, HfHi = 0xFF0000UL;
 
 static uint32_t TonRenk(int32_t h)						/* Tam doygun, tam parlak ton (derece) */
@@ -447,9 +447,9 @@ static void HiFiHesapla(uint32_t c)
 	int32_t r = (int32_t)((c >> 16) & 255U), g = (int32_t)((c >> 8) & 255U), b = (int32_t)(c & 255U);
 	int32_t mx = r > g ? (r > b ? r : b) : (g > b ? g : b), mn = r < g ? (r < b ? r : b) : (g < b ? g : b), d = mx - mn, h;
 
-	if(mx == 0 || d * 4 < mx)							/* Beyaz/soluk: klasik Hi-Fi */
+	if(mx == 0 || d * 4 < mx)							/* Beyaz/soluk: beyaz kademe (soluk gri -> beyaz) */
 	{
-		HfLo = 0x00FF00UL; HfMid = 0xFFFF00UL; HfHi = 0xFF0000UL;
+		HfLo = 0x3C3C3CUL; HfMid = 0xA0A0A0UL; HfHi = 0xFFFFFFUL;
 		return;
 	}
 	if(mx == r)      h = 60 * (g - b) / d;
