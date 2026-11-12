@@ -22,6 +22,7 @@
   *                      GosterId(2) GosterAlt(2) GosterUst(2)  (Id 0 = hep gorunur)
   *                      Ad\0 Grup\0 Secenek\0
   *   30 SAVE / 31 LOAD / 32 FACTORY_RESET    -> st
+  *   40 TIME        [Sa(1) Dk(1) Sn(1)]      -> st Sa Dk Sn  (bos = oku)
   *   51 POWER       [Acik(1)]                -> st Acik  (bos = oku)
   *   70 STATUS      Aralik(2) ms, 0 = dur    -> st
   *        akis (SEQ 0, CMD 70): Mod Tasma(4) IslemUs(2) CizimUs(2) AktarimUs(2)
@@ -42,6 +43,7 @@
 #include "Spectrum.h"
 #include "Audio_ADC.h"
 #include "HUB75_Config.h"
+#include "Saat.h"
 
 #define SOF					0xA5U
 #define RX_TIMEOUT_MS		100U
@@ -291,6 +293,23 @@ static void Handle(uint8_t Seq, uint8_t Cmd, const uint8_t *In, uint16_t Len)
 		break;
 
 	case CMD_TIME:
+	{
+		uint8_t Sa, Dk, Sn;
+
+		if(Len >= 3U)
+		{
+			if(In[0] < 24U && In[1] < 60U && In[2] < 60U)
+				SAAT_Set(In[0], In[1], In[2]);
+			else
+				St = PROTO_ERR_RANGE;
+		}
+		SAAT_Get(&Sa, &Dk, &Sn);
+		*p++ = Sa;
+		*p++ = Dk;
+		*p++ = Sn;
+		break;
+	}
+
 	case CMD_SENSOR:
 	case CMD_FILE_LIST:
 	case CMD_FILE_WRITE:

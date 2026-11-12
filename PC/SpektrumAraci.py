@@ -475,6 +475,11 @@ class Uygulama:
         def Yukle():
             C.Ac()
             Bilgi = C.Bilgi()
+            try:                                    # Saat: PC'nin saati (eski firmware desteklemez)
+                Su = time.localtime()
+                C.SaatAyarla(Su.tm_hour, Su.tm_min, Su.tm_sec)
+            except Exception:
+                pass
             return Bilgi, C.Modlar(), C.Tanimlar()
 
         def Bitti(Sonuc):

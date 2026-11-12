@@ -35,6 +35,7 @@ typedef enum
 	SPEC_MODE_LAYERS,			/* Katmanli Dag: 3 ust uste dag silueti	*/
 	SPEC_MODE_WEAVE,			/* Orgu Serit: dolanan ince cizgilerden serit	*/
 	SPEC_MODE_AURORA,			/* Aurora: yildizli gokte isik perdesi + kayan yildiz	*/
+	SPEC_MODE_SNOW,				/* Kar (muziksiz): gece kar yagisi, arkada golge saat	*/
 	SPEC_MODE_COUNT
 } SPEC_Mode;
 

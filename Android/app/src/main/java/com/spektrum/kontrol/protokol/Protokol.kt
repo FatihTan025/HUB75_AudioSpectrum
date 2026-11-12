@@ -16,6 +16,7 @@ object Kom {
     const val PARAM_DESCRIBE = 0x23
     const val SAVE = 0x30
     const val FACTORY_RESET = 0x32
+    const val TIME = 0x40
     const val POWER = 0x51
     const val EVENT = 0x60
     const val STATUS = 0x70

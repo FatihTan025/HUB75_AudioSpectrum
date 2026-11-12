@@ -35,6 +35,7 @@
 #define LOOK(Name, Fam, Eng, ...)	{ Name, 0, Fam, Eng, \
 	(uint8_t)(sizeof(O(__VA_ARGS__)) / sizeof(O(__VA_ARGS__)[0])), O(__VA_ARGS__) }
 #define LOOK0(Name, Fam, Eng)		{ Name, 0, Fam, Eng, 0, 0 }
+#define ORTAM(Name, Eng)			{ Name, 1, 3, Eng, 0, 0 }		/* Muziksiz (Kind 1), Ortam ailesi */
 
 static const SET_ModeInfo ModeInfo[] =
 {
@@ -61,7 +62,8 @@ static const SET_ModeInfo ModeInfo[] =
 	LOOK0("Patlama",						2, SPEC_MODE_BLAST),
 	LOOK0("Orta Patlama",					2, SPEC_MODE_CBLAST),
 	LOOK0("Halka",							2, SPEC_MODE_RINGS),
-	/* --- Ortam (aile 3, Kind 1 = muziksiz): henuz yok --- */
+	/* --- Ortam (aile 3, Kind 1 = muziksiz) --- */
+	ORTAM("Kar",							SPEC_MODE_SNOW),
 };
 
 #define LOOK_COUNT	(sizeof(ModeInfo) / sizeof(ModeInfo[0]))

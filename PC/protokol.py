@@ -369,6 +369,10 @@ class Cihaz:
     def AdVer(self, Ad):	self.Komut(0x02, Ad.encode('utf-8')[:16])
     def Ping(self):			self.Komut(0x03)
 
+    def SaatAyarla(self, Sa, Dk, Sn):
+        """Cihaz saatini ayarlar (CMD_TIME 0x40)."""
+        self.Komut(0x40, bytes([Sa, Dk, Sn]))
+
     def Guc(self, Acik=None):
         _, d = self.Komut(0x51, b'' if Acik is None else bytes([1 if Acik else 0]))
         return d[0]

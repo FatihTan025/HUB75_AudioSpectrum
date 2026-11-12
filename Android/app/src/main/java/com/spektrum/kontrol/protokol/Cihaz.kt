@@ -97,6 +97,11 @@ class Cihaz(val tasima: Tasima) {
 
     suspend fun fabrika() { komut(Kom.FACTORY_RESET) }
 
+    /** Cihaz saatini ayarlar (eski firmware "desteklenmiyor" der; cagiran yok sayar). */
+    suspend fun saatAyarla(sa: Int, dk: Int, sn: Int) {
+        komut(Kom.TIME, byteArrayOf(sa.toByte(), dk.toByte(), sn.toByte()))
+    }
+
     // --- ESP32 kopru (0x7F, STM32'ye gitmez) -----------------------------------
     suspend fun kopruBilgi() = Coz.kopruBilgi(komut(Kom.BRIDGE, byteArrayOf(0), zamanMs = 1000).second)
     suspend fun wifiTara() = Coz.wifiAglar(komut(Kom.BRIDGE, byteArrayOf(1), zamanMs = 8000, deneme = 1).second)

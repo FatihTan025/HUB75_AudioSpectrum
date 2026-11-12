@@ -128,6 +128,10 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
                 guc.value = bl.guc
                 sekme.value = if (ml.firstOrNull { it.no == bl.mod }?.tur == 1) Sekme.ORTAM else Sekme.MUZIK
                 tercih.edit().putString("ad_${b.ad}", bl.ad).apply()
+                try {                                       // Saat: telefonun saati (internet saati gelene kadar)
+                    val z = java.util.Calendar.getInstance()
+                    c.saatAyarla(z.get(java.util.Calendar.HOUR_OF_DAY), z.get(java.util.Calendar.MINUTE), z.get(java.util.Calendar.SECOND))
+                } catch (_: Exception) { }
                 cihaz.value = c
                 modDegerYukle(bl.mod)
                 kopru.value = try { c.kopruBilgi() } catch (_: Exception) { null }   // UART'tan bagliysa kopru yok

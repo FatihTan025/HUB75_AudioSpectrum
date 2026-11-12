@@ -38,7 +38,12 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 - Klasik (aile 0): 0 Klasik, 1 Neon, 2 Orta Dağ, 3 Fıskiye, 4 Renkli Dalga, 5 Dalga, 6 Katmanlı Dağ
 - Modern (aile 1): 7 Işık Çizgisi, 8 Örgü Şerit, 9 Aurora
 - Animasyon (aile 2): 10 Alev, 11 Alev Çubuk, 12 Orta Alev, 13 Alev Halka (açılış), 14 Patlama, 15 Orta Patlama, 16 Halka
-- Ortam (aile 3): henüz yok. Android sekmesi aileye değil Kind'a bakar (0 müzikli -> Müzik, 1 müziksiz -> Ortam);
+- Ortam (aile 3, müziksiz): 17 Kar -- gece gökyüzü, hızlı parlayan yıldızlar, uzak kar saatin arkasında,
+  yakın kar önünde; saat soluk gölge (34,40,58). Kar birikmesi yok (32 px'de anlamsız). Geçici font: Font_SaatGecici.h
+  (DejaVu Sans Bold 30, 21x22 sabit genişlik); Fatih'in fontu gelince SpecDisplay.c'de SN_FONT değişir, dosya silinir.
+- Saat: Saat.c (RTC, LSE, HAL'siz yazmaç). Kristal ~2 s içinde hazır değilse yazılım saati. CMD_TIME 0x40
+  Sa Dk Sn ile ayarlanır; Android ve PC aracı bağlanınca kendi saatini gönderir. Kartta henüz denenmedi.
+- Ortam: Android sekmesi aileye değil Kind'a bakar (0 müzikli -> Müzik, 1 müziksiz -> Ortam);
   aile sadece gruplama/sıra (PC'de başlık). Sıra değişince kayıtlı ayarlar kendiliğinden varsayılana döner (Layout CRC).
 - Silindi (beğenilmedi): Plazma, Kutup Işığı, Işık Girdabı (akışkan buhar denemesi, 128x32'de ekranı dolduramadı).
 - Her görünümde Hız (0 = tempoya göre). Vuruşa tepki verenlerde Tepki (Sakin/Normal/Hareketli).

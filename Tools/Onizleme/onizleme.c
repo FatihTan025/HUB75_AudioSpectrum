@@ -29,6 +29,15 @@ void HUB75_SetBrightness(unsigned char p)  { (void)p; }
 void HUB75_UpdateDisplay(void)             { }
 void HUB75_Clear(void)                     { memset(Tuval, 0, sizeof(Tuval)); }
 
+/* Saat: onizlemede 21:47'den baslayip simulasyon zamaniyla ilerler (Saat.c kartta) */
+#include "Saat.h"
+void SAAT_Get(uint8_t *Sa, uint8_t *Dk, uint8_t *Sn)
+{
+	uint32_t s = (21U * 3600U + 47U * 60U + (uint32_t)(SimMs / 1000.0)) % 86400U;
+	*Sa = (uint8_t)(s / 3600U); *Dk = (uint8_t)((s / 60U) % 60U); *Sn = (uint8_t)(s % 60U);
+}
+void SAAT_Set(uint8_t Sa, uint8_t Dk, uint8_t Sn) { (void)Sa; (void)Dk; (void)Sn; }
+
 /* SpecDisplay.c CV() eslemesinin tersi: 128x32 goruntu */
 static void Goruntu(uint8_t *o)
 {

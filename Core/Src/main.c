@@ -39,6 +39,7 @@
 #include "Settings.h"
 #include "Uart1.h"
 #include "Protocol.h"
+#include "Saat.h"
 
 /* USER CODE END Includes */
 
@@ -120,6 +121,7 @@ int main(void)
 	SPEC_Init();
 	SPEC_DisplayInit();
 	SET_Init();					/* Ayarlar yedek SRAM'den: mod, parlaklik */
+	SAAT_Init();				/* RTC (LSE): beklemeden baslar		*/
 	/* --- Haberlesme: USART1 PA9/PA10 --------------------------------- */
 	UART1_Init(UART1_BAUD);
 	PROTO_Init();
@@ -226,6 +228,7 @@ int main(void)
 	/* Haberlesme + otomatik kayit */
 	PROTO_Poll(HAL_GetTick());
 	SET_Poll(HAL_GetTick());
+	SAAT_Poll();
   }
   /* USER CODE END 3 */
 }

@@ -16,6 +16,8 @@
 #include "SpecDisplay.h"
 #include "HUB75.h"
 #include "Audio_ADC.h"
+#include "Saat.h"
+#include "Font_SaatGecici.h"
 #include <string.h>
 #include <math.h>
 
@@ -76,6 +78,9 @@ typedef struct { float X, Y, Vx, Vy, Lm, Age, Dur, P; uint32_t Last; uint8_t On;
 #define NEON_THROW_H	12.0f				/* Neon: tavana vuran top cerceveden kac satir disari ucar */
 #define SWV_BANDS		64				/* Renkli Dalga: ModeBands ile ayni	*/
 #define MAX_EMBERS		70
+#define SN_UZAK			70				/* Kar: uzak / yakin tane, yildiz sayisi	*/
+#define SN_YAKIN		16
+#define SN_YILDIZ		16
 
 typedef struct { float R, Speed; uint16_t Hue; uint8_t Alive; } Ring;
 typedef struct { float X, Y, Vx, Vy; uint16_t Hue; uint8_t Life; } Particle;
@@ -128,6 +133,13 @@ static union
 		uint8_t		Bolt[LT_H][LT_W];				/* Karedeki cizgi parlakligi		*/
 	} Ly;
 	struct { float Ph, Th, Amp, D0, Avg, Pump; Starfield St; uint8_t Ready; } We;	/* Orgu Serit */
+	struct											/* Kar */
+	{
+		float		Ux[SN_UZAK], Uy[SN_UZAK], Uv[SN_UZAK];				/* Uzak taneler	*/
+		float		Yx[SN_YAKIN], Yy[SN_YAKIN], Yv[SN_YAKIN], Yf[SN_YAKIN];	/* Yakin taneler	*/
+		float		Sp[SN_YILDIZ], T, Ruzgar;								/* Yildiz parlamasi	*/
+		uint8_t		Ub[SN_UZAK], Sx[SN_YILDIZ], Sy[SN_YILDIZ], Ready;
+	} Sn;
 	struct { float T, Wx, Wd, Wa, Fl; float Gl[128]; uint8_t Pal[64][3];
 	         Meteor Me; uint8_t Ready; } Au;	/* Aurora */
 } U;
@@ -153,6 +165,7 @@ static const uint8_t ModeBands[SPEC_MODE_COUNT] =
 	128,											/* LAYERS: sutun basina bir bant	*/
 	128,											/* WEAVE: spektrum bolgeleri		*/
 	128,											/* AURORA: sutun basina bir bant	*/
+	32,												/* SNOW: muziksiz (kullanilmaz)	*/
 };
 
 /* ==========================================================================
@@ -2936,6 +2949,152 @@ static void ModeAurora(void)
 }
 
 /* ==========================================================================
+   MOD -- KAR (Ortam, muziksiz)
+   Pencereden gece kar yagisini izlemek: koyu lacivert gok, ara sira hizlica
+   parlayip sonen yildizlar; uzaktaki kucuk/soluk/yavas taneler saatin ARKASINDA,
+   yakindaki iri/parlak/hizli taneler saatin ONUNDE suzulur. Saat soluk bir golge
+   gibi durur. Taneler piksel alti konumla (komsu piksellere paylastirilarak)
+   akici kayar; ruzgar yavasca yon degistirir. Durum U.Sn icinde.
+   ========================================================================== */
+#define SN_FONT		FontSaatGecici				/* Saat fontu: Fatih'in fontu gelince degisir */
+
+/* Saat rakami: font biti varsa golge renginde (arkadaki taneyi ortur) */
+static void SnRakam(int X0, int Y0, uint8_t Rakam)
+{
+	const FONT_CHAR_INFO *d = &SN_FONT.Descriptors[Rakam];
+	const uint8_t *b = &SN_FONT.Bitmap[d->OffSet];
+	int x, y;
+
+	for(y = 0; y < (int)d->Height; y++)
+		for(x = 0; x < (int)d->Width; x++)
+			if(b[y * d->BWidth + (x >> 3)] & (0x80U >> (x & 7)))
+				Set(X0 + x, Y0 + y, 34, 40, 58);
+}
+
+/* Yumusak tane: R yaricapinda, merkez piksel arasinda olabilir (piksel alti) */
+static void SnTane(float Fx, float Fy, float R, uint32_t L)
+{
+	int x, y;
+	const int x0 = (int)floorf(Fx - R), x1 = (int)ceilf(Fx + R);
+	const int y0 = (int)floorf(Fy - R), y1 = (int)ceilf(Fy + R);
+
+	for(y = y0; y <= y1; y++)
+		for(x = x0; x <= x1; x++)
+		{
+			const float dx = (float)x + 0.5f - Fx, dy = (float)y + 0.5f - Fy;
+			float w = 1.0f - sqrtf(dx * dx + dy * dy) / (R + 0.5f);
+			uint32_t v;
+			if(w <= 0.0f) continue;
+			v = (uint32_t)((float)L * w);
+			Add(x, y, (uint8_t)((v * 235U) >> 8), (uint8_t)((v * 242U) >> 8), (uint8_t)v);	/* Hafif mavi beyaz */
+		}
+}
+
+static void SnYeni(uint32_t i, uint8_t Yakin, uint8_t Basta)
+{
+	const float y = Basta ? RandF() * (float)H : -2.0f - RandF() * 6.0f;
+	if(Yakin)
+	{
+		U.Sn.Yx[i] = RandF() * (float)W;   U.Sn.Yy[i] = y;
+		U.Sn.Yv[i] = 9.0f + RandF() * 6.0f;					/* px/s */
+		U.Sn.Yf[i] = RandF() * 6.28f;						/* Salinim fazi */
+	}
+	else
+	{
+		U.Sn.Ux[i] = RandF() * (float)W;   U.Sn.Uy[i] = y;
+		U.Sn.Uv[i] = 2.5f + RandF() * 3.5f;
+		U.Sn.Ub[i] = (uint8_t)(45U + (Rand() % 70U));
+	}
+}
+
+static void ModeSnow(void)
+{
+	const float Gdt = 1.0f / CFG_FPS;					/* Yildizlar gercek zamanda		*/
+	const float Dt  = DT;								/* Kar: Hiz ayari ile			*/
+	uint8_t Sa, Dk, Sn;
+	uint32_t i;
+	int x, y;
+
+	if(!U.Sn.Ready)
+	{
+		for(i = 0; i < SN_UZAK; i++)  SnYeni(i, 0, 1);
+		for(i = 0; i < SN_YAKIN; i++) SnYeni(i, 1, 1);
+		for(i = 0; i < SN_YILDIZ; i++)
+		{
+			U.Sn.Sx[i] = (uint8_t)(Rand() % W);
+			U.Sn.Sy[i] = (uint8_t)(Rand() % (H * 2U / 3U));
+		}
+		U.Sn.Ready = 1;
+	}
+	U.Sn.T += Gdt;
+	U.Sn.Ruzgar = 3.0f * sinf(U.Sn.T * 0.07f) + 1.5f * sinf(U.Sn.T * 0.23f + 1.0f);	/* px/s, yavas doner */
+
+	/* Gok: ustte daha koyu lacivert */
+	for(y = 0; y < (int)H; y++)
+		for(x = 0; x < (int)W; x++)
+			Set(x, y, 0, (uint8_t)(1U + (uint32_t)y / 12U), (uint8_t)(5U + (uint32_t)y / 5U));
+
+	/* Yildizlar: hafif parlak durur; ara sira aniden parlar, ~0.3 s'de soner */
+	for(i = 0; i < SN_YILDIZ; i++)
+	{
+		uint32_t L;
+		if(RandF() < Gdt / 3.0f) U.Sn.Sp[i] = 1.0f;		/* Ortalama 3 s'de bir */
+		U.Sn.Sp[i] *= 0.90f;
+		L = 30U + (uint32_t)(225.0f * U.Sn.Sp[i]);
+		Add(U.Sn.Sx[i], U.Sn.Sy[i], (uint8_t)L, (uint8_t)L, (uint8_t)L);
+		if(U.Sn.Sp[i] > 0.3f)							/* Parlakken kucuk isik haci */
+		{
+			const uint8_t k = (uint8_t)(90.0f * U.Sn.Sp[i]);
+			Add(U.Sn.Sx[i] - 1, U.Sn.Sy[i], k, k, k); Add(U.Sn.Sx[i] + 1, U.Sn.Sy[i], k, k, k);
+			Add(U.Sn.Sx[i], U.Sn.Sy[i] - 1, k, k, k); Add(U.Sn.Sx[i], U.Sn.Sy[i] + 1, k, k, k);
+		}
+	}
+
+	/* Uzak kar: saatin arkasinda */
+	for(i = 0; i < SN_UZAK; i++)
+	{
+		U.Sn.Uy[i] += U.Sn.Uv[i] * Dt;
+		U.Sn.Ux[i] += U.Sn.Ruzgar * 0.5f * Dt;
+		if(U.Sn.Ux[i] < -2.0f) U.Sn.Ux[i] += (float)W + 4.0f;
+		if(U.Sn.Ux[i] > (float)W + 2.0f) U.Sn.Ux[i] -= (float)W + 4.0f;
+		if(U.Sn.Uy[i] > (float)H + 1.0f) SnYeni(i, 0, 0);
+		SnTane(U.Sn.Ux[i], U.Sn.Uy[i], 0.4f, U.Sn.Ub[i]);
+	}
+
+	/* Saat: soluk golge, HH:MM ortada; iki nokta saniyede bir yanip soner */
+	SAAT_Get(&Sa, &Dk, &Sn);
+	{
+		const int cw = (int)SN_FONT.Descriptors[0].Width, sp = 2, ik = 7;
+		const int tw = 4 * cw + 2 * sp + ik, x0 = ((int)W - tw) / 2, y0 = ((int)H - (int)SN_FONT.Height) / 2;
+		SnRakam(x0, y0, Sa / 10U);
+		SnRakam(x0 + cw + sp, y0, Sa % 10U);
+		SnRakam(x0 + 2 * cw + sp + ik, y0, Dk / 10U);
+		SnRakam(x0 + 3 * cw + 2 * sp + ik, y0, Dk % 10U);
+		if((HAL_GetTick() % 1000U) < 500U)
+		{
+			const int cx = x0 + 2 * cw + sp + ik / 2 - 1, cy = y0 + (int)SN_FONT.Height / 2;
+			for(y = 0; y < 2; y++)
+				for(x = 0; x < 2; x++)
+				{
+					Set(cx + x, cy - 5 + y, 34, 40, 58);
+					Set(cx + x, cy + 4 + y, 34, 40, 58);
+				}
+		}
+	}
+
+	/* Yakin kar: saatin onunde, iri ve parlak, salinarak */
+	for(i = 0; i < SN_YAKIN; i++)
+	{
+		U.Sn.Yy[i] += U.Sn.Yv[i] * Dt;
+		U.Sn.Yx[i] += (U.Sn.Ruzgar + 2.5f * sinf(U.Sn.T * 1.7f + U.Sn.Yf[i])) * Dt;
+		if(U.Sn.Yx[i] < -3.0f) U.Sn.Yx[i] += (float)W + 6.0f;
+		if(U.Sn.Yx[i] > (float)W + 3.0f) U.Sn.Yx[i] -= (float)W + 6.0f;
+		if(U.Sn.Yy[i] > (float)H + 2.0f) SnYeni(i, 1, 0);
+		SnTane(U.Sn.Yx[i], U.Sn.Yy[i], 0.9f + 0.04f * U.Sn.Yv[i], (uint32_t)(150.0f + 7.0f * U.Sn.Yv[i]));
+	}
+}
+
+/* ==========================================================================
    MOD -- ORGU SERIT
    12 ince cizgiden dolanan serit: komsu cizgilerin faz farki x boyunca
    isaret degistirir, farkin sifir oldugu yerde cizgiler tek noktada birlesir
@@ -3151,6 +3310,7 @@ void SPEC_Draw(void)
 		case SPEC_MODE_LAYERS:		ModeLayers();		break;
 		case SPEC_MODE_WEAVE:		ModeWeave();		break;
 		case SPEC_MODE_AURORA:		ModeAurora();		break;
+		case SPEC_MODE_SNOW:		ModeSnow();			break;
 		case SPEC_MODE_RINGS:		ModeRings();		break;
 		case SPEC_MODE_FOUNTAIN:	ModeFountain();		break;
 		case SPEC_MODE_WAVE:		ModeWave();			break;
