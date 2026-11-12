@@ -12,11 +12,23 @@ android {
         applicationId = "com.spektrum.kontrol"
         minSdk = 24          // Android 7.0
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1"
+        // GitHub'da her derleme numarasi artar: telefon "Guncelle" der
+        val no = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
+        versionCode = no
+        versionName = "0.1.$no"
+    }
+    // Sabit imza: her APK ayni anahtarla imzalanir, eskisinin ustune kurulur (depo gizli)
+    signingConfigs {
+        create("sabit") {
+            storeFile = file("imza.jks")
+            storePassword = "spektrum"
+            keyAlias = "spektrum"
+            keyPassword = "spektrum"
+        }
     }
     buildTypes {
-        release { isMinifyEnabled = false }
+        debug { signingConfig = signingConfigs.getByName("sabit") }
+        release { isMinifyEnabled = false; signingConfig = signingConfigs.getByName("sabit") }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

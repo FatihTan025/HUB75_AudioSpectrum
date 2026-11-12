@@ -9,6 +9,8 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   sentetik muzikle calistirir -> Android/app/src/main/assets/modlar/<ad>.png (kare seridi). Mod eklenince/degisince
   yeniden calistir. Resim moda ADIYLA bagli; resmi olmayan mod uygulamada genel gorunumle cikar.
 - Android/ degisince APK otomatik derlenir: Releases > son-apk > Spektrum.apk (telefondan indirip kur).
+  Sabit imza Android/app/imza.jks (şifre spektrum) -> yeni APK eskisinin üstüne kurulur; versionCode = GitHub
+  derleme no. Simge: Tools/Ikon/ikon_uret.py (siyah zemin, LED bölmeli spektrum, beyaz tepeler).
 - Derleme ciktilari (Debug/, build/, __pycache__) depoya girmez (.gitignore).
 
 ## Donanım
