@@ -5,6 +5,9 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 
 ## GitHub
 - Ozel depo: github.com/FatihTan025/HUB75_AudioSpectrum (asil kaynak burasi; ev ve is PC'si buradan ceker).
+- Mod resimleri: Tools/Onizleme/uret.sh firmware'in kendi cizim kodunu (Spectrum/SpecDisplay/Settings.c) PC'de
+  sentetik muzikle calistirir -> Android/app/src/main/assets/modlar/<ad>.png (kare seridi). Mod eklenince/degisince
+  yeniden calistir. Resim moda ADIYLA bagli; resmi olmayan mod uygulamada genel gorunumle cikar.
 - Android/ degisince APK otomatik derlenir: Releases > son-apk > Spektrum.apk (telefondan indirip kur).
 - Derleme ciktilari (Debug/, build/, __pycache__) depoya girmez (.gitignore).
 

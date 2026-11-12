@@ -257,10 +257,11 @@ private fun ModSekmesi(m: AnaModel, aileler: Set<Int>, bosYazi: String) {
         ) { i ->
             val on = i == sayfa.currentPage
             Box(
-                Modifier.fillMaxWidth().aspectRatio(2f).clip(RoundedCornerShape(16.dp)).background(Color(0xFF1A1033))
+                Modifier.fillMaxWidth().aspectRatio(3f).clip(RoundedCornerShape(16.dp)).background(Color.Black)
                     .border(2.dp, if (on) Sari else Color.Transparent, RoundedCornerShape(16.dp))
             ) {
-                // TODO: mod resmi (moda adiyla bagli; bilinmeyen mod -> genel resim)
+                // Mod resmi: firmware'in cizim kodundan uretilmis hareketli onizleme (sadece ortadaki kart oynar)
+                ModResmi(liste[i].ad, oynat = on, modifier = Modifier.fillMaxSize().padding(horizontal = 10.dp, vertical = 8.dp))
                 Text("${i + 1} / ${liste.size}", color = Soluk, fontSize = 12.sp,
                     modifier = Modifier.align(Alignment.TopEnd).padding(12.dp))
             }
