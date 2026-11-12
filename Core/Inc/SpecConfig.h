@@ -137,6 +137,7 @@
 #define CFG_BTN_NEXT_PIN		3U		/* PB3 = sonraki mod					*/
 #define CFG_BTN_PREV_PIN		4U		/* PB4 = onceki mod						*/
 #define CFG_BTN_DEBOUNCE_MS		30U
+#define CFG_BTN_LONG_MS			800U	/* PB3 uzun basma: menu (ac / sonraki ayar)	*/
 
 /* Doner encoder (Encoder.c): PB6/PB7 TIM4, buton PB5 */
 #define CFG_ENC_DIR				1		/* Yon ters ise -1						*/

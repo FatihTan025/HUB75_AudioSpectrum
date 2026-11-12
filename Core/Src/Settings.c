@@ -179,7 +179,7 @@ static const SET_Param Table[] =
 	  "Vuru\305\237 hassasiyeti", "Ses", "(50 = varsay\304\261lan)", ApplySens },
 
 	/* --- Klasik (her alanin okunur hali yaninda) --- */
-	{ SET_ID_CLS_WIDTH, SET_TYPE_INT, SET_FLAG_PER_MODE | A, CLS_MASK, 1, 4, 1, 3,
+	{ SET_ID_CLS_WIDTH, SET_TYPE_INT, SET_FLAG_PER_MODE, CLS_MASK, 1, 4, 1, 3,
 	  "Bant geni\305\237li\304\237i", "Bant", "px", ApplyClassic },
 	{ SET_ID_CLS_TYPE, SET_TYPE_ENUM, SET_FLAG_PER_MODE | H, CLS_MASK, 0, 1, 1, 0,
 	  "\303\207ubuk tipi", "Bant", "D\303\274z|Neon \303\247er\303\247eve", ApplyClassic },

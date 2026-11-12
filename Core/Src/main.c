@@ -40,6 +40,7 @@
 #include "Uart1.h"
 #include "Protocol.h"
 #include "Saat.h"
+#include "Menu.h"
 
 /* USER CODE END Includes */
 
@@ -164,8 +165,19 @@ int main(void)
 		}
 	}
 
-	/* Mod butonlari */
-	Step = BTN_Poll();
+	/* Butonlar: kisa = mod (menude deger), PB3 uzun = menu ac / sonraki ayar */
+	{
+		BTN_Olay b;
+		BTN_Poll(&b);
+		Step = b.Kisa;
+		if(b.Uzun)
+			MENU_Ileri();
+		if(Step != 0 && MENU_Acik())
+		{
+			MENU_Degistir(Step);
+			Step = 0;
+		}
+	}
 	if(Step != 0)
 	{
 		SET_SetCurMode((uint8_t)((SET_GetCurMode() + SET_LookCount() + Step) % SET_LookCount()));
@@ -188,6 +200,8 @@ int main(void)
 				SPEC_ShowLevel((uint8_t)Uyg);
 			}
 		}
+		else if(e.Steps && MENU_Acik())
+			MENU_Degistir(e.Steps);
 		else if(e.Steps)
 		{
 			int32_t m = ((int32_t)SET_GetCurMode() + e.Steps) % (int32_t)SET_LookCount();
@@ -196,13 +210,16 @@ int main(void)
 			SET_MarkLocalChange();
 			PROTO_NotifyMode(SET_GetCurMode());
 		}
-		if(e.Long)
+		if(e.Long && MENU_Acik())
+			MENU_Kapat();
+		else if(e.Long)
 		{
 			SET_SetPower(!SET_GetPower());
 			SET_MarkLocalChange();
 			PROTO_NotifyPower(SET_GetPower());
 		}
-		/* e.Click: menu (sonraki adim) */
+		if(e.Click)
+			MENU_Ileri();						/* Ac / sonraki ayar / kapat */
 	}
 
 	/* Otomatik mod gecisi (ayar: saniye, 0 = kapali). Mod nereden degisirse
@@ -229,6 +246,7 @@ int main(void)
 	PROTO_Poll(HAL_GetTick());
 	SET_Poll(HAL_GetTick());
 	SAAT_Poll();
+	MENU_Poll(HAL_GetTick());
   }
   /* USER CODE END 3 */
 }

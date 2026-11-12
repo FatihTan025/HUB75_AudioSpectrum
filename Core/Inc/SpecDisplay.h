@@ -84,6 +84,10 @@ void SPEC_SetMode(SPEC_Mode Mode);
 /* Yeni spektrum karesinden sonra cagir: cizer ve HUB75'e aktarir.
    HUB75_UpdateDisplay() cagiran tarafin isidir.						*/
 void SPEC_Draw(void);
+/* Ust bant OSD (panel menusu): Metin UTF-8, buyuk harfe cevrilir; Ton 0..359 ise altinda
+   gokkusagi seridi ve imlec (-1 = yok); Ms sonra kaybolur. */
+void     SPEC_Osd(const char *Metin, int16_t Ton, uint16_t Ms);
+uint16_t SPEC_OsdGenislik(const char *Metin);		/* Piksel */
 void SPEC_ShowLevel(uint8_t Percent);		/* Kisa sure alt kenarda seviye cubugu (parlaklik)	*/
 
 #endif /* __SPECDISPLAY_H__ */

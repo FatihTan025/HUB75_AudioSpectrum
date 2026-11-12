@@ -34,6 +34,10 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 - Protocol.c: A5 | LEN | SEQ | CMD | PAYLOAD | CRC16. Komut listesi dosya başında.
 - PC/SpektrumAraci.py + protokol.py: ayar aracı (sadece Fatih kullanır, gizleme yok).
 
+## Panel menüsü
+- Sade OSD menü, ayrıntı MENU_NOTLAR.md. Bant genişliği artık gelişmiş değil (kullanıcı ayarı; menü ve
+  Android'de görünür).
+
 ## Görünümler (mod listesi)
 - Klasik (aile 0): 0 Klasik, 1 Neon, 2 Orta Dağ, 3 Fıskiye, 4 Renkli Dalga, 5 Dalga, 6 Katmanlı Dağ
 - Modern (aile 1): 7 Işık Çizgisi, 8 Örgü Şerit, 9 Aurora
