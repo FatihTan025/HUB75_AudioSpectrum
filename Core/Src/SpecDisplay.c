@@ -81,6 +81,8 @@ typedef struct { float X, Y, Vx, Vy, Lm, Age, Dur, P; uint32_t Last; uint8_t On;
 #define SN_UZAK			70				/* Kar: uzak / yakin tane, yildiz sayisi	*/
 #define SN_YAKIN		16
 #define SN_YILDIZ		16
+#define SN_ARTI			7				/* Yakin tanelerin ilk 7'si "+"/"x" seklinde	*/
+#define SN_TOZ			40				/* Esintideki kar tozu zerresi			*/
 
 typedef struct { float R, Speed; uint16_t Hue; uint8_t Alive; } Ring;
 typedef struct { float X, Y, Vx, Vy; uint16_t Hue; uint8_t Life; } Particle;
@@ -136,9 +138,10 @@ static union
 	struct											/* Kar */
 	{
 		float		Ux[SN_UZAK], Uy[SN_UZAK], Uv[SN_UZAK];				/* Uzak taneler	*/
-		float		Yx[SN_YAKIN], Yy[SN_YAKIN], Yv[SN_YAKIN], Yf[SN_YAKIN];	/* Yakin taneler	*/
-		float		Sp[SN_YILDIZ], T, Ruzgar;								/* Yildiz parlamasi	*/
-		uint8_t		Ub[SN_UZAK], Sx[SN_YILDIZ], Sy[SN_YILDIZ], Ready;
+		float		Yx[SN_YAKIN], Yy[SN_YAKIN], Yv[SN_YAKIN], Yf[SN_YAKIN], Yp[SN_YAKIN];	/* Yakin taneler, parlama */
+		float		Tx[SN_TOZ], Ty[SN_TOZ], Tv[SN_TOZ];					/* Kar tozu		*/
+		float		Sp[SN_YILDIZ], T, Ruzgar, Es, EsT, EsSonra, EsY, EsYon;	/* Yildiz; esinti	*/
+		uint8_t		Ub[SN_UZAK], Tb[SN_TOZ], Sx[SN_YILDIZ], Sy[SN_YILDIZ], Ready;
 	} Sn;
 	struct { float T, Wx, Wd, Wa, Fl; float Gl[128]; uint8_t Pal[64][3];
 	         Meteor Me; uint8_t Ready; } Au;	/* Aurora */
@@ -2999,23 +3002,48 @@ static void SnRakam(int X0, int Y0, uint8_t Rakam)
 				Set(X0 + x, Y0 + y, 34, 40, 58);
 }
 
-/* Yumusak tane: R yaricapinda, merkez piksel arasinda olabilir (piksel alti) */
-static void SnTane(float Fx, float Fy, float R, uint32_t L)
-{
-	int x, y;
-	const int x0 = (int)floorf(Fx - R), x1 = (int)ceilf(Fx + R);
-	const int y0 = (int)floorf(Fy - R), y1 = (int)ceilf(Fy + R);
+/* Kar tanesi: keskin piksel(ler), yumusatma yok. Sekil 0 tek piksel, 1 "+", 2 "x" */
+#define SN_R(L)	((uint8_t)(((L) * 220U) >> 8))			/* Mavimsi beyaz (yildizlar sarimsi) */
+#define SN_G(L)	((uint8_t)(((L) * 232U) >> 8))
 
-	for(y = y0; y <= y1; y++)
-		for(x = x0; x <= x1; x++)
-		{
-			const float dx = (float)x + 0.5f - Fx, dy = (float)y + 0.5f - Fy;
-			float w = 1.0f - sqrtf(dx * dx + dy * dy) / (R + 0.5f);
-			uint32_t v;
-			if(w <= 0.0f) continue;
-			v = (uint32_t)((float)L * w);
-			Add(x, y, (uint8_t)((v * 235U) >> 8), (uint8_t)((v * 242U) >> 8), (uint8_t)v);	/* Hafif mavi beyaz */
-		}
+static void SnTane(float Fx, float Fy, uint8_t Sekil, uint32_t L)
+{
+	const int x = (int)floorf(Fx), y = (int)floorf(Fy);
+	uint32_t K;
+
+	if(L > 255U) L = 255U;
+	K = (L * 3U) >> 2;									/* Kollar biraz sonuk ama keskin */
+	Add(x, y, SN_R(L), SN_G(L), (uint8_t)L);
+	if(Sekil == 1U)
+	{
+		Add(x - 1, y, SN_R(K), SN_G(K), (uint8_t)K); Add(x + 1, y, SN_R(K), SN_G(K), (uint8_t)K);
+		Add(x, y - 1, SN_R(K), SN_G(K), (uint8_t)K); Add(x, y + 1, SN_R(K), SN_G(K), (uint8_t)K);
+	}
+	else if(Sekil == 2U)
+	{
+		Add(x - 1, y - 1, SN_R(K), SN_G(K), (uint8_t)K); Add(x + 1, y + 1, SN_R(K), SN_G(K), (uint8_t)K);
+		Add(x + 1, y - 1, SN_R(K), SN_G(K), (uint8_t)K); Add(x - 1, y + 1, SN_R(K), SN_G(K), (uint8_t)K);
+	}
+}
+
+/* Kar tozu esintisi: 20-40 s'de bir, ~2.5 s; ince sonuk zerreler hizla yatay gecer */
+#define SN_ES_SURE		2.5f
+
+static void SnEsintiBasla(void)
+{
+	uint32_t i;
+
+	U.Sn.EsYon = (Rand() & 1U) ? 1.0f : -1.0f;
+	U.Sn.EsY   = 8.0f + RandF() * ((float)H - 16.0f);
+	U.Sn.EsT   = 0.0f;
+	for(i = 0; i < SN_TOZ; i++)
+	{
+		const float d = RandF() * (float)W * 1.2f;		/* Ruzgarin geldigi kenarin disinda, kuyruk halinde */
+		U.Sn.Tx[i] = (U.Sn.EsYon > 0.0f) ? -d : (float)W + d;
+		U.Sn.Ty[i] = U.Sn.EsY + (RandF() - 0.5f) * 10.0f;
+		U.Sn.Tv[i] = 55.0f + RandF() * 35.0f;
+		U.Sn.Tb[i] = (uint8_t)(25U + (Rand() % 40U));
+	}
 }
 
 static void SnYeni(uint32_t i, uint8_t Yakin, uint8_t Basta)
@@ -3025,7 +3053,8 @@ static void SnYeni(uint32_t i, uint8_t Yakin, uint8_t Basta)
 	{
 		U.Sn.Yx[i] = RandF() * (float)W;   U.Sn.Yy[i] = y;
 		U.Sn.Yv[i] = 9.0f + RandF() * 6.0f;					/* px/s */
-		U.Sn.Yf[i] = RandF() * 6.28f;						/* Salinim fazi */
+		U.Sn.Yf[i] = RandF() * 6.28f;						/* Salinim / donme fazi */
+		U.Sn.Yp[i] = 0.0f;
 	}
 	else
 	{
@@ -3052,15 +3081,31 @@ static void ModeSnow(void)
 			U.Sn.Sx[i] = (uint8_t)(Rand() % W);
 			U.Sn.Sy[i] = (uint8_t)(Rand() % (H * 2U / 3U));
 		}
+		U.Sn.EsSonra = 8.0f + RandF() * 12.0f;			/* Ilk esinti erken gelsin */
 		U.Sn.Ready = 1;
 	}
 	U.Sn.T += Gdt;
 	U.Sn.Ruzgar = 3.0f * sinf(U.Sn.T * 0.07f) + 1.5f * sinf(U.Sn.T * 0.23f + 1.0f);	/* px/s, yavas doner */
 
-	/* Gok: ustte daha koyu lacivert */
+	/* Esinti zarfi: 0 -> 1 -> 0, sonra 20-40 s bekle */
+	U.Sn.Es = 0.0f;
+	if(U.Sn.EsSonra > 0.0f)
+	{
+		U.Sn.EsSonra -= Gdt;
+		if(U.Sn.EsSonra <= 0.0f) SnEsintiBasla();
+	}
+	else
+	{
+		U.Sn.EsT += Gdt;
+		if(U.Sn.EsT >= SN_ES_SURE) U.Sn.EsSonra = 20.0f + RandF() * 20.0f;
+		else U.Sn.Es = sinf(3.14159f * U.Sn.EsT / SN_ES_SURE);
+	}
+	U.Sn.Ruzgar += U.Sn.EsYon * 22.0f * U.Sn.Es;		/* Esintide taneler de savrulur */
+
+	/* Gok: siyah (gece odayi aydinlatmasin) */
 	for(y = 0; y < (int)H; y++)
 		for(x = 0; x < (int)W; x++)
-			Set(x, y, 0, (uint8_t)(1U + (uint32_t)y / 12U), (uint8_t)(5U + (uint32_t)y / 5U));
+			Set(x, y, 0, 0, 0);
 
 	/* Yildizlar: hafif parlak durur; ara sira aniden parlar, ~0.3 s'de soner */
 	for(i = 0; i < SN_YILDIZ; i++)
@@ -3069,12 +3114,12 @@ static void ModeSnow(void)
 		if(RandF() < Gdt / 3.0f) U.Sn.Sp[i] = 1.0f;		/* Ortalama 3 s'de bir */
 		U.Sn.Sp[i] *= 0.90f;
 		L = 30U + (uint32_t)(225.0f * U.Sn.Sp[i]);
-		Add(U.Sn.Sx[i], U.Sn.Sy[i], (uint8_t)L, (uint8_t)L, (uint8_t)L);
+		Add(U.Sn.Sx[i], U.Sn.Sy[i], (uint8_t)L, (uint8_t)((L * 240U) >> 8), (uint8_t)((L * 200U) >> 8));	/* Sarimsi */
 		if(U.Sn.Sp[i] > 0.3f)							/* Parlakken kucuk isik haci */
 		{
-			const uint8_t k = (uint8_t)(90.0f * U.Sn.Sp[i]);
-			Add(U.Sn.Sx[i] - 1, U.Sn.Sy[i], k, k, k); Add(U.Sn.Sx[i] + 1, U.Sn.Sy[i], k, k, k);
-			Add(U.Sn.Sx[i], U.Sn.Sy[i] - 1, k, k, k); Add(U.Sn.Sx[i], U.Sn.Sy[i] + 1, k, k, k);
+			const uint8_t k = (uint8_t)(90.0f * U.Sn.Sp[i]), kg = (uint8_t)((k * 240U) >> 8), kb = (uint8_t)((k * 200U) >> 8);
+			Add(U.Sn.Sx[i] - 1, U.Sn.Sy[i], k, kg, kb); Add(U.Sn.Sx[i] + 1, U.Sn.Sy[i], k, kg, kb);
+			Add(U.Sn.Sx[i], U.Sn.Sy[i] - 1, k, kg, kb); Add(U.Sn.Sx[i], U.Sn.Sy[i] + 1, k, kg, kb);
 		}
 	}
 
@@ -3086,7 +3131,7 @@ static void ModeSnow(void)
 		if(U.Sn.Ux[i] < -2.0f) U.Sn.Ux[i] += (float)W + 4.0f;
 		if(U.Sn.Ux[i] > (float)W + 2.0f) U.Sn.Ux[i] -= (float)W + 4.0f;
 		if(U.Sn.Uy[i] > (float)H + 1.0f) SnYeni(i, 0, 0);
-		SnTane(U.Sn.Ux[i], U.Sn.Uy[i], 0.4f, U.Sn.Ub[i]);
+		SnTane(U.Sn.Ux[i], U.Sn.Uy[i], 0U, U.Sn.Ub[i]);		/* Tek sonuk piksel */
 	}
 
 	/* Saat: soluk golge, HH:MM ortada; iki nokta saniyede bir yanip soner */
@@ -3110,15 +3155,34 @@ static void ModeSnow(void)
 		}
 	}
 
-	/* Yakin kar: saatin onunde, iri ve parlak, salinarak */
+	/* Kar tozu: esintide, sonuk tek pikseller hizla gecer (saatin onunden) */
+	if(U.Sn.EsSonra <= 0.0f)
+		for(i = 0; i < SN_TOZ; i++)
+		{
+			const uint32_t L = (uint32_t)((float)U.Sn.Tb[i] * (0.4f + 0.6f * U.Sn.Es));
+			U.Sn.Tx[i] += U.Sn.EsYon * U.Sn.Tv[i] * Gdt;
+			U.Sn.Ty[i] += 6.0f * sinf(U.Sn.Tx[i] * 0.15f + (float)i) * Gdt;	/* Hafif dalgali serit */
+			if(U.Sn.Tx[i] >= 0.0f && U.Sn.Tx[i] < (float)W)
+				SnTane(U.Sn.Tx[i], U.Sn.Ty[i], 0U, L);
+		}
+
+	/* Yakin kar: saatin onunde, salinarak. Ilk SN_ARTI tanesi "+"/"x" (donuyormus gibi),
+	   digerleri tek parlak piksel. Ara sira isik yakalayip bir an parlar. */
 	for(i = 0; i < SN_YAKIN; i++)
 	{
+		uint32_t L;
 		U.Sn.Yy[i] += U.Sn.Yv[i] * Dt;
 		U.Sn.Yx[i] += (U.Sn.Ruzgar + 2.5f * sinf(U.Sn.T * 1.7f + U.Sn.Yf[i])) * Dt;
 		if(U.Sn.Yx[i] < -3.0f) U.Sn.Yx[i] += (float)W + 6.0f;
 		if(U.Sn.Yx[i] > (float)W + 3.0f) U.Sn.Yx[i] -= (float)W + 6.0f;
 		if(U.Sn.Yy[i] > (float)H + 2.0f) SnYeni(i, 1, 0);
-		SnTane(U.Sn.Yx[i], U.Sn.Yy[i], 0.9f + 0.04f * U.Sn.Yv[i], (uint32_t)(150.0f + 7.0f * U.Sn.Yv[i]));
+		if(RandF() < Gdt / 6.0f) U.Sn.Yp[i] = 1.0f;		/* Ortalama 6 s'de bir parlama */
+		U.Sn.Yp[i] *= 0.88f;
+		L = (uint32_t)(140.0f + 5.0f * U.Sn.Yv[i] + 60.0f * U.Sn.Yp[i]);
+		if(i < SN_ARTI)
+			SnTane(U.Sn.Yx[i], U.Sn.Yy[i], (((uint32_t)(U.Sn.T * (1.2f + 0.08f * U.Sn.Yv[i]) + U.Sn.Yf[i])) & 1U) ? 2U : 1U, L);
+		else
+			SnTane(U.Sn.Yx[i], U.Sn.Yy[i], 0U, L);
 	}
 }
 

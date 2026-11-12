@@ -59,6 +59,8 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 
 ## Kararlar
 - Birbirinin aynısı mod yok; sadece rengi farklıysa ayrı mod sayılmaz.
+- Kar: zemin siyah (gece odayı aydınlatmasın); uzak tane 1 sönük px, yakın 9 tek parlak px + 7 keskin "+"/"×"
+  (dönüyormuş gibi), ara sıra parlama; yıldızlar sarımsı; 20-40 s'de bir ~2.5 s kar tozu esintisi (sönük zerreler).
 - Alev rengi: Buz kaldırıldı (Mavi gaz ile aynıydı). Katmanlı Dağ/Örgü Şerit renk daireleri ailenin ilk-son rengiyle
   geçişli ("Ad:RRGGBB,RRGGBB", protokol 256 B sınırı: PAL tanımı 229 B). Android Saat satırında kabarık "Ayarla" düğmesi.
 - Renkli Dalga "Kontrast" ayarı kaldırıldı, sabit %150 (SWV_DOLULUK). Açılış/fabrika modu 0 = Klasik.
