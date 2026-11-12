@@ -46,7 +46,9 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   yakın kar önünde; saat soluk gölge (34,40,58). Kar birikmesi yok (32 px'de anlamsız). Geçici font: Font_SaatGecici.h
   (DejaVu Sans Bold 30, 21x22 sabit genişlik); Fatih'in fontu gelince SpecDisplay.c'de SN_FONT değişir, dosya silinir.
 - Saat: Saat.c (RTC, LSE, HAL'siz yazmaç). Kristal ~2 s içinde hazır değilse yazılım saati. CMD_TIME 0x40
-  Sa Dk Sn ile ayarlanır; Android ve PC aracı bağlanınca kendi saatini gönderir. Kartta henüz denenmedi.
+  Sa Dk Sn [Gün Ay Yıl-2000] ile ayarlanır (yanıt hep 6 bayt; tarih 2000-2099, RTC takvimi). Saat OTOMATİK
+  GÖNDERİLMEZ (kullanıcı kararı): Android Ayarlar > "Saat ve tarih" penceresi (telefon saatiyle dolu gelir,
+  elle değiştirilebilir), PC aracında "Saati ayarla" düğmesi (PC saati). İnternet gerekmez. Kartta henüz denenmedi.
 - Ortam: Android sekmesi aileye değil Kind'a bakar (0 müzikli -> Müzik, 1 müziksiz -> Ortam);
   aile sadece gruplama/sıra (PC'de başlık). Sıra değişince kayıtlı ayarlar kendiliğinden varsayılana döner (Layout CRC).
 - Silindi (beğenilmedi): Plazma, Kutup Işığı, Işık Girdabı (akışkan buhar denemesi, 128x32'de ekranı dolduramadı).

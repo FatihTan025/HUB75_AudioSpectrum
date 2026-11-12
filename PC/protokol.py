@@ -369,9 +369,14 @@ class Cihaz:
     def AdVer(self, Ad):	self.Komut(0x02, Ad.encode('utf-8')[:16])
     def Ping(self):			self.Komut(0x03)
 
-    def SaatAyarla(self, Sa, Dk, Sn):
-        """Cihaz saatini ayarlar (CMD_TIME 0x40)."""
-        self.Komut(0x40, bytes([Sa, Dk, Sn]))
+    def SaatAyarla(self, Sa, Dk, Sn, Gun, Ay, Yil):
+        """Cihaz saat ve tarihini ayarlar (CMD_TIME 0x40), 2000-2099."""
+        self.Komut(0x40, bytes([Sa, Dk, Sn, Gun, Ay, Yil - 2000]))
+
+    def SaatOku(self):
+        """(Sa, Dk, Sn, Gun, Ay, Yil); eski firmware tarih vermezse None."""
+        _, d = self.Komut(0x40)
+        return (d[0], d[1], d[2], d[3], d[4], 2000 + d[5]) if len(d) >= 6 else None
 
     def Guc(self, Acik=None):
         _, d = self.Komut(0x51, b'' if Acik is None else bytes([1 if Acik else 0]))

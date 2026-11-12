@@ -358,6 +358,8 @@ class Uygulama:
         self.FabrikaD.pack(side='left')
         self.GucD = self.Dugme(Alt, 'Ekranı kapat', self.GucBas)
         self.GucD.pack(side='left', padx=6)
+        self.SaatD = self.Dugme(Alt, 'Saati ayarla', self.SaatBas)
+        self.SaatD.pack(side='left')
         tk.Label(Alt, text='Cihaz adı', bg=ZEMIN, fg=SOLUK).pack(side='left', padx=(18, 6))
         self.AdVar = tk.StringVar()
         tk.Entry(Alt, textvariable=self.AdVar, width=17, bg=KENAR, fg=YAZI, insertbackground=YAZI,
@@ -405,7 +407,7 @@ class Uygulama:
         tk.Label(self.AyarAlan, text=Yazi, bg=PANEL, fg=SOLUK, font=('Segoe UI', 11)).pack(pady=60)
 
     def Etkin(self, Acik):
-        for d in (self.Kaydet, self.GeriAl, self.FabrikaD, self.GucD, self.AdD, self.WifiD):
+        for d in (self.Kaydet, self.GeriAl, self.FabrikaD, self.GucD, self.SaatD, self.AdD, self.WifiD):
             d.configure(state='normal' if Acik else 'disabled')
 
     def Durum(self, Yazi, Renk=SOLUK):
@@ -474,12 +476,7 @@ class Uygulama:
 
         def Yukle():
             C.Ac()
-            Bilgi = C.Bilgi()
-            try:                                    # Saat: PC'nin saati (eski firmware desteklemez)
-                Su = time.localtime()
-                C.SaatAyarla(Su.tm_hour, Su.tm_min, Su.tm_sec)
-            except Exception:
-                pass
+            Bilgi = C.Bilgi()                       # Saat otomatik gonderilmez: "Saati ayarla"
             return Bilgi, C.Modlar(), C.Tanimlar()
 
         def Bitti(Sonuc):
@@ -770,6 +767,14 @@ class Uygulama:
                 Bilgi['Ad'], Bilgi['Genislik'], Bilgi['Yukseklik'], Bilgi['Fw']))
             self.Kirli(True)
         self.Is.Yap(lambda: (C.AdVer(Ad), C.Bilgi())[1], Bitti, lambda e: self.Durum(str(e), KIRMIZI))
+
+    def SaatBas(self):
+        """Bilgisayarin saat ve tarihini karta yazar."""
+        C, Su = self.Cihaz, time.localtime()
+        self.Is.Yap(lambda: (C.SaatAyarla(Su.tm_hour, Su.tm_min, Su.tm_sec, Su.tm_mday, Su.tm_mon, Su.tm_year), C.SaatOku())[1],
+                    lambda z: self.Durum('Saat ayarlandı: %02d:%02d  %02d.%02d.%d' % (z[0], z[1], z[3], z[4], z[5]) if z
+                                         else 'Saat ayarlandı (kart yazılımı tarihi desteklemiyor)', VURGU),
+                    lambda e: self.Durum(str(e), KIRMIZI))
 
     # --- Karttan gelenler ------------------------------------------------------
     def Olay(self, Tur, Veri):

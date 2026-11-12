@@ -48,6 +48,7 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
     val bilgi = mutableStateOf<Bilgi?>(null)
     val surumUyari = mutableStateOf(false)
     val kopru = mutableStateOf<KopruBilgi?>(null)
+    val cihazSaat = mutableStateOf<IntArray?>(null)        // sa dk sn gun ay yil (okundugu an)
 
     // --- Icerik (cihazdan) ---
     val modlar = mutableStateListOf<Mod>()
@@ -128,10 +129,7 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
                 guc.value = bl.guc
                 sekme.value = if (ml.firstOrNull { it.no == bl.mod }?.tur == 1) Sekme.ORTAM else Sekme.MUZIK
                 tercih.edit().putString("ad_${b.ad}", bl.ad).apply()
-                try {                                       // Saat: telefonun saati (internet saati gelene kadar)
-                    val z = java.util.Calendar.getInstance()
-                    c.saatAyarla(z.get(java.util.Calendar.HOUR_OF_DAY), z.get(java.util.Calendar.MINUTE), z.get(java.util.Calendar.SECOND))
-                } catch (_: Exception) { }
+                cihazSaat.value = try { c.saatOku() } catch (_: Exception) { null }   // Saat otomatik gonderilmez
                 cihaz.value = c
                 modDegerYukle(bl.mod)
                 kopru.value = try { c.kopruBilgi() } catch (_: Exception) { null }   // UART'tan bagliysa kopru yok
@@ -248,6 +246,24 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
         val sure = if (otoAcik) 0 else tercih.getInt("oto_sn", 60).coerceIn(maxOf(t.min, t.adim), t.max)
         if (otoAcik) tercih.edit().putInt("oto_sn", genel[AyarId.OTO_SN] ?: 60).apply()
         ayarYaz(t, sure, MOD_GENEL)
+    }
+
+    fun saatOku() {
+        val c = cihaz.value ?: return
+        viewModelScope.launch { cihazSaat.value = try { c.saatOku() } catch (_: Exception) { null } }
+    }
+
+    /** Kullanici "Saati ayarla" ile sectigi saat ve tarihi gonderir */
+    fun saatAyarla(z: java.util.Calendar) {
+        val c = cihaz.value ?: return
+        viewModelScope.launch {
+            try {
+                c.saatAyarla(z.get(java.util.Calendar.HOUR_OF_DAY), z.get(java.util.Calendar.MINUTE), z.get(java.util.Calendar.SECOND),
+                    z.get(java.util.Calendar.DAY_OF_MONTH), z.get(java.util.Calendar.MONTH) + 1, z.get(java.util.Calendar.YEAR))
+                cihazSaat.value = c.saatOku()
+                mesaj.value = "Saat ayarlandı"
+            } catch (e: Exception) { mesaj.value = e.message }
+        }
     }
 
     fun adVer(ad: String) {

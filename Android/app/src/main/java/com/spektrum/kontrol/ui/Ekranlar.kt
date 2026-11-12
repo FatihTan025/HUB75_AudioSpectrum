@@ -294,11 +294,14 @@ private fun AyarlarSekmesi(m: AnaModel) {
     var adPencere by remember { mutableStateOf(false) }
     var agPencere by remember { mutableStateOf(false) }
     var fabrikaPencere by remember { mutableStateOf(false) }
+    var saatPencere by remember { mutableStateOf(false) }
     val b = m.bilgi.value
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
         Grup("CİHAZ") {
             Satir("Cihaz adı", b?.ad ?: "") { adPencere = true }
+            Satir("Saat ve tarih", m.cihazSaat.value?.let { z -> "%02d:%02d · %02d.%02d.%d".format(z[0], z[1], z[3], z[4], z[5]) } ?: "") {
+                m.saatOku(); saatPencere = true }
             m.tanimBul(AyarId.OTO_SN)?.let { t ->
                 Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
                     Row { Baslik("Oto geçiş süresi"); Spacer(Modifier.weight(1f))
@@ -338,6 +341,43 @@ private fun AyarlarSekmesi(m: AnaModel) {
             dismissButton = { TextButton({ fabrikaPencere = false }) { Text("Vazgeç") } })
     }
     if (agPencere) EvAgiPenceresi(m) { agPencere = false }
+    if (saatPencere) SaatPenceresi(m) { saatPencere = false }
+}
+
+/** Saati ayarla: telefonun saatiyle dolu gelir, istenirse tarih/saat elle degistirilir */
+@Composable
+private fun SaatPenceresi(m: AnaModel, kapat: () -> Unit) {
+    val ctx = LocalContext.current
+    var z by remember { mutableStateOf(java.util.Calendar.getInstance()) }
+    var elle by remember { mutableStateOf(false) }               // Elle secildiyse saniye 0, saat akmaz
+    LaunchedEffect(elle) { while (!elle) { z = java.util.Calendar.getInstance(); kotlinx.coroutines.delay(1000) } }
+    fun kopya(f: java.util.Calendar.() -> Unit) = (z.clone() as java.util.Calendar).apply(f)
+
+    AlertDialog(onDismissRequest = kapat,
+        title = { Text("Saati ayarla") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(if (elle) "Seçilen" else "Telefonun saati", color = Soluk, fontSize = 13.sp)
+                Row {
+                    TextButton({
+                        android.app.DatePickerDialog(ctx, { _, y, a, g ->
+                            z = kopya { set(y, a, g) }; elle = true
+                        }, z.get(java.util.Calendar.YEAR), z.get(java.util.Calendar.MONTH), z.get(java.util.Calendar.DAY_OF_MONTH)).show()
+                    }) { Text("%02d.%02d.%d".format(z.get(java.util.Calendar.DAY_OF_MONTH), z.get(java.util.Calendar.MONTH) + 1, z.get(java.util.Calendar.YEAR)), fontSize = 20.sp) }
+                    TextButton({
+                        android.app.TimePickerDialog(ctx, { _, sa, dk ->
+                            z = kopya { set(java.util.Calendar.HOUR_OF_DAY, sa); set(java.util.Calendar.MINUTE, dk); set(java.util.Calendar.SECOND, 0) }; elle = true
+                        }, z.get(java.util.Calendar.HOUR_OF_DAY), z.get(java.util.Calendar.MINUTE), true).show()
+                    }) { Text("%02d:%02d".format(z.get(java.util.Calendar.HOUR_OF_DAY), z.get(java.util.Calendar.MINUTE)), fontSize = 20.sp) }
+                }
+                m.cihazSaat.value?.let { c -> Text("Cihazda: %02d:%02d · %02d.%02d.%d".format(c[0], c[1], c[3], c[4], c[5]), color = Soluk, fontSize = 13.sp) }
+            }
+        },
+        confirmButton = { TextButton({
+            val y = z.get(java.util.Calendar.YEAR)
+            if (y in 2000..2099) { m.saatAyarla(if (elle) z else java.util.Calendar.getInstance()); kapat() }
+        }) { Text("Ayarla") } },
+        dismissButton = { TextButton(kapat) { Text("Vazgeç") } })
 }
 
 @Composable

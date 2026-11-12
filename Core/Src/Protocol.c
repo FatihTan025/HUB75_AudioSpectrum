@@ -22,7 +22,7 @@
   *                      GosterId(2) GosterAlt(2) GosterUst(2)  (Id 0 = hep gorunur)
   *                      Ad\0 Grup\0 Secenek\0
   *   30 SAVE / 31 LOAD / 32 FACTORY_RESET    -> st
-  *   40 TIME        [Sa(1) Dk(1) Sn(1)]      -> st Sa Dk Sn  (bos = oku)
+  *   40 TIME        [Sa Dk Sn [Gun Ay Yil-2000]] -> st Sa Dk Sn Gun Ay Yil-2000  (bos = oku)
   *   51 POWER       [Acik(1)]                -> st Acik  (bos = oku)
   *   70 STATUS      Aralik(2) ms, 0 = dur    -> st
   *        akis (SEQ 0, CMD 70): Mod Tasma(4) IslemUs(2) CizimUs(2) AktarimUs(2)
@@ -292,21 +292,23 @@ static void Handle(uint8_t Seq, uint8_t Cmd, const uint8_t *In, uint16_t Len)
 		CntKick = CntHit = CntBeat = 0;
 		break;
 
-	case CMD_TIME:
+	case CMD_TIME:											/* Sa Dk Sn [Gun Ay Yil-2000]	*/
 	{
-		uint8_t Sa, Dk, Sn;
+		uint8_t Sa, Dk, Sn, Gun, Ay;
+		uint16_t Yil;
 
-		if(Len >= 3U)
-		{
-			if(In[0] < 24U && In[1] < 60U && In[2] < 60U)
-				SAAT_Set(In[0], In[1], In[2]);
-			else
-				St = PROTO_ERR_RANGE;
-		}
+		if(Len >= 3U && !SAAT_Set(In[0], In[1], In[2]))
+			St = PROTO_ERR_RANGE;
+		else if(Len >= 6U && !SAAT_TarihSet(In[3], In[4], (uint16_t)(2000U + In[5])))
+			St = PROTO_ERR_RANGE;
 		SAAT_Get(&Sa, &Dk, &Sn);
+		SAAT_TarihGet(&Gun, &Ay, &Yil);
 		*p++ = Sa;
 		*p++ = Dk;
 		*p++ = Sn;
+		*p++ = Gun;
+		*p++ = Ay;
+		*p++ = (uint8_t)(Yil - 2000U);
 		break;
 	}
 
