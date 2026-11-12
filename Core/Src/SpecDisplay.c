@@ -82,7 +82,6 @@ typedef struct { float X, Y, Vx, Vy, Lm, Age, Dur, P; uint32_t Last; uint8_t On;
 #define SN_YAKIN		16
 #define SN_YILDIZ		16
 #define SN_ARTI			7				/* Yakin tanelerin ilk 7'si "+"/"x" seklinde	*/
-#define SN_TOZ			40				/* Esintideki kar tozu zerresi			*/
 
 typedef struct { float R, Speed; uint16_t Hue; uint8_t Alive; } Ring;
 typedef struct { float X, Y, Vx, Vy; uint16_t Hue; uint8_t Life; } Particle;
@@ -139,9 +138,8 @@ static union
 	{
 		float		Ux[SN_UZAK], Uy[SN_UZAK], Uv[SN_UZAK];				/* Uzak taneler	*/
 		float		Yx[SN_YAKIN], Yy[SN_YAKIN], Yv[SN_YAKIN], Yf[SN_YAKIN], Yp[SN_YAKIN];	/* Yakin taneler, parlama */
-		float		Tx[SN_TOZ], Ty[SN_TOZ], Tv[SN_TOZ];					/* Kar tozu		*/
-		float		Sp[SN_YILDIZ], T, Ruzgar, Es, EsT, EsSonra, EsY, EsYon;	/* Yildiz; esinti	*/
-		uint8_t		Ub[SN_UZAK], Tb[SN_TOZ], Sx[SN_YILDIZ], Sy[SN_YILDIZ], Ready;
+		float		Sp[SN_YILDIZ], T, Ruzgar, EsT, EsSonra, EsY, EsYon, EsK;	/* Yildiz; beyaz perde	*/
+		uint8_t		Ub[SN_UZAK], Sx[SN_YILDIZ], Sy[SN_YILDIZ], Ready;
 	} Sn;
 	struct { float T, Wx, Wd, Wa, Fl; float Gl[128]; uint8_t Pal[64][3];
 	         Meteor Me; uint8_t Ready; } Au;	/* Aurora */
@@ -3002,47 +3000,73 @@ static void SnRakam(int X0, int Y0, uint8_t Rakam)
 				Set(X0 + x, Y0 + y, 34, 40, 58);
 }
 
-/* Kar tanesi: keskin piksel(ler), yumusatma yok. Sekil 0 tek piksel, 1 "+", 2 "x" */
-#define SN_R(L)	((uint8_t)(((L) * 220U) >> 8))			/* Mavimsi beyaz (yildizlar sarimsi) */
-#define SN_G(L)	((uint8_t)(((L) * 232U) >> 8))
-
+/* Kar tanesi: saf beyaz, yumusatma yok. Sekil 0 tek piksel, 1 "+", 2 "x" (uclari sonuk, ortasi parlak) */
 static void SnTane(float Fx, float Fy, uint8_t Sekil, uint32_t L)
 {
 	const int x = (int)floorf(Fx), y = (int)floorf(Fy);
-	uint32_t K;
+	uint8_t K;
 
 	if(L > 255U) L = 255U;
-	K = (L * 3U) >> 2;									/* Kollar biraz sonuk ama keskin */
-	Add(x, y, SN_R(L), SN_G(L), (uint8_t)L);
+	K = (uint8_t)(L >> 2);								/* Uclar ~%25 */
+	Add(x, y, (uint8_t)L, (uint8_t)L, (uint8_t)L);
 	if(Sekil == 1U)
 	{
-		Add(x - 1, y, SN_R(K), SN_G(K), (uint8_t)K); Add(x + 1, y, SN_R(K), SN_G(K), (uint8_t)K);
-		Add(x, y - 1, SN_R(K), SN_G(K), (uint8_t)K); Add(x, y + 1, SN_R(K), SN_G(K), (uint8_t)K);
+		Add(x - 1, y, K, K, K); Add(x + 1, y, K, K, K);
+		Add(x, y - 1, K, K, K); Add(x, y + 1, K, K, K);
 	}
 	else if(Sekil == 2U)
 	{
-		Add(x - 1, y - 1, SN_R(K), SN_G(K), (uint8_t)K); Add(x + 1, y + 1, SN_R(K), SN_G(K), (uint8_t)K);
-		Add(x + 1, y - 1, SN_R(K), SN_G(K), (uint8_t)K); Add(x - 1, y + 1, SN_R(K), SN_G(K), (uint8_t)K);
+		Add(x - 1, y - 1, K, K, K); Add(x + 1, y + 1, K, K, K);
+		Add(x + 1, y - 1, K, K, K); Add(x - 1, y + 1, K, K, K);
 	}
 }
 
-/* Kar tozu esintisi: 20-40 s'de bir, ~2.5 s; ince sonuk zerreler hizla yatay gecer */
-#define SN_ES_SURE		2.5f
+/* Beyaz perde (ruzgar): hayalet gibi soluk beyaz sis, bir kenardan girip ~7.5 s'de
+   obur kenardan cikar; ortasi yogun, kenarlari silik, sekli kivrilarak degisir.
+   25-45 s'de bir gelir. Taneleri itmez. */
+#define SN_ES_SURE		7.5f
+#define SN_ES_EN		22.0f						/* Perdenin yarim boyu (px)		*/
+#define SN_ES_ISIK		42.0f						/* En yogun yerinin parlakligi	*/
 
-static void SnEsintiBasla(void)
+static void SnPerdeBasla(void)
 {
-	uint32_t i;
-
 	U.Sn.EsYon = (Rand() & 1U) ? 1.0f : -1.0f;
-	U.Sn.EsY   = 8.0f + RandF() * ((float)H - 16.0f);
+	U.Sn.EsY   = 10.0f + RandF() * ((float)H - 20.0f);
+	U.Sn.EsK   = 5.0f + RandF() * 4.0f;					/* Kalinlik (px)				*/
 	U.Sn.EsT   = 0.0f;
-	for(i = 0; i < SN_TOZ; i++)
+}
+
+static void SnPerde(void)
+{
+	const float u  = U.Sn.EsT / SN_ES_SURE;			/* 0..1 */
+	const float Yol = (float)W + 2.0f * SN_ES_EN;
+	const float c  = (U.Sn.EsYon > 0.0f) ? -SN_ES_EN + Yol * u : (float)W + SN_ES_EN - Yol * u;
+	const int   x0 = (int)(c - SN_ES_EN), x1 = (int)(c + SN_ES_EN) + 1;
+	const float T  = U.Sn.T;
+	int x, y;
+
+	for(x = x0; x <= x1; x++)
 	{
-		const float d = RandF() * (float)W * 1.2f;		/* Ruzgarin geldigi kenarin disinda, kuyruk halinde */
-		U.Sn.Tx[i] = (U.Sn.EsYon > 0.0f) ? -d : (float)W + d;
-		U.Sn.Ty[i] = U.Sn.EsY + (RandF() - 0.5f) * 10.0f;
-		U.Sn.Tv[i] = 55.0f + RandF() * 35.0f;
-		U.Sn.Tb[i] = (uint8_t)(25U + (Rand() % 40U));
+		float dx, gx, yc, th;
+		if(x < 0 || x >= (int)W) continue;
+		dx = ((float)x - c) / SN_ES_EN;
+		gx = 1.0f - dx * dx;							/* Yatayda yumusak uclar		*/
+		if(gx <= 0.0f) continue;
+		gx *= gx;
+		yc = U.Sn.EsY + 4.0f * sinf((float)x * 0.09f + T * 0.6f);			/* Kivrilan orta cizgi	*/
+		th = U.Sn.EsK * (0.65f + 0.35f * sinf((float)x * 0.14f - T * 0.8f));	/* Kalinlik dalgalanir	*/
+		for(y = (int)(yc - th) - 1; y <= (int)(yc + th) + 1; y++)
+		{
+			float dy, gy, lif;
+			uint8_t L;
+			if(y < 0 || y >= (int)H) continue;
+			dy = ((float)y - yc) / th;
+			gy = 1.0f - dy * dy;
+			if(gy <= 0.0f) continue;
+			lif = 0.65f + 0.35f * sinf((float)x * 0.33f + (float)y * 0.7f + T * 1.1f);	/* Ince lifler	*/
+			L = (uint8_t)(SN_ES_ISIK * gx * gy * lif);
+			if(L) Add(x, y, L, L, L);
+		}
 	}
 }
 
@@ -3081,26 +3105,23 @@ static void ModeSnow(void)
 			U.Sn.Sx[i] = (uint8_t)(Rand() % W);
 			U.Sn.Sy[i] = (uint8_t)(Rand() % (H * 2U / 3U));
 		}
-		U.Sn.EsSonra = 8.0f + RandF() * 12.0f;			/* Ilk esinti erken gelsin */
+		U.Sn.EsSonra = 8.0f + RandF() * 12.0f;			/* Ilk perde erken gelsin */
 		U.Sn.Ready = 1;
 	}
 	U.Sn.T += Gdt;
 	U.Sn.Ruzgar = 3.0f * sinf(U.Sn.T * 0.07f) + 1.5f * sinf(U.Sn.T * 0.23f + 1.0f);	/* px/s, yavas doner */
 
-	/* Esinti zarfi: 0 -> 1 -> 0, sonra 20-40 s bekle */
-	U.Sn.Es = 0.0f;
+	/* Beyaz perde zamanlamasi: gecer, sonra 25-45 s bekler */
 	if(U.Sn.EsSonra > 0.0f)
 	{
 		U.Sn.EsSonra -= Gdt;
-		if(U.Sn.EsSonra <= 0.0f) SnEsintiBasla();
+		if(U.Sn.EsSonra <= 0.0f) SnPerdeBasla();
 	}
 	else
 	{
 		U.Sn.EsT += Gdt;
-		if(U.Sn.EsT >= SN_ES_SURE) U.Sn.EsSonra = 20.0f + RandF() * 20.0f;
-		else U.Sn.Es = sinf(3.14159f * U.Sn.EsT / SN_ES_SURE);
+		if(U.Sn.EsT >= SN_ES_SURE) U.Sn.EsSonra = 25.0f + RandF() * 20.0f;
 	}
-	U.Sn.Ruzgar += U.Sn.EsYon * 22.0f * U.Sn.Es;		/* Esintide taneler de savrulur */
 
 	/* Gok: siyah (gece odayi aydinlatmasin) */
 	for(y = 0; y < (int)H; y++)
@@ -3155,16 +3176,8 @@ static void ModeSnow(void)
 		}
 	}
 
-	/* Kar tozu: esintide, sonuk tek pikseller hizla gecer (saatin onunden) */
-	if(U.Sn.EsSonra <= 0.0f)
-		for(i = 0; i < SN_TOZ; i++)
-		{
-			const uint32_t L = (uint32_t)((float)U.Sn.Tb[i] * (0.4f + 0.6f * U.Sn.Es));
-			U.Sn.Tx[i] += U.Sn.EsYon * U.Sn.Tv[i] * Gdt;
-			U.Sn.Ty[i] += 6.0f * sinf(U.Sn.Tx[i] * 0.15f + (float)i) * Gdt;	/* Hafif dalgali serit */
-			if(U.Sn.Tx[i] >= 0.0f && U.Sn.Tx[i] < (float)W)
-				SnTane(U.Sn.Tx[i], U.Sn.Ty[i], 0U, L);
-		}
+	/* Beyaz perde: saatin onunden, cok sonuk */
+	if(U.Sn.EsSonra <= 0.0f) SnPerde();
 
 	/* Yakin kar: saatin onunde, salinarak. Ilk SN_ARTI tanesi "+"/"x" (donuyormus gibi),
 	   digerleri tek parlak piksel. Ara sira isik yakalayip bir an parlar. */
