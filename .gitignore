@@ -1,0 +1,30 @@
+# STM32CubeIDE derleme ciktilari
+Debug/
+Release/
+*.o
+*.d
+*.su
+*.cyclo
+*.elf
+*.map
+*.list
+.metadata/
+
+# Python
+__pycache__/
+*.pyc
+
+# Android / Gradle
+Android/.gradle/
+Android/.idea/
+Android/local.properties
+Android/build/
+Android/app/build/
+*.apk
+*.aab
+*.iml
+
+# Isletim sistemi
+Thumbs.db
+desktop.ini
+.DS_Store
