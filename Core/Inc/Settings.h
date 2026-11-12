@@ -26,7 +26,7 @@
 #define SET_TYPE_PALETTE		4U		/* Ileride: tema renk listesi			*/
 #define SET_TYPE_HUE			5U		/* Renk tonu 0..359 (kaydirma cubugu)	*/
 #define SET_TYPE_SWATCH			6U		/* Bloklu renk cubugu: Min..Max secim,	*/
-										/* Options "Ad:RRGGBB|Ad:RRGGBB|..."	*/
+										/* Options "Ad:RRGGBB|..." (gecisli: "Ad:RRGGBB,RRGGBB") */
 
 /* --- Bayraklar ---------------------------------------------------------- */
 #define SET_FLAG_PER_MODE		0x01U	/* Her modun kendi degeri var			*/

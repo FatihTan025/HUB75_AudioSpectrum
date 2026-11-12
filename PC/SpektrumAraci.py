@@ -87,12 +87,17 @@ class AyarSatiri:
             k.bind('<<ComboboxSelected>>', lambda e: self.Degisti(self.Secenekler.index(self.Var.get())))
         elif Tur == 'blok':
             # Bloklu renk cubugu: birkac hazir renk, ara ton yok. Options "Ad:RRGGBB|..."
-            self.Bloklar = [(p.split(':')[0], '#' + p.split(':')[1]) for p in Tanim['Secenek'].split('|') if ':' in p]
+            # Gecisli blok (renk ailesi): "Ad:RRGGBB,RRGGBB" -> blok iki renge bolunur
+            self.Bloklar = [(p.rsplit(':', 1)[0], ['#' + h for h in p.rsplit(':', 1)[1].split(',')])
+                            for p in Tanim['Secenek'].split('|') if ':' in p]
             n = max(1, len(self.Bloklar))
             self.Ton = tk.Canvas(self.Cerceve, width=TON_GEN, height=16, bg=PANEL, highlightthickness=0,
                                  cursor='hand2')
-            for i, (_, r) in enumerate(self.Bloklar):
-                self.Ton.create_rectangle(i * TON_GEN // n, 2, (i + 1) * TON_GEN // n - 1, 14, fill=r, outline='')
+            for i, (_, rr) in enumerate(self.Bloklar):
+                x0, x1 = i * TON_GEN // n, (i + 1) * TON_GEN // n - 1
+                for j, r in enumerate(rr):
+                    self.Ton.create_rectangle(x0 + (x1 - x0) * j // len(rr), 2, x0 + (x1 - x0) * (j + 1) // len(rr), 14,
+                                              fill=r, outline='')
             self.TonImlec = self.Ton.create_rectangle(0, 0, 3, 16, outline='white', width=2)
             self.Ton.pack(side='left')
             self.Ton.bind('<Button-1>', self.BlokTik)

@@ -302,7 +302,13 @@ private fun AyarlarSekmesi(m: AnaModel) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Grup("CİHAZ") {
             Satir("Cihaz adı", b?.ad ?: "") { adPencere = true }
-            Satir("Saati ayarla", "telefonun saati") { m.saatAyarla() }
+            Row(Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text("Saat", color = Color.White, fontSize = 15.sp)
+                    Text("telefonun saati ve tarihi", color = Soluk, fontSize = 12.sp)
+                }
+                KabarikDugme("Ayarla") { m.saatAyarla() }
+            }
             m.tanimBul(AyarId.OTO_SN)?.let { t ->
                 Box(Modifier.padding(horizontal = 14.dp, vertical = 2.dp)) {
                     TekSatir("Oto geçiş") {

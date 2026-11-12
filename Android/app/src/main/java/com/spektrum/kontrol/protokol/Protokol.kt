@@ -136,10 +136,11 @@ data class Tanim(val sira: Int, val toplam: Int, val id: Int, val tur: Int, val 
     val saltOkunur get() = bayrak and Bayrak.SALT_OKUNUR != 0
     /** ENUM secenekleri */
     val secenekler: List<String> get() = if (secenek.isEmpty()) emptyList() else secenek.split('|')
-    /** BLOK: "Ad:RRGGBB|..." */
-    val bloklar: List<Pair<String, Int>> get() = secenekler.map {
+    /** BLOK: "Ad:RRGGBB|..." ya da gecisli "Ad:RRGGBB,RRGGBB" (renk ailesi) */
+    val bloklar: List<Pair<String, List<Int>>> get() = secenekler.map {
         val k = it.lastIndexOf(':')
-        if (k < 0) it to 0x808080 else it.substring(0, k) to (it.substring(k + 1).toIntOrNull(16) ?: 0x808080)
+        if (k < 0) it to listOf(0x808080)
+        else it.substring(0, k) to it.substring(k + 1).split(',').map { h -> h.trim().toIntOrNull(16) ?: 0x808080 }
     }
 }
 

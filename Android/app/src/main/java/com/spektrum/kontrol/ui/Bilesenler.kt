@@ -8,6 +8,8 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.drag
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -61,6 +63,8 @@ val Sari = Color(0xFFFFD23F)
 val SariYazi = Color(0xFF2A1A00)
 val Soluk = Color(0xFFE4DCFF)
 val Pasif = Color(0xFFB9AEEB)
+val SariAcik = Color(0xFFFFE680)
+val SariKenar = Color(0xFFC79A00)   // Kabarik dugmenin alt kenari
 val IzKoyu = Color(0xFF2A1A78)     // Kaydirma cubugunun bos tarafi (zeminden belirgin)
 
 fun rgbRenk(v: Int) = Color(0xFF000000.toInt() or (v and 0xFFFFFF))
@@ -137,6 +141,23 @@ fun Cubuk(deger: Int, min: Int, max: Int, adim: Int, degisti: (Int) -> Unit) {
     )
 }
 
+/** Kabarik (3B) dugme: altta koyu kenar; basinca yuz asagi iner, kenar kaybolur. */
+@Composable
+fun KabarikDugme(yazi: String, tikla: () -> Unit) {
+    val ka = remember { MutableInteractionSource() }
+    val basili by ka.collectIsPressedAsState()
+    val sekil = RoundedCornerShape(10.dp)
+    Box(Modifier.width(96.dp).height(42.dp).clickable(interactionSource = ka, indication = null, onClick = tikla)) {
+        Box(Modifier.fillMaxWidth().height(38.dp).align(Alignment.BottomCenter)
+            .shadow(if (basili) 0.dp else 4.dp, sekil).clip(sekil).background(SariKenar))
+        Box(Modifier.fillMaxWidth().height(38.dp).offset(y = if (basili) 4.dp else 0.dp).clip(sekil)
+            .background(Brush.verticalGradient(listOf(SariAcik, if (basili) SariKenar else Sari))),
+            contentAlignment = Alignment.Center) {
+            Text(yazi, color = SariYazi, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
 /** Kaydirma ve renk cubugu tutamaci: siyah daire, beyaz halka (mor zeminde secilsin) */
 @Composable
 fun Tutamac() {
@@ -161,14 +182,16 @@ fun Secmeli(secenekler: List<String>, secili: Int, sec: (Int) -> Unit) {
 }
 
 @Composable
-fun Bloklar(bloklar: List<Pair<String, Int>>, secili: Int, sec: (Int) -> Unit) {
+fun Bloklar(bloklar: List<Pair<String, List<Int>>>, secili: Int, sec: (Int) -> Unit) {
     Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically) {
-        bloklar.forEachIndexed { i, (_, rgb) ->
+        bloklar.forEachIndexed { i, (_, renkler) ->
+            val ic = Modifier.size(32.dp).clip(CircleShape).clickable { sec(i) }
+                .border(3.dp, if (i == secili) Sari else Color.Transparent, CircleShape)
+                .padding(4.dp).clip(CircleShape)
             Box(
-                Modifier.size(32.dp).clip(CircleShape).clickable { sec(i) }
-                    .border(3.dp, if (i == secili) Sari else Color.Transparent, CircleShape)
-                    .padding(4.dp).clip(CircleShape).background(rgbRenk(rgb))
+                if (renkler.size > 1) ic.background(Brush.linearGradient(renkler.map { rgbRenk(it) }))   // renk ailesi: gecis
+                else ic.background(rgbRenk(renkler.firstOrNull() ?: 0x808080))
             )
         }
     }

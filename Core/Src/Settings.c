@@ -98,7 +98,7 @@ static void ApplyClassic(uint8_t Mode, int32_t Value)
 
 /* Alev rengi: bloklu cubuk sirasi -> SPEC_SetFirePalette secimi.
    Her blok elle ayarlanmis bir palet; ara ton yok (gercekcilik bozulmasin). */
-static const uint8_t FirePal[] = { 1U, 7U, 4U, 2U, 5U, 3U };	/* Ates, Pembe, Mor, Mavi gaz, Buz, Yesil */
+static const uint8_t FirePal[] = { 1U, 7U, 4U, 2U, 3U };	/* Ates, Pembe, Mor, Mavi gaz, Yesil */
 
 static void ApplyFire(uint8_t Mode, int32_t Value)
 {
@@ -197,9 +197,9 @@ static const SET_Param Table[] =
 	  "Yerle\305\237im", "Ekstra", "Bas solda|Bas ortada", ApplyClassic },			/* Yerlesim: gorunume sabit (Ayna, Orta Dag) */
 
 	/* --- Alev modlari: bloklu renk cubugu (hazir paletler) --- */
-	{ SET_ID_FIRE_COLOR,	SET_TYPE_SWATCH, SET_FLAG_PER_MODE, FIRE_MASK, 0, 5, 1, 0,
+	{ SET_ID_FIRE_COLOR,	SET_TYPE_SWATCH, SET_FLAG_PER_MODE, FIRE_MASK, 0, 4, 1, 0,
 	  "Alev Renk", "Alev",
-	  "Ate\305\237:FF7A10|Pembe:FF3C8C|Mor:A040FF|Mavi gaz:2C7CFF|Buz:A8E4FF|Ye\305\237il:50E040",	/* Ates ... Yesil */
+	  "Ate\305\237:FF7A10|Pembe:FF3C8C|Mor:A040FF|Mavi gaz:2C7CFF|Ye\305\237il:50E040",	/* Ates ... Yesil */
 	  ApplyFire },
 
 	/* --- Tum gorunumler: hareket --- */
@@ -215,8 +215,8 @@ static const SET_Param Table[] =
 	  "Camg\303\266be\304\237i:0094FF|Mavi:0000FF|Mor:D400FF|Pembe:FF0055", ApplyLineColor },
 	{ SET_ID_PAL, SET_TYPE_SWATCH, SET_FLAG_PER_MODE, (1UL << SPEC_MODE_LAYERS) | (1UL << SPEC_MODE_WEAVE), 0, 7, 1, 0,
 	  "Renk", "Renk",
-	  "Okyanus:0094FF|Ate\305\237:FF3C00|Orman:00C850|G\303\274n bat\304\261m\304\261:FF3C96|"
-	  "Buz:3CC8FF|G\303\266kku\305\237a\304\237\304\261:FFB200|Pembe:FF3CA0|Turuncu-Ye\305\237il:FF8C0A", ApplyPal },
+	  "Okyanus:9628FF,00E6C8|Ate\305\237:C80014,FFDC28|Orman:00783C,E6F03C|G\303\274n bat\304\261m\304\261:781EC8,FFC83C|"
+	  "Buz:1428C8,64E6FF|G\303\266kku\305\237a\304\237\304\261:FF0078,00A0FF|Pembe:6414A0,FF82BE|Turuncu-Ye\305\237il:FF6E0A,28D2A0", ApplyPal }	/* Ailenin ilk ve son rengi */,
 };
 
 #define SET_COUNT	(sizeof(Table) / sizeof(Table[0]))

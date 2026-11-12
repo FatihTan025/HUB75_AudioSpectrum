@@ -59,6 +59,8 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 
 ## Kararlar
 - Birbirinin aynısı mod yok; sadece rengi farklıysa ayrı mod sayılmaz.
+- Alev rengi: Buz kaldırıldı (Mavi gaz ile aynıydı). Katmanlı Dağ/Örgü Şerit renk daireleri ailenin ilk-son rengiyle
+  geçişli ("Ad:RRGGBB,RRGGBB", protokol 256 B sınırı: PAL tanımı 229 B). Android Saat satırında kabarık "Ayarla" düğmesi.
 - Renkli Dalga "Kontrast" ayarı kaldırıldı, sabit %150 (SWV_DOLULUK). Açılış/fabrika modu 0 = Klasik.
 - Klasik renk: Tek | Hi-Fi | Gökkuşağı | Akan (Renk Seti ve hazır setler kaldırıldı, kullanıcı kararı).
   Hi-Fi: alt = Sütun Renk tonu, orta -60°, üst -120° (yeşil -> klasik yeşil-sarı-kırmızı; beyaz = klasik).
