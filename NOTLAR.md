@@ -124,6 +124,9 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   (bazen 2 kare durup sıçrıyor) -> akıcılık bozuluyor. Her tane "her k karede tam 1 px" (k hızına göre),
   salınım da aynı kuralla. Amaç: göz takip ettiği taneyi titremeden görsün, ara konumları kendisi doldursun
   (kayan yazıdaki "sanal piksel" etkisi; sanal px sayısı ≈ yenileme/adım hızı − 1, oran tam sayı olmalı).
+  5) Taneler karikatür kristal olsun (Fatih: bu çözünürlükte gerçekçi olmaz, karikatürize): uzak 1 sönük px,
+  orta 3x3 küçük kristal (orta parlak, kollar sönük), yakın 4-6 tane 5x5/7x7 altı kollu, uçları dallanan, her biri
+  farklı desen; yakınlar düşerken yavaşça döner (2-3 açının deseni sırayla). Desenler kodda çizilir, resim gerekmez.
 - Kartta denenmedi: Hız/Tepki, son düzeltmeler.
 - İleride: VFD modu, Şerit, Aurora, Fırtına, Yağmur, 3D efektler (ayar belgesinde liste),
   ortam modları (saat, sıcaklık), encoder + ekran menüsü, IR, ESP32 köprüsü, Android.
