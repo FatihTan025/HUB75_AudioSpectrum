@@ -20,7 +20,7 @@
 #include "HUB75.h"
 
 #define SET_GLOBAL_MAX			32U		/* Genel ayar yuvasi				*/
-#define SET_MODE_MAX			24U		/* Mod basina ayar yuvasi			*/
+#define SET_MODE_MAX			36U		/* Mod basina ayar yuvasi (4 KB: ~27 moda kadar)	*/
 #define SET_MAGIC				0x314B5053UL	/* "SPK1"					*/
 #define SET_AUTOSAVE_MS			3000U
 
@@ -65,6 +65,8 @@ static const SET_ModeInfo ModeInfo[] =
 	/* --- Ortam (aile 3, Kind 1 = muziksiz) --- */
 	ORTAM("Kar",							SPEC_MODE_SNOW),
 	ORTAM("\305\236\303\266mine",						SPEC_MODE_HEARTH),
+	ORTAM("Ya\304\237mur",						SPEC_MODE_RAIN),
+	ORTAM("Sahil",							SPEC_MODE_SHORE),
 };
 
 #define LOOK_COUNT	(sizeof(ModeInfo) / sizeof(ModeInfo[0]))
@@ -145,6 +147,10 @@ static void ApplyOrtam(uint8_t Mode, int32_t Value)
 	SPEC_SaatYer  = (uint8_t)SET_Global(SET_ID_SAAT_YER);
 	SPEC_SmBoy    = (uint8_t)SET_Global(SET_ID_SM_BOY);
 	SPEC_SmKiv    = (uint8_t)SET_Global(SET_ID_SM_KIV);
+	SPEC_YmSiddet = (uint8_t)SET_Global(SET_ID_YM_SIDDET);
+	SPEC_YmRuzgar = (uint8_t)SET_Global(SET_ID_YM_RUZGAR);
+	SPEC_ShDalga  = (uint8_t)SET_Global(SET_ID_SH_DALGA);
+	SPEC_ShRenk   = (uint8_t)SET_Global(SET_ID_SH_RENK);
 }
 
 static void ApplyPal(uint8_t Mode, int32_t Value)
@@ -162,7 +168,9 @@ static void ApplyPal(uint8_t Mode, int32_t Value)
 					 (1UL << SPEC_MODE_LAYERS) | (1UL << SPEC_MODE_WEAVE) | (1UL << SPEC_MODE_AURORA))
 #define SN_MASK		(1UL << SPEC_MODE_SNOW)
 #define SM_MASK		(1UL << SPEC_MODE_HEARTH)
-#define SAAT_MASK	(SN_MASK | SM_MASK)
+#define YM_MASK		(1UL << SPEC_MODE_RAIN)
+#define SH_MASK		(1UL << SPEC_MODE_SHORE)
+#define SAAT_MASK	(SN_MASK | SM_MASK | YM_MASK | SH_MASK)
 #define H			SET_FLAG_HIDDEN
 #define A			SET_FLAG_ADVANCED		/* Android'de gizli ince ayar */
 
@@ -223,7 +231,7 @@ static const SET_Param Table[] =
 	  ApplyFire },
 
 	/* --- Tum gorunumler: hareket --- */
-	{ SET_ID_SPEED,			SET_TYPE_ENUM,	SET_FLAG_PER_MODE, ALL_MASK & ~SM_MASK, 0, 3, 1, 2,
+	{ SET_ID_SPEED,			SET_TYPE_ENUM,	SET_FLAG_PER_MODE, ALL_MASK & ~(SM_MASK | YM_MASK | SH_MASK), 0, 3, 1, 2,
 	  "H\304\261z", "Hareket", "Yava\305\237|Normal|Y\303\274ksek|\303\207ok y\303\274ksek", ApplyMotion },	/* Hiz; hepsi tempoya gore */
 	{ SET_ID_REACT,			SET_TYPE_ENUM,	SET_FLAG_PER_MODE, REACT_MASK, 0, 2, 1, 1,
 	  "Tepki", "Hareket", "Sakin|Normal|Hareketli", ApplyMotion },
@@ -249,6 +257,14 @@ static const SET_Param Table[] =
 	  "Alev Boyu", "Alev", "Al\303\247ak|Orta|Y\303\274ksek", ApplyOrtam },
 	{ SET_ID_SM_KIV,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SM_MASK, 0, 2, 1, 1,
 	  "K\304\261v\304\261lc\304\261m", "Alev", "Kapal\304\261|Az|\303\207ok", ApplyOrtam },
+	{ SET_ID_YM_SIDDET,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, YM_MASK, 0, 2, 1, 1,
+	  "\305\236iddet", "Ya\304\237mur", "\303\207isenti|Ya\304\237mur|Sa\304\237anak", ApplyOrtam },
+	{ SET_ID_YM_RUZGAR,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, YM_MASK, 0, 2, 1, 1,
+	  "R\303\274zg\303\242r", "Ya\304\237mur", "Yok|Hafif|Sert", ApplyOrtam },
+	{ SET_ID_SH_DALGA,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SH_MASK, 0, 2, 1, 1,
+	  "Dalga", "Deniz", "Sakin|Normal|Dalgal\304\261", ApplyOrtam },
+	{ SET_ID_SH_RENK,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SH_MASK, 0, 2, 1, 0,
+	  "Renk", "Deniz", "Gece|G\303\274n bat\304\261m\304\261|G\303\274nd\303\274z", ApplyOrtam },
 	{ SET_ID_SAAT_YAZI,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 0, 1, 0,
 	  "Saat Yaz\304\261s\304\261", "Saat", "Kal\304\261n", ApplyOrtam },				/* Fatih'in fontlari geldikce: Max + secenek */
 	{ SET_ID_SAAT_YER,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 3, 1, 0,

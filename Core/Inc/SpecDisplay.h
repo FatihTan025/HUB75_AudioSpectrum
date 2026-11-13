@@ -36,7 +36,9 @@ typedef enum
 	SPEC_MODE_WEAVE,			/* Orgu Serit: dolanan ince cizgilerden serit	*/
 	SPEC_MODE_AURORA,			/* Aurora: yildizli gokte isik perdesi + kayan yildiz	*/
 	SPEC_MODE_SNOW,				/* Kar (muziksiz): gece kar yagisi, arkada golge saat	*/
-	SPEC_MODE_HEARTH,			/* Somine (muziksiz): odun, alev, rakamlar alevin icinde	*/
+	SPEC_MODE_HEARTH,			/* Somine (muziksiz): kisik alev, rakamlar alevin icinde	*/
+	SPEC_MODE_RAIN,				/* Yagmur (muziksiz): gece yagmuru, golge saat			*/
+	SPEC_MODE_SHORE,			/* Sahil (muziksiz): gelip giden dalga, kopuk, islak kum	*/
 	SPEC_MODE_COUNT
 } SPEC_Mode;
 
@@ -67,6 +69,8 @@ extern uint8_t SPEC_Speed, SPEC_React, SPEC_ShowNo;
 extern uint8_t SPEC_SnIsik, SPEC_SnYogun, SPEC_SnMeteor;	/* Kar: parlaklik %, 0..2, 0..2	*/
 extern uint8_t SPEC_SaatYazi, SPEC_SaatYer;			/* Saatli modlar: font, yerlesim	*/
 extern uint8_t SPEC_SmBoy, SPEC_SmKiv;				/* Somine: alev boyu 0..2, kivilcim 0..2	*/
+extern uint8_t SPEC_YmSiddet, SPEC_YmRuzgar;		/* Yagmur: siddet 0..2, ruzgar 0..2		*/
+extern uint8_t SPEC_ShDalga, SPEC_ShRenk;			/* Sahil: dalga 0..2, renk 0..2			*/
 uint8_t        SPEC_SaatYaziSayisi(void);			/* Font tablosundaki font sayisi	*/
 extern uint8_t SPEC_Pal;						/* Katmanli Dag / Orgu Serit: renk ailesi 0..7	*/
 extern uint8_t SPEC_LineSel;				/* Isik Cizgisi: renk ailesi 0..7 (0 = kirmizi>sari, orijinal)	*/

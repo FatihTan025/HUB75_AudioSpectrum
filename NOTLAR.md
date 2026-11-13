@@ -124,6 +124,13 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   1) Ortam (Kind 1) modlarında pompa kapalı. 2) Müzikli modlarda parlaklık %20 altındaysa pompa giderek azalsın,
   en düşükte kapansın. Yan not: düşük parlaklıkta alt bitplane'ler 1 tikte sabit kaldığı için sönük tonlar
   orantılı kısılmıyor (HUB75_DMA.c OnTicks), ileride bakılabilir.
+- 13 Kasım akşam (Fatih eleştirisi sonrası, kartta denenmedi): Kar: dönme ve 7x7 kalktı ("örümcek" gibiydi);
+  yakınlar 3x3 yumuşak + 2 adet 5x5 kısa kollu kristal; SN_TEPE 120; derinlik: uzak 2-3 px/s tek px havada söner
+  (SnTn.Son), orta 5-7, yakın 14-20 px/s geniş salınım. Şömine: odunlar silindi; yakıt kenarda tam, ortada 1/3;
+  Boy {0.38,0.48,0.60} (Yüksek = eski Alçak); rakam içi sabit amber (saat önde). YENİ: Yağmur (19) ve Sahil (20).
+  Yağmur: 8.8 sabit nokta çizgi damlalar, uzak/yakın, alt satırda sıçrama; Şiddet, Rüzgâr (şimşek YOK, Fatih).
+  Sahil: kuşbakışı kıyı, gelip giden dalga, düzensiz köpük, ıslak kum kurur; Dalga, Renk (Gece/Gün batımı/Gündüz).
+  SET_MODE_MAX 24 -> 36 (27 mod ayarı vardı; aşınca SET_Init sonsuz döngüde kalır! 4 KB'a ~27 moda kadar sığar).
 - YAPILDI (13 Kasım, kartta denenmedi): Kar yenilendi + Şömine eklendi (mod 18).
   Kar: perde/rüzgâr silindi; taneler soluk (Kar Işığı %, tepe 70*%); uzak 1 px, orta 3x3, yakın 5x5/7x7 kristal
   (2 fazla döner); düzenli adım (SnTn.Kd/Ac 1/16 kare, salınım adımlı); kayan yıldız (yay, Kapalı/Seyrek/Sık).

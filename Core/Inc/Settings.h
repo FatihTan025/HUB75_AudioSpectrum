@@ -75,6 +75,10 @@
 #define SET_ID_SAAT_YER		0x0305U	/* Saatli modlar: hazir yerlesim	*/
 #define SET_ID_SM_BOY		0x0306U	/* Somine: alev boyu				*/
 #define SET_ID_SM_KIV		0x0307U	/* Somine: kivilcim sikligi			*/
+#define SET_ID_YM_SIDDET	0x0308U	/* Yagmur: siddet					*/
+#define SET_ID_YM_RUZGAR	0x0309U	/* Yagmur: ruzgar (egim)			*/
+#define SET_ID_SH_DALGA		0x030AU	/* Sahil: dalga						*/
+#define SET_ID_SH_RENK		0x030BU	/* Sahil: renk (Gece/Gun batimi/Gunduz)	*/
 
 typedef struct
 {
