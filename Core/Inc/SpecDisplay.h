@@ -71,6 +71,7 @@ extern uint8_t SPEC_SaatYazi, SPEC_SaatYer;			/* Saatli modlar: font, yerlesim	*
 extern uint8_t SPEC_SmBoy, SPEC_SmKiv;				/* Somine: alev boyu 0..2, kivilcim 0..2	*/
 extern uint8_t SPEC_YmSiddet, SPEC_YmRuzgar;		/* Yagmur: siddet 0..2, ruzgar 0..2		*/
 extern uint8_t SPEC_ShDalga, SPEC_ShRenk;			/* Sahil: dalga 0..2, renk 0..2			*/
+extern uint32_t SPEC_SaatRgb;						/* Saatli modlar: saat rengi 0xRRGGBB	*/
 uint8_t        SPEC_SaatYaziSayisi(void);			/* Font tablosundaki font sayisi	*/
 extern uint8_t SPEC_Pal;						/* Katmanli Dag / Orgu Serit: renk ailesi 0..7	*/
 extern uint8_t SPEC_LineSel;				/* Isik Cizgisi: renk ailesi 0..7 (0 = kirmizi>sari, orijinal)	*/

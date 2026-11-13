@@ -35,7 +35,8 @@
 #define LOOK(Name, Fam, Eng, ...)	{ Name, 0, Fam, Eng, \
 	(uint8_t)(sizeof(O(__VA_ARGS__)) / sizeof(O(__VA_ARGS__)[0])), O(__VA_ARGS__) }
 #define LOOK0(Name, Fam, Eng)		{ Name, 0, Fam, Eng, 0, 0 }
-#define ORTAM(Name, Eng)			{ Name, 1, 3, Eng, 0, 0 }		/* Muziksiz (Kind 1), Ortam ailesi */
+#define ORTAM(Name, Eng, ...)		{ Name, 1, 3, Eng, \
+	(uint8_t)(sizeof(O(__VA_ARGS__)) / sizeof(O(__VA_ARGS__)[0])), O(__VA_ARGS__) }	/* Muziksiz (Kind 1), Ortam ailesi */
 
 static const SET_ModeInfo ModeInfo[] =
 {
@@ -63,10 +64,10 @@ static const SET_ModeInfo ModeInfo[] =
 	LOOK0("Orta Patlama",					2, SPEC_MODE_CBLAST),
 	LOOK0("Halka",							2, SPEC_MODE_RINGS),
 	/* --- Ortam (aile 3, Kind 1 = muziksiz) --- */
-	ORTAM("Kar",							SPEC_MODE_SNOW),
-	ORTAM("\305\236\303\266mine",						SPEC_MODE_HEARTH),
-	ORTAM("Ya\304\237mur",						SPEC_MODE_RAIN),
-	ORTAM("Sahil",							SPEC_MODE_SHORE),
+	ORTAM("Kar",							SPEC_MODE_SNOW,		{ SET_ID_SAAT_RGB, 0x22283A }),	/* Soluk buz-mavi	*/
+	ORTAM("\305\236\303\266mine",						SPEC_MODE_HEARTH,	{ SET_ID_SAAT_RGB, 0xDCA03C }),	/* Sicak acik sari	*/
+	ORTAM("Ya\304\237mur",						SPEC_MODE_RAIN,		{ SET_ID_SAAT_RGB, 0x1E2432 }),	/* Gri-mavi		*/
+	ORTAM("Sahil",							SPEC_MODE_SHORE,	{ SET_ID_SAAT_RGB, 0x564C3C }),	/* Kum		*/
 };
 
 #define LOOK_COUNT	(sizeof(ModeInfo) / sizeof(ModeInfo[0]))
@@ -136,7 +137,7 @@ static void ApplyLineColor(uint8_t Mode, int32_t Value)
 	SPEC_LineSel = (uint8_t)Value;
 }
 
-/* Ortam modlari (Kar, Somine): ayarlarin hepsi birden okunur */
+/* Ortam modlari (Kar, Somine, Yagmur, Sahil): ayarlarin hepsi birden okunur */
 static void ApplyOrtam(uint8_t Mode, int32_t Value)
 {
 	(void)Mode; (void)Value;
@@ -151,6 +152,7 @@ static void ApplyOrtam(uint8_t Mode, int32_t Value)
 	SPEC_YmRuzgar = (uint8_t)SET_Global(SET_ID_YM_RUZGAR);
 	SPEC_ShDalga  = (uint8_t)SET_Global(SET_ID_SH_DALGA);
 	SPEC_ShRenk   = (uint8_t)SET_Global(SET_ID_SH_RENK);
+	SPEC_SaatRgb  = (uint32_t)SET_Global(SET_ID_SAAT_RGB);
 }
 
 static void ApplyPal(uint8_t Mode, int32_t Value)
@@ -246,7 +248,7 @@ static const SET_Param Table[] =
 	  "Okyanus:9628FF,00E6C8|Ate\305\237:C80014,FFDC28|Orman:00783C,E6F03C|G\303\274n bat\304\261m\304\261:781EC8,FFC83C|"
 	  "Buz:1428C8,64E6FF|G\303\266kku\305\237a\304\237\304\261:FF0078,00A0FF|Pembe:6414A0,FF82BE|Turuncu-Ye\305\237il:FF6E0A,28D2A0", ApplyPal }	/* Ailenin ilk ve son rengi */,
 
-	/* --- Ortam: Kar, Somine (saatli) --- */
+	/* --- Ortam: Kar, Somine, Yagmur, Sahil (saatli) --- */
 	{ SET_ID_SN_ISIK,		SET_TYPE_INT,	SET_FLAG_PER_MODE, SN_MASK, 10, 100, 10, 60,
 	  "Kar I\305\237\304\261\304\237\304\261", "Kar", "%", ApplyOrtam },
 	{ SET_ID_SN_YOGUN,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SN_MASK, 0, 2, 1, 1,
@@ -269,6 +271,8 @@ static const SET_Param Table[] =
 	  "Saat Yaz\304\261s\304\261", "Saat", "Kal\304\261n", ApplyOrtam },				/* Fatih'in fontlari geldikce: Max + secenek */
 	{ SET_ID_SAAT_YER,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 3, 1, 0,
 	  "Yerle\305\237im", "Saat", "Orta|Alt|Is\304\261 altta|Is\304\261 yanda", ApplyOrtam },
+	{ SET_ID_SAAT_RGB,		SET_TYPE_COLOR,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 0xFFFFFF, 1, 0x22283A,
+	  "Saat Rengi", "Saat", "", ApplyOrtam },
 };
 
 #define SET_COUNT	(sizeof(Table) / sizeof(Table[0]))

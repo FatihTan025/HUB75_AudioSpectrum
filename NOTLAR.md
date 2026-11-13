@@ -124,6 +124,12 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   1) Ortam (Kind 1) modlarında pompa kapalı. 2) Müzikli modlarda parlaklık %20 altındaysa pompa giderek azalsın,
   en düşükte kapansın. Yan not: düşük parlaklıkta alt bitplane'ler 1 tikte sabit kaldığı için sönük tonlar
   orantılı kısılmıyor (HUB75_DMA.c OnTicks), ileride bakılabilir.
+- 13 Kasım gece (2. tur, kartta denenmedi): Kar "kare düşüyor" -> ara piksel çizim (SnKonum/SnNokta: kesirli
+  konum 2x2 komşuya karekök ağırlıkla, CIE yüzünden ışığın karesi korunur). Yağmur: iri damla 3 px yuvarlak baş +
+  1 px sönen kuyruk, yere değince damlacıklar yay çizip sıçrar + yerde açılan halka. Sahil baştan: deniz katmanları,
+  denizde inen dalga sırtları (büyük sırt kıyıya varınca kırılıp kumu yalar), aynı anda 3 dalga, 2.2-3.4 s, kumun
+  ~3/4'üne kadar. Saat Rengi: mod başına COLOR ayarı (0x030C), varsayılan ORTAM override ile her modda farklı.
+  Kural (Fatih): görsel değişiklikte ardışık kareleri (hareketi) kontrol et, tek kareye bakma.
 - 13 Kasım akşam (Fatih eleştirisi sonrası, kartta denenmedi): Kar: dönme ve 7x7 kalktı ("örümcek" gibiydi);
   yakınlar 3x3 yumuşak + 2 adet 5x5 kısa kollu kristal; SN_TEPE 120; derinlik: uzak 2-3 px/s tek px havada söner
   (SnTn.Son), orta 5-7, yakın 14-20 px/s geniş salınım. Şömine: odunlar silindi; yakıt kenarda tam, ortada 1/3;
