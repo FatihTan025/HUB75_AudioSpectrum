@@ -124,6 +124,12 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   1) Ortam (Kind 1) modlarında pompa kapalı. 2) Müzikli modlarda parlaklık %20 altındaysa pompa giderek azalsın,
   en düşükte kapansın. Yan not: düşük parlaklıkta alt bitplane'ler 1 tikte sabit kaldığı için sönük tonlar
   orantılı kısılmıyor (HUB75_DMA.c OnTicks), ileride bakılabilir.
+- 13 Kasım gece (4. tur, kartta denenmedi): Yağmur su birikintisi KALDIRILDI (Fatih: düz renk + beyaz şerit, suya
+  benzemedi; tekrar önerme). Sahil: kum üstündeki su Dz2'den başlayıp uca doğru sığ renge açılır (büyük dalgada
+  bariz renk sınırı vardı); Gün batımı kaldırıldı, ayar "Işık: Gece|Gündüz" (0x030B SH_ISIK). Şömine: Kıvılcım
+  ayarı kaldırıldı (0x0307 boş); 32 kıvılcım, yay çizip düşer, alttaki 7 satırda söner, panelin altına inmez.
+  Yerleşim: "Isı altta" kaldırıldı -> Orta|Alt|Sıcaklık-Nem; nem "%45" yazılır. Saat Yazısı tek font varken gizli
+  (H bayrağı; fontlar gelince kaldır). SANİYE: Fatih fontları yapınca eklenecek (büyük fontla, sığmazsa küçük).
 - 13 Kasım gece (3. tur, kartta denenmedi): Saat Parlaklığı (0x030D, mod başına %) — renk tam tonda seçilir,
   ApplyOrtam renk x % hesaplar (gece birden parlamasın; genel parlaklığı kısınca damlalar kayboluyordu).
   Kar: 5x5 kristal kaldırıldı (Atari gibi), orta katman {14,24,34}. Yağmur: saydam birikinti 4 px (Sağanak 5),

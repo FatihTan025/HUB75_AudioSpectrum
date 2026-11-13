@@ -148,11 +148,10 @@ static void ApplyOrtam(uint8_t Mode, int32_t Value)
 	SPEC_SaatYazi = (uint8_t)SET_Global(SET_ID_SAAT_YAZI);
 	SPEC_SaatYer  = (uint8_t)SET_Global(SET_ID_SAAT_YER);
 	SPEC_SmBoy    = (uint8_t)SET_Global(SET_ID_SM_BOY);
-	SPEC_SmKiv    = (uint8_t)SET_Global(SET_ID_SM_KIV);
 	SPEC_YmSiddet = (uint8_t)SET_Global(SET_ID_YM_SIDDET);
 	SPEC_YmRuzgar = (uint8_t)SET_Global(SET_ID_YM_RUZGAR);
 	SPEC_ShDalga  = (uint8_t)SET_Global(SET_ID_SH_DALGA);
-	SPEC_ShRenk   = (uint8_t)SET_Global(SET_ID_SH_RENK);
+	SPEC_ShIsik   = (uint8_t)SET_Global(SET_ID_SH_ISIK);
 	{															/* Saat rengi x saat parlakligi */
 		const uint32_t c = (uint32_t)SET_Global(SET_ID_SAAT_RGB), k = (uint32_t)SET_Global(SET_ID_SAAT_ISIK);
 		SPEC_SaatRgb = ((((c >> 16) & 0xFFU) * k / 100U) << 16) | ((((c >> 8) & 0xFFU) * k / 100U) << 8) | ((c & 0xFFU) * k / 100U);
@@ -261,20 +260,18 @@ static const SET_Param Table[] =
 	  "Kayan Y\304\261ld\304\261z", "G\303\266k", "Kapal\304\261|Seyrek|S\304\261k", ApplyOrtam },
 	{ SET_ID_SM_BOY,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SM_MASK, 0, 2, 1, 1,
 	  "Alev Boyu", "Alev", "Al\303\247ak|Orta|Y\303\274ksek", ApplyOrtam },
-	{ SET_ID_SM_KIV,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SM_MASK, 0, 2, 1, 1,
-	  "K\304\261v\304\261lc\304\261m", "Alev", "Kapal\304\261|Az|\303\207ok", ApplyOrtam },
 	{ SET_ID_YM_SIDDET,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, YM_MASK, 0, 2, 1, 1,
 	  "\305\236iddet", "Ya\304\237mur", "\303\207isenti|Ya\304\237mur|Sa\304\237anak", ApplyOrtam },
 	{ SET_ID_YM_RUZGAR,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, YM_MASK, 0, 2, 1, 1,
 	  "R\303\274zg\303\242r", "Ya\304\237mur", "Yok|Hafif|Sert", ApplyOrtam },
 	{ SET_ID_SH_DALGA,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SH_MASK, 0, 2, 1, 1,
 	  "Dalga", "Deniz", "Sakin|Normal|Dalgal\304\261", ApplyOrtam },
-	{ SET_ID_SH_RENK,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SH_MASK, 0, 2, 1, 0,
-	  "Renk", "Deniz", "Gece|G\303\274n bat\304\261m\304\261|G\303\274nd\303\274z", ApplyOrtam },
-	{ SET_ID_SAAT_YAZI,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 0, 1, 0,
+	{ SET_ID_SH_ISIK,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SH_MASK, 0, 1, 1, 0,
+	  "I\305\237\304\261k", "Deniz", "Gece|G\303\274nd\303\274z", ApplyOrtam },
+	{ SET_ID_SAAT_YAZI,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE | H, SAAT_MASK, 0, 0, 1, 0,	/* Tek font varken gizli */
 	  "Saat Yaz\304\261s\304\261", "Saat", "Kal\304\261n", ApplyOrtam },				/* Fatih'in fontlari geldikce: Max + secenek */
-	{ SET_ID_SAAT_YER,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 3, 1, 0,
-	  "Yerle\305\237im", "Saat", "Orta|Alt|Is\304\261 altta|Is\304\261 yanda", ApplyOrtam },
+	{ SET_ID_SAAT_YER,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 2, 1, 0,
+	  "Yerle\305\237im", "Saat", "Orta|Alt|S\304\261cakl\304\261k-Nem", ApplyOrtam },
 	{ SET_ID_SAAT_RGB,		SET_TYPE_COLOR,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 0xFFFFFF, 1, 0x22283A,
 	  "Saat Rengi", "Saat", "", ApplyOrtam },
 	{ SET_ID_SAAT_ISIK,		SET_TYPE_INT,	SET_FLAG_PER_MODE, SAAT_MASK, 5, 100, 5, 25,

@@ -68,9 +68,9 @@ extern SPEC_ClsCfg SPEC_Cls;
 extern uint8_t SPEC_Speed, SPEC_React, SPEC_ShowNo;
 extern uint8_t SPEC_SnIsik, SPEC_SnYogun, SPEC_SnMeteor;	/* Kar: parlaklik %, 0..2, 0..2	*/
 extern uint8_t SPEC_SaatYazi, SPEC_SaatYer;			/* Saatli modlar: font, yerlesim	*/
-extern uint8_t SPEC_SmBoy, SPEC_SmKiv;				/* Somine: alev boyu 0..2, kivilcim 0..2	*/
+extern uint8_t SPEC_SmBoy;							/* Somine: alev boyu 0..2				*/
 extern uint8_t SPEC_YmSiddet, SPEC_YmRuzgar;		/* Yagmur: siddet 0..2, ruzgar 0..2		*/
-extern uint8_t SPEC_ShDalga, SPEC_ShRenk;			/* Sahil: dalga 0..2, renk 0..2			*/
+extern uint8_t SPEC_ShDalga, SPEC_ShIsik;			/* Sahil: dalga 0..2, isik 0 gece 1 gunduz	*/
 extern uint32_t SPEC_SaatRgb;						/* Saatli modlar: saat rengi 0xRRGGBB	*/
 uint8_t        SPEC_SaatYaziSayisi(void);			/* Font tablosundaki font sayisi	*/
 extern uint8_t SPEC_Pal;						/* Katmanli Dag / Orgu Serit: renk ailesi 0..7	*/
