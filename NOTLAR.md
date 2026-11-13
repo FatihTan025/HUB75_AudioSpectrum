@@ -115,7 +115,11 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   1) Ortam (Kind 1) modlarında pompa kapalı. 2) Müzikli modlarda parlaklık %20 altındaysa pompa giderek azalsın,
   en düşükte kapansın. Yan not: düşük parlaklıkta alt bitplane'ler 1 tikte sabit kaldığı için sönük tonlar
   orantılı kısılmıyor (HUB75_DMA.c OnTicks), ileride bakılabilir.
-- Kar perdesi işlemciyi daha çok kullanıyor (~5000 sinf/kare); panelde takılma görülürse hafiflet.
+- **BEKLİYOR (Fatih "not al, sonra yazacaksın", 13 Kasım):** Kar perdesi önce hızlı, ortaya gelince çok
+  ağırlaşıyor, ekrandan çok geç çıkıyor. Sebep: SnPerdeKatman piksel başına sinf (~5000/kare) -> kare hızı düşüyor;
+  Kar modunda zaman Gdt = 1/CFG_FPS sabit sayıldığı için perde de yavaşlıyor. (Alev/Patlama tamsayı + tablo, sorun yok.)
+  Yapılacak: 1) Lif dokusu tablodan + tamsayı, sinf yalnız sütun başına. 2) Perde süresi HAL_GetTick ile gerçek
+  zamana bağlansın. 3) Perde ekranı biraz daha hızlı geçsin (7.5 s -> ~5-6 s, Fatih deneyerek ayarlar).
 - Kartta denenmedi: Hız/Tepki, son düzeltmeler.
 - İleride: VFD modu, Şerit, Aurora, Fırtına, Yağmur, 3D efektler (ayar belgesinde liste),
   ortam modları (saat, sıcaklık), encoder + ekran menüsü, IR, ESP32 köprüsü, Android.
