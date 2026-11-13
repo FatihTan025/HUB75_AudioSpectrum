@@ -70,7 +70,6 @@
 #define SET_ID_PAL		0x0209U	/* Katmanli Dag / Orgu Serit: renk ailesi (8)	*/
 #define SET_ID_SN_ISIK		0x0301U	/* Kar: tane parlakligi %			*/
 #define SET_ID_SN_YOGUN		0x0302U	/* Kar: tane sayisi (Az/Orta/Cok)	*/
-#define SET_ID_SN_METEOR	0x0303U	/* Kar: kayan yildiz sikligi		*/
 #define SET_ID_SAAT_YAZI	0x0304U	/* Saatli modlar: saat fontu		*/
 #define SET_ID_SAAT_YER		0x0305U	/* Saatli modlar: hazir yerlesim	*/
 #define SET_ID_SM_BOY		0x0306U	/* Somine: alev boyu				*/

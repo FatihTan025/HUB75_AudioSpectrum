@@ -66,7 +66,7 @@ extern SPEC_ClsCfg SPEC_Cls;
    SPEC_React: 0 sakin (sadece guclu bas), 1 normal, 2 hareketli (her vurus)
    SPEC_ShowNo: mod degisince sol ustte gosterilen numara (gorunum no)	*/
 extern uint8_t SPEC_Speed, SPEC_React, SPEC_ShowNo;
-extern uint8_t SPEC_SnIsik, SPEC_SnYogun, SPEC_SnMeteor;	/* Kar: parlaklik %, 0..2, 0..2	*/
+extern uint8_t SPEC_SnIsik, SPEC_SnYogun;				/* Kar: parlaklik %, yogunluk 0..2	*/
 extern uint8_t SPEC_SaatYazi, SPEC_SaatYer;			/* Saatli modlar: font, yerlesim	*/
 extern uint8_t SPEC_SmBoy;							/* Somine: alev boyu 0..2				*/
 extern uint8_t SPEC_YmSiddet, SPEC_YmRuzgar;		/* Yagmur: siddet 0..2, ruzgar 0..2		*/

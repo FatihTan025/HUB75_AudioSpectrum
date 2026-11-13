@@ -86,14 +86,17 @@ typedef struct
 	uint8_t		Sa, Dk, Yazi, Yer, Isi, Hazir;
 } SaatDurum;
 
-/* Kar tanesi: tam piksel konum + kesir (Ac/Kd, Sc/Sk) -> ara piksel cizim */
+/* Kar tanesi: tam piksel konum + kesir (dusus Ac/Kd, yana Kx/256) -> ara piksel cizim.
+   Salinim sinus tablosundan (Fz faz, Fh faz adimi), Sa genlik (1/32 px), Dr hafif suruklenme. */
 typedef struct
 {
 	int16_t		X, Y;
-	uint16_t	Kd, Ac, Sk, Sc;					/* Dusme / salinim adim suresi ve sayaci (1/16 kare)	*/
-	int8_t		Sy, Sd;							/* Salinim konumu ve yonu			*/
+	uint16_t	Kd, Ac;							/* Dusme adim suresi ve sayaci (1/16 kare)	*/
+	uint16_t	Fz, Fh;							/* Salinim fazi ve faz adimi (1/16 kare basina)	*/
+	int16_t		Kx;								/* Yana kesir (1/256 px)				*/
 	int16_t		Son;							/* Bu satirda kaybolur (uzaklar havada soner)	*/
-	uint8_t		Sa, L;							/* Salinim genligi, isik %				*/
+	int8_t		Dr;								/* Suruklenme (1/256 px, 1/16 kare basina)	*/
+	uint8_t		Sa, L;							/* Salinim genligi (1/32 px), isik %		*/
 } SnTn;
 
 typedef struct { int32_t X, Y; int16_t Vy; uint8_t Uz, L, Iri; } YmDamla;	/* Yagmur damlasi (8.8)	*/
@@ -106,10 +109,10 @@ typedef struct { uint8_t X, Y, Life; } ShKopuk;							/* Denizde kisa omurlu kop
 #define SWV_BANDS		64				/* Renkli Dalga: ModeBands ile ayni	*/
 #define MAX_EMBERS		70
 #define SN_UZAK			70				/* Kar: en cok uzak / orta / yakin tane		*/
-#define SN_ORTA			34
+#define SN_ORTA			44
 #define SN_YAKIN		6
 #define SN_YILDIZ		16
-#define SN_IZ			14				/* Kayan yildiz kuyrugu (nokta)			*/
+#define SN_IZ			26				/* Kayan yildiz kuyrugu (nokta, ~28 px)	*/
 #define SM_KIV			32				/* Somine: kivilcim sayisi				*/
 #define SM_KIV_SON		7				/* Somine: dusen kivilcim alttaki bu kadar satirda soner	*/
 #define YM_UZAK			90				/* Yagmur: en cok uzak / yakin damla, sicrama	*/
@@ -3056,7 +3059,7 @@ static void ModeAurora(void)
    kendi tarzinda boyar (Kar: soluk golge, Somine: odun/koz). Yerlesim hazir
    duzenlerden secilir; sicaklik / nem CMD_SENSOR ile gelir (5x7 kucuk yazi).
    ========================================================================== */
-uint8_t SPEC_SnIsik = 60U, SPEC_SnYogun = 1U, SPEC_SnMeteor = 1U;
+uint8_t SPEC_SnIsik = 60U, SPEC_SnYogun = 1U;
 uint8_t SPEC_SaatYazi = 0U, SPEC_SaatYer = 0U;
 uint8_t SPEC_SmBoy = 1U;
 uint8_t SPEC_YmSiddet = 1U, SPEC_YmRuzgar = 1U;
@@ -3172,8 +3175,10 @@ static void SaatIsiCiz(const SaatDurum *S, uint8_t R, uint8_t G, uint8_t B)
    cizerek inen kayan yildiz. Uc katman, derinlik hiz ve parlaklik farkindan:
      uzak : tek sonuk piksel, cok yavas, dumduz; havada rastgele yukseklikte
             sonup kaybolur (hepsi ayni cizgiye "dusmez"), saatin arkasinda
-     orta : 3x3 yumusak tane, orta hiz, hafif salinim
-     yakin: 3x3 yumusak tane, hizli, genis salinim, saatin onunde
+     orta : 3x3 yumusak tane, orta hiz, dar (~1 px) salinim
+     yakin: 3x3 yumusak tane, hizli, saatin onunde; salinimi uzun ve yumusak
+            (sinus, donuslerde yavaslar; zikzak yok), genisligi taneye gore
+            0.4-2 px, hafif yana suruklenme
    Taneler donmez. Konum kesirli tutulur (dusus Ac/Kd, salinim Sc/Sk) ve tane
    ara piksel ile cizilir: isik komsu 2x2 piksele, parlaklik (karesi) korunacak
    sekilde bolusturulur; yavas tane bir satirdan otekine akar, adim adim
@@ -3210,18 +3215,28 @@ static void SnNokta(int x, int y, const SnAg *g, uint32_t v)
 	if((k = (v * g->D) >> 8) != 0U) Add(x + 1, y + 1, (uint8_t)k, (uint8_t)k, (uint8_t)k);
 }
 
+/* Sinus tablosu: 64 adim, -256..256 */
+static const int16_t SnSin[65] =
+{
+	   0,  25,  50,  74,  98, 121, 142, 162, 181, 198, 213, 226, 237, 245, 251, 255,
+	 256, 255, 251, 245, 237, 226, 213, 198, 181, 162, 142, 121,  98,  74,  50,  25,
+	   0, -25, -50, -74, -98,-121,-142,-162,-181,-198,-213,-226,-237,-245,-251,-255,
+	-256,-255,-251,-245,-237,-226,-213,-198,-181,-162,-142,-121, -98, -74, -50, -25, 0
+};
+
+static int32_t SnSinus(uint16_t Fz)								/* Ara degerli: -256..256 */
+{
+	const uint32_t i = Fz >> 10, k = Fz & 1023U;
+	return SnSin[i] + (((int32_t)(SnSin[i + 1] - SnSin[i]) * (int32_t)k) >> 10);
+}
+
 /* Tanenin cizim konumu: tam kisim (X0, Y0) + ara piksel agirliklari */
 static SnAg SnKonum(const SnTn *t, int *X0, int *Y0)
 {
-	uint32_t Fx = 0, Fy = (uint32_t)t->Ac * 256U / t->Kd;
-	*X0 = t->X + t->Sy; *Y0 = t->Y;
-	if(t->Sa)													/* Salinim: siradaki adima dogru kayar */
-	{
-		const uint32_t k = (uint32_t)t->Sc * 256U / t->Sk;
-		if(t->Sd > 0) Fx = k;
-		else          { (*X0)--; Fx = 256U - k; }
-	}
-	return SnAgirlik(Fx, Fy);
+	const int32_t Yan = (int32_t)t->Kx + (int32_t)t->Sa * SnSinus(t->Fz) / 32;	/* 1/256 px */
+	*X0 = t->X + (int)(Yan >> 8);									/* Aritmetik kaydirma: asagi yuvarlar */
+	*Y0 = t->Y;
+	return SnAgirlik((uint32_t)(Yan & 255), (uint32_t)t->Ac * 256U / t->Kd);
 }
 
 static void SnDesen(const SnTn *t, const char *const *Sat, int n, uint32_t L)
@@ -3238,18 +3253,27 @@ static void SnDesen(const SnTn *t, const char *const *Sat, int n, uint32_t L)
 		}
 }
 
-/* Tane hiz (px/s) ve salinimla yeniden dogar. Basta = ekranin her yerinde.
-   Son: uzak tanenin sonup kaybolacagi satir (digerlerinde ekran alti). */
-static void SnDog(SnTn *t, float Hiz, uint8_t Sa, uint8_t L, uint8_t Basta, uint8_t Uzak)
+/* Tane hiz (px/s) ve salinim turuyle yeniden dogar. Tur: 0 uzak (duz), 1 orta
+   (dar, ~1 px), 2 yakin (genislik ve sure taneye gore; bazisi neredeyse duz).
+   Basta = ekranin her yerinde. Son: uzak tanenin sonup kaybolacagi satir. */
+static void SnDog(SnTn *t, float Hiz, uint8_t Tur, uint8_t L, uint8_t Basta)
 {
+	float Sure = 1.0f;											/* Salinim turu (s) */
 	t->X  = (int16_t)(Rand() % W);
 	t->Kd = (uint16_t)(16.0f * CFG_FPS / Hiz);
 	t->Ac = (uint16_t)(Rand() % t->Kd);
-	t->Sa = Sa; t->Sy = 0; t->Sd = (Rand() & 1U) ? 1 : -1;
-	t->Sk = (uint16_t)(16U * (14U + Rand() % 16U));					/* Salinim adimi: 14-29 kare	*/
-	t->Sc = (uint16_t)(Rand() % t->Sk);
+	t->Kx = 0;
+	t->Fz = (uint16_t)Rand();
 	t->L  = L;
-	t->Son = Uzak ? (int16_t)(H / 3U + Rand() % (H * 2U / 3U)) : (int16_t)(H + 3U);
+	switch(Tur)
+	{
+	case 1:  t->Sa = 32U;                                     Sure = 0.6f + 0.6f * RandF(); t->Dr = 0; break;
+	case 2:  t->Sa = (uint8_t)(12U + Rand() % 53U);           Sure = 2.5f + 2.0f * RandF();	/* 0.4-2 px */
+	         t->Dr = (int8_t)((int)(Rand() % 5U) - 2);                                         break;	/* +-1 px/s'ye kadar */
+	default: t->Sa = 0;                                                                     t->Dr = 0; break;
+	}
+	t->Fh = t->Sa ? (uint16_t)(65536.0f / (Sure * CFG_FPS * 16.0f)) : 0U;
+	t->Son = (Tur == 0U) ? (int16_t)(H / 3U + Rand() % (H * 2U / 3U)) : (int16_t)(H + 3U);
 	t->Y  = Basta ? (int16_t)(Rand() % (uint32_t)t->Son) : (int16_t)(-1 - (int)(Rand() % 6U));
 }
 
@@ -3258,16 +3282,12 @@ static void SnIn(SnTn *t, uint16_t Adim)
 {
 	t->Ac = (uint16_t)(t->Ac + Adim);
 	while(t->Ac >= t->Kd) { t->Ac = (uint16_t)(t->Ac - t->Kd); t->Y++; }
-	if(t->Sa)
-	{
-		t->Sc = (uint16_t)(t->Sc + Adim);
-		while(t->Sc >= t->Sk)
-		{
-			t->Sc = (uint16_t)(t->Sc - t->Sk);
-			t->Sy = (int8_t)(t->Sy + t->Sd);
-			if(t->Sy >= (int8_t)t->Sa || t->Sy <= -(int8_t)t->Sa) t->Sd = (int8_t)-t->Sd;
-		}
-	}
+	t->Fz = (uint16_t)(t->Fz + (uint32_t)t->Fh * Adim);
+	t->Kx = (int16_t)(t->Kx + t->Dr * (int)Adim / 16);
+	while(t->Kx >= 256)  { t->Kx = (int16_t)(t->Kx - 256); t->X++; }
+	while(t->Kx <= -256) { t->Kx = (int16_t)(t->Kx + 256); t->X--; }
+	if(t->X < -2)          t->X = (int16_t)(W + 1U);			/* Suruklenen tane karsidan girer */
+	else if(t->X > (int)W + 1) t->X = -2;
 }
 
 /* Kayan yildiz: ust kosenin birinden girer, yay cizerek (yercekimi gibi) karsi
@@ -3278,7 +3298,6 @@ static void SnMeteor(float Gdt)
 
 	if(!U.Sn.MOn)
 	{
-		if(SPEC_SnMeteor == 0U) return;
 		U.Sn.MSonra -= Gdt;
 		if(U.Sn.MSonra > 0.0f) return;
 		{
@@ -3300,13 +3319,29 @@ static void SnMeteor(float Gdt)
 	if(U.Sn.Mx < -(float)SN_IZ || U.Sn.Mx > (float)(W + SN_IZ) || U.Sn.My > (float)H + 2.0f)
 	{
 		U.Sn.MOn = 0;
-		U.Sn.MSonra = (SPEC_SnMeteor == 2U) ? 6.0f + 6.0f * RandF() : 20.0f + 20.0f * RandF();
+		U.Sn.MSonra = 6.0f + 6.0f * RandF();
 		return;
 	}
-	for(i = (int)U.Sn.MIz - 1; i >= 0; i--)
+	for(i = (int)U.Sn.MIz - 1; i > 0; i--)							/* Kuyruk: 1 px, basa yakin parlak, ucta soner */
 	{
-		const uint8_t v = (uint8_t)(150U - (uint32_t)i * 150U / SN_IZ);
-		Add(U.Sn.Ix[i], U.Sn.Iy[i], v, (uint8_t)((v * 240U) >> 8), (uint8_t)((v * 210U) >> 8));
+		const uint32_t k = (uint32_t)(SN_IZ - i), v = 130U * k * k / ((uint32_t)SN_IZ * SN_IZ);
+		Add(U.Sn.Ix[i], U.Sn.Iy[i], (uint8_t)v, (uint8_t)((v * 240U) >> 8), (uint8_t)((v * 210U) >> 8));
+	}
+	{																/* Bas: 3x3 yumusak, ara piksel */
+		const float fx = U.Sn.Mx - 1.0f, fy = U.Sn.My - 1.0f;		/* Desen merkezi Mx, My */
+		const int   X0 = (int)floorf(fx), Y0 = (int)floorf(fy);
+		const SnAg  g  = SnAgirlik((uint32_t)((fx - (float)X0) * 256.0f), (uint32_t)((fy - (float)Y0) * 256.0f));
+		int x, y;
+		for(y = 0; y < 3; y++)
+			for(x = 0; x < 3; x++)
+			{
+				const char c = SnYumusak[y][x];
+				const uint32_t L = (c == '#') ? 170U : (c == '+') ? 70U : 36U;
+				const uint32_t a[4] = { (L * g.A) >> 8, (L * g.B) >> 8, (L * g.C) >> 8, (L * g.D) >> 8 };
+				int k;
+				for(k = 0; k < 4; k++)
+					if(a[k]) Add(X0 + x + (k & 1), Y0 + y + (k >> 1), (uint8_t)a[k], (uint8_t)((a[k] * 240U) >> 8), (uint8_t)((a[k] * 210U) >> 8));
+			}
 	}
 }
 
@@ -3337,7 +3372,7 @@ static void SaatCizRgb(const SaatDurum *S)
 
 static void ModeSnow(void)
 {
-	static const uint8_t NUz[3] = { 30, 50, 70 }, NOr[3] = { 14, 24, 34 }, NYa[3] = { 3, 5, 6 };
+	static const uint8_t NUz[3] = { 30, 50, 70 }, NOr[3] = { 18, 32, 44 }, NYa[3] = { 3, 5, 6 };
 	const float    Gdt  = 1.0f / CFG_FPS;					/* Yildiz, kayan yildiz: gercek zaman	*/
 	const uint16_t Adim = (uint16_t)(SpdDT * CFG_FPS * 16.0f + 0.5f);	/* Kar: Hiz ayari ile		*/
 	const uint32_t Tepe = SN_TEPE * SPEC_SnIsik / 100U;
@@ -3347,9 +3382,9 @@ static void ModeSnow(void)
 
 	if(!U.Sn.Ready)
 	{
-		for(i = 0; i < SN_UZAK; i++)  SnDog(&U.Sn.Uz[i], 2.0f + 1.2f * RandF(), 0, (uint8_t)(30U + Rand() % 16U), 1, 1);
-		for(i = 0; i < SN_ORTA; i++)  SnDog(&U.Sn.Or[i], 5.0f + 2.0f * RandF(), 1, 60, 1, 0);
-		for(i = 0; i < SN_YAKIN; i++) SnDog(&U.Sn.Ya[i], 14.0f + 6.0f * RandF(), 3, 100, 1, 0);
+		for(i = 0; i < SN_UZAK; i++)  SnDog(&U.Sn.Uz[i], 2.0f + 1.2f * RandF(), 0, (uint8_t)(30U + Rand() % 16U), 1);
+		for(i = 0; i < SN_ORTA; i++)  SnDog(&U.Sn.Or[i], 5.0f + 2.0f * RandF(), 1, 60, 1);
+		for(i = 0; i < SN_YAKIN; i++) SnDog(&U.Sn.Ya[i], 14.0f + 6.0f * RandF(), 2, 100, 1);
 		for(i = 0; i < SN_YILDIZ; i++)
 		{
 			U.Sn.Sx[i] = (uint8_t)(Rand() % W);
@@ -3382,7 +3417,7 @@ static void ModeSnow(void)
 		SnTn *t = &U.Sn.Uz[i];
 		uint32_t v = Tepe * t->L / 100U;
 		SnIn(t, Adim);
-		if(t->Y >= t->Son) { SnDog(t, 2.0f + 1.2f * RandF(), 0, (uint8_t)(30U + Rand() % 16U), 0, 1); continue; }
+		if(t->Y >= t->Son) { SnDog(t, 2.0f + 1.2f * RandF(), 0, (uint8_t)(30U + Rand() % 16U), 0); continue; }
 		if(t->Son - t->Y < 6) v = v * (uint32_t)(t->Son - t->Y) / 6U;
 		{
 			int X0, Y0;
@@ -3398,7 +3433,7 @@ static void ModeSnow(void)
 	{
 		SnTn *t = &U.Sn.Or[i];
 		SnIn(t, Adim);
-		if(t->Y >= t->Son) SnDog(t, 5.0f + 2.0f * RandF(), 1, 60, 0, 0);
+		if(t->Y >= t->Son) SnDog(t, 5.0f + 2.0f * RandF(), 1, 60, 0);
 		SnDesen(t, SnYumusak, 3, Tepe * t->L / 100U);
 	}
 
@@ -3407,7 +3442,7 @@ static void ModeSnow(void)
 	{
 		SnTn *t = &U.Sn.Ya[i];
 		SnIn(t, Adim);
-		if(t->Y >= t->Son) SnDog(t, 14.0f + 6.0f * RandF(), 3, 100, 0, 0);
+		if(t->Y >= t->Son) SnDog(t, 14.0f + 6.0f * RandF(), 2, 100, 0);
 		SnDesen(t, SnYumusak, 3, Tepe);
 	}
 }
@@ -3452,7 +3487,7 @@ static void ModeHearth(void)
 		for(x = 0; x < (int)W; x++) U.Sm.Yk[x] = 0.5f + 0.5f * RandF();
 		U.Sm.Harl = U.Sm.HarlH = 1.0f;
 		U.Sm.HarlSonra = 4.0f;
-		SPEC_SetFirePalette(6U, 0x7A0C00UL, 0xFF5000UL, 0xFFB030UL);	/* Beyazsiz gercek alev */
+		SPEC_SetFirePalette(6U, 0xA02800UL, 0xFF8A18UL, 0xFFD060UL);	/* Gercek alev: kirmizi yalniz serin uclarda, govde turuncu, sicak yer altin sari (beyaz yok) */
 		U.Sm.Ready = 1;
 	}
 	U.Sm.Kare++;

@@ -144,7 +144,6 @@ static void ApplyOrtam(uint8_t Mode, int32_t Value)
 	(void)Mode; (void)Value;
 	SPEC_SnIsik   = (uint8_t)SET_Global(SET_ID_SN_ISIK);
 	SPEC_SnYogun  = (uint8_t)SET_Global(SET_ID_SN_YOGUN);
-	SPEC_SnMeteor = (uint8_t)SET_Global(SET_ID_SN_METEOR);
 	SPEC_SaatYazi = (uint8_t)SET_Global(SET_ID_SAAT_YAZI);
 	SPEC_SaatYer  = (uint8_t)SET_Global(SET_ID_SAAT_YER);
 	SPEC_SmBoy    = (uint8_t)SET_Global(SET_ID_SM_BOY);
@@ -256,8 +255,6 @@ static const SET_Param Table[] =
 	  "Kar I\305\237\304\261\304\237\304\261", "Kar", "%", ApplyOrtam },
 	{ SET_ID_SN_YOGUN,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SN_MASK, 0, 2, 1, 1,
 	  "Yo\304\237unluk", "Kar", "Az|Orta|\303\207ok", ApplyOrtam },
-	{ SET_ID_SN_METEOR,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SN_MASK, 0, 2, 1, 1,
-	  "Kayan Y\304\261ld\304\261z", "G\303\266k", "Kapal\304\261|Seyrek|S\304\261k", ApplyOrtam },
 	{ SET_ID_SM_BOY,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SM_MASK, 0, 2, 1, 1,
 	  "Alev Boyu", "Alev", "Al\303\247ak|Orta|Y\303\274ksek", ApplyOrtam },
 	{ SET_ID_YM_SIDDET,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, YM_MASK, 0, 2, 1, 1,
