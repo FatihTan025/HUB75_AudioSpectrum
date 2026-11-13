@@ -14,7 +14,7 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 - Derleme ciktilari (Debug/, build/, __pycache__) depoya girmez (.gitignore).
 
 ## Android bağlantı mimarisi (13 Kasım)
-- WifiAg.kt: her Wi-Fi soketi kendi ağında açılır (Network.socketFactory), Android'in tahminine bırakılmaz.
+- AgSecici.kt: her Wi-Fi soketi kendi ağında açılır (Network.socketFactory), Android'in tahminine bırakılmaz.
   Sıra: ev ağı -> kendi ağı (telefon zaten bağlıysa) -> Bluetooth -> kendi ağı, uygulama bağlanır
   (Android 10+ WifiNetworkSpecifier "yalnız yerel": telefonun interneti kesilmez, sistem bir kez sorar;
   Android 7-9 enableNetwork + 192.168.4.x ağı beklenir, soket o ağa bağlanır -> J4/Huidu sorunu olmaz).

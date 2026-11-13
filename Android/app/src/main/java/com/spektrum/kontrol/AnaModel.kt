@@ -129,12 +129,14 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
         mesaj.value = null
         viewModelScope.launch {
             val app = getApplication<Application>()
-            WifiAg.birak()
-            val yollar: List<suspend () -> Tasima?> =
-                b.ipler.filter { it != KENDI_AG_IP }.map { ip -> suspend { TcpTasima(ip, kapsam = viewModelScope, ag = WifiAg.agBul(app, ip)) } } +
-                (if (KENDI_AG_IP in b.ipler) listOf(suspend { TcpTasima(KENDI_AG_IP, kapsam = viewModelScope, ag = WifiAg.agBul(app, KENDI_AG_IP, kesin = true)) }) else emptyList()) +
-                listOfNotNull(b.ble?.let { d -> suspend { BleTasima(app, d) } }) +
-                listOfNotNull(b.ssid?.let { s -> suspend { WifiAg.kendiAg(app, s)?.let { n -> TcpTasima(KENDI_AG_IP, kapsam = viewModelScope, ag = n) } } })
+            AgSecici.birak()
+            val yollar = mutableListOf<suspend () -> Tasima?>()
+            for (ip in b.ipler.filter { it != KENDI_AG_IP })
+                yollar.add { TcpTasima(ip, kapsam = viewModelScope, ag = AgSecici.agBul(app, ip)) }
+            if (KENDI_AG_IP in b.ipler)
+                yollar.add { TcpTasima(KENDI_AG_IP, kapsam = viewModelScope, ag = AgSecici.agBul(app, KENDI_AG_IP, kesin = true)) }
+            b.ble?.let { d -> yollar.add { BleTasima(app, d) } }
+            b.ssid?.let { ad -> yollar.add { AgSecici.kendiAg(app, ad)?.let { n -> TcpTasima(KENDI_AG_IP, kapsam = viewModelScope, ag = n) } } }
             var bulunanC: Cihaz? = null
             var bulunanB: Bilgi? = null
             var sonHata: Exception? = null
@@ -183,7 +185,7 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
     fun birak() {
         cihaz.value?.kapat()
         cihaz.value = null
-        WifiAg.birak()                                  // Dogrudan Wi-Fi istegi birakilir: telefon eski agina doner
+        AgSecici.birak()                                  // Dogrudan Wi-Fi istegi birakilir: telefon eski agina doner
         otoHedef = null
         tercih.edit().remove("son_cihaz").apply()
         taramaBaslat()

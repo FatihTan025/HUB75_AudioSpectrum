@@ -86,8 +86,8 @@ class Kesif(private val ctx: Context, private val kapsam: CoroutineScope, privat
         } catch (_: Exception) { }
         // Telefon cihazin agina elle baglanmissa (internetsiz Wi-Fi): adini kopruden sor.
         // Yalniz bu durumda yoklanir; ev agindayken PC aracinin baglantisi dusurulmez.
-        if (WifiAg.internetsizWifi(ctx)) kapsam.launch(Dispatchers.IO) {
-            val ag = WifiAg.agBul(ctx, KENDI_AG_IP, kesin = true) ?: return@launch
+        if (AgSecici.internetsizWifi(ctx)) kapsam.launch(Dispatchers.IO) {
+            val ag = AgSecici.agBul(ctx, KENDI_AG_IP, kesin = true) ?: return@launch
             val t = TcpTasima(KENDI_AG_IP, kapsam = kapsam, ag = ag)
             val ad = try { t.ac(); Cihaz(t).kopruBilgi(1500).ad } catch (_: Exception) { null } finally { t.kapat() }
             if (ad != null) bildir(Bulunan(ad, ipler = listOf(KENDI_AG_IP)))

@@ -28,7 +28,7 @@ const val KENDI_AG_SIFRE = "spektrum123"
  *    soketi o aga baglar (internetsiz Wi-Fi'da trafigin mobil veriye kacmasi olmaz).
  * Basarisiz olursa null doner; cagiran eski davranisa (duz soket) duser.
  */
-object WifiAg {
+object AgSecici {
     private var istek: ConnectivityManager.NetworkCallback? = null
 
     private fun cm(ctx: Context) = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
