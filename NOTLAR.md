@@ -177,7 +177,11 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   Rakam olmayan kenarlarda alev daha yükselir (ortada alçak, kenarda yüksek doğal görünüm).
 - Köz: alevin değdiği rakam pikseli ısı biriktirir -> koyu kızıl -> parlak turuncu köz, hafif nefes/çıtırtı.
   Alevin ulaşmadığı yerler soğuk/ılık (koyu, kül grisine yakın); ısı düşünce yavaşça bu tona döner.
-- Müzik: alev boyu/şiddeti müzikle; bas vuruşunda alev rakamları sarar, közler parlar. Sessizde sakin şömine.
+- Müzikle ilgisi YOK (Ortam modu). Alev kendi doğal düzensizliğiyle yanar: arada hafif harlanıp sakinleşir.
+- Gerçek alev (Fatih, 13 Kasım): taban koyu kızıl/turuncu, orta sarı, uçlar seyrek kopuk diller; diller düzensiz boyda,
+  hafif salınır, ara sıra dil kopup söner. Altta 2-3 koyu odun + nefes alan közler; ara sıra yükselen kıvılcım.
+  Mevcut alev motoru (tamsayı + tablo) kullanılır, piksel başına sinf yok.
+- Ayarlar (Kar'la aynı düzen): Alev boyu, Kıvılcım sıklığı, Saat yazısı, Yerleşim (hazır düzenler).
 - İki nokta: saniyede bir nefes alan iki küçük köz.
 - Saat kaynağı: RTC + LSE kristal (kartta var). ESP32 NTP ile saati alıp işlemciye gönderir (protokole tek komut).
   VBAT pili varsa saat elektrik kesilince de sürer.
