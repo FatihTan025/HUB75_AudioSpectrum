@@ -36,6 +36,7 @@ typedef enum
 	SPEC_MODE_WEAVE,			/* Orgu Serit: dolanan ince cizgilerden serit	*/
 	SPEC_MODE_AURORA,			/* Aurora: yildizli gokte isik perdesi + kayan yildiz	*/
 	SPEC_MODE_SNOW,				/* Kar (muziksiz): gece kar yagisi, arkada golge saat	*/
+	SPEC_MODE_HEARTH,			/* Somine (muziksiz): odun, alev, rakamlar alevin icinde	*/
 	SPEC_MODE_COUNT
 } SPEC_Mode;
 
@@ -63,6 +64,10 @@ extern SPEC_ClsCfg SPEC_Cls;
    SPEC_React: 0 sakin (sadece guclu bas), 1 normal, 2 hareketli (her vurus)
    SPEC_ShowNo: mod degisince sol ustte gosterilen numara (gorunum no)	*/
 extern uint8_t SPEC_Speed, SPEC_React, SPEC_ShowNo;
+extern uint8_t SPEC_SnIsik, SPEC_SnYogun, SPEC_SnMeteor;	/* Kar: parlaklik %, 0..2, 0..2	*/
+extern uint8_t SPEC_SaatYazi, SPEC_SaatYer;			/* Saatli modlar: font, yerlesim	*/
+extern uint8_t SPEC_SmBoy, SPEC_SmKiv;				/* Somine: alev boyu 0..2, kivilcim 0..2	*/
+uint8_t        SPEC_SaatYaziSayisi(void);			/* Font tablosundaki font sayisi	*/
 extern uint8_t SPEC_Pal;						/* Katmanli Dag / Orgu Serit: renk ailesi 0..7	*/
 extern uint8_t SPEC_LineSel;				/* Isik Cizgisi: renk ailesi 0..7 (0 = kirmizi>sari, orijinal)	*/
 void    SPEC_ClsApply(void);

@@ -64,6 +64,7 @@ static const SET_ModeInfo ModeInfo[] =
 	LOOK0("Halka",							2, SPEC_MODE_RINGS),
 	/* --- Ortam (aile 3, Kind 1 = muziksiz) --- */
 	ORTAM("Kar",							SPEC_MODE_SNOW),
+	ORTAM("\305\236\303\266mine",						SPEC_MODE_HEARTH),
 };
 
 #define LOOK_COUNT	(sizeof(ModeInfo) / sizeof(ModeInfo[0]))
@@ -133,6 +134,19 @@ static void ApplyLineColor(uint8_t Mode, int32_t Value)
 	SPEC_LineSel = (uint8_t)Value;
 }
 
+/* Ortam modlari (Kar, Somine): ayarlarin hepsi birden okunur */
+static void ApplyOrtam(uint8_t Mode, int32_t Value)
+{
+	(void)Mode; (void)Value;
+	SPEC_SnIsik   = (uint8_t)SET_Global(SET_ID_SN_ISIK);
+	SPEC_SnYogun  = (uint8_t)SET_Global(SET_ID_SN_YOGUN);
+	SPEC_SnMeteor = (uint8_t)SET_Global(SET_ID_SN_METEOR);
+	SPEC_SaatYazi = (uint8_t)SET_Global(SET_ID_SAAT_YAZI);
+	SPEC_SaatYer  = (uint8_t)SET_Global(SET_ID_SAAT_YER);
+	SPEC_SmBoy    = (uint8_t)SET_Global(SET_ID_SM_BOY);
+	SPEC_SmKiv    = (uint8_t)SET_Global(SET_ID_SM_KIV);
+}
+
 static void ApplyPal(uint8_t Mode, int32_t Value)
 {
 	(void)Mode;
@@ -146,6 +160,9 @@ static void ApplyPal(uint8_t Mode, int32_t Value)
 #define REACT_MASK	(FIRE_MASK | (1UL << SPEC_MODE_RINGS) | (1UL << SPEC_MODE_FOUNTAIN) | \
 					 (1UL << SPEC_MODE_SPECWAVE) | (1UL << SPEC_MODE_LIGHTLINE) | \
 					 (1UL << SPEC_MODE_LAYERS) | (1UL << SPEC_MODE_WEAVE) | (1UL << SPEC_MODE_AURORA))
+#define SN_MASK		(1UL << SPEC_MODE_SNOW)
+#define SM_MASK		(1UL << SPEC_MODE_HEARTH)
+#define SAAT_MASK	(SN_MASK | SM_MASK)
 #define H			SET_FLAG_HIDDEN
 #define A			SET_FLAG_ADVANCED		/* Android'de gizli ince ayar */
 
@@ -220,6 +237,22 @@ static const SET_Param Table[] =
 	  "Renk", "Renk",
 	  "Okyanus:9628FF,00E6C8|Ate\305\237:C80014,FFDC28|Orman:00783C,E6F03C|G\303\274n bat\304\261m\304\261:781EC8,FFC83C|"
 	  "Buz:1428C8,64E6FF|G\303\266kku\305\237a\304\237\304\261:FF0078,00A0FF|Pembe:6414A0,FF82BE|Turuncu-Ye\305\237il:FF6E0A,28D2A0", ApplyPal }	/* Ailenin ilk ve son rengi */,
+
+	/* --- Ortam: Kar, Somine (saatli) --- */
+	{ SET_ID_SN_ISIK,		SET_TYPE_INT,	SET_FLAG_PER_MODE, SN_MASK, 10, 100, 10, 60,
+	  "Kar I\305\237\304\261\304\237\304\261", "Kar", "%", ApplyOrtam },
+	{ SET_ID_SN_YOGUN,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SN_MASK, 0, 2, 1, 1,
+	  "Yo\304\237unluk", "Kar", "Az|Orta|\303\207ok", ApplyOrtam },
+	{ SET_ID_SN_METEOR,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SN_MASK, 0, 2, 1, 1,
+	  "Kayan Y\304\261ld\304\261z", "G\303\266k", "Kapal\304\261|Seyrek|S\304\261k", ApplyOrtam },
+	{ SET_ID_SM_BOY,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SM_MASK, 0, 2, 1, 1,
+	  "Alev Boyu", "Alev", "Al\303\247ak|Orta|Y\303\274ksek", ApplyOrtam },
+	{ SET_ID_SM_KIV,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SM_MASK, 0, 2, 1, 1,
+	  "K\304\261v\304\261lc\304\261m", "Alev", "Kapal\304\261|Az|\303\207ok", ApplyOrtam },
+	{ SET_ID_SAAT_YAZI,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 0, 1, 0,
+	  "Saat Yaz\304\261s\304\261", "Saat", "Kal\304\261n", ApplyOrtam },				/* Fatih'in fontlari geldikce: Max + secenek */
+	{ SET_ID_SAAT_YER,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 3, 1, 0,
+	  "Yerle\305\237im", "Saat", "Orta|Alt|Is\304\261 altta|Is\304\261 yanda", ApplyOrtam },
 };
 
 #define SET_COUNT	(sizeof(Table) / sizeof(Table[0]))

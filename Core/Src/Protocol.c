@@ -22,6 +22,7 @@
   *                      GosterId(2) GosterAlt(2) GosterUst(2)  (Id 0 = hep gorunur)
   *                      Ad\0 Grup\0 Secenek\0
   *   30 SAVE / 31 LOAD / 32 FACTORY_RESET    -> st
+  *   41 SENSOR      [Sic10(2, 0.1 C) Nem(1)]  -> st Gecerli Sic10 Nem  (bos = oku)
   *   40 TIME        [Sa Dk Sn [Gun Ay Yil-2000]] -> st Sa Dk Sn Gun Ay Yil-2000  (bos = oku)
   *   51 POWER       [Acik(1)]                -> st Acik  (bos = oku)
   *   70 STATUS      Aralik(2) ms, 0 = dur    -> st
@@ -312,7 +313,15 @@ static void Handle(uint8_t Seq, uint8_t Cmd, const uint8_t *In, uint16_t Len)
 		break;
 	}
 
-	case CMD_SENSOR:
+	case CMD_SENSOR:										/* [Sic10 LE (int16) Nem] -> st Gecerli Sic10 Nem */
+	{
+		int16_t t; uint8_t n;
+		if(Len >= 3U) SAAT_SensorYaz((int16_t)(In[0] | (In[1] << 8)), In[2]);
+		*p++ = SAAT_SensorOku(&t, &n);
+		*p++ = (uint8_t)t; *p++ = (uint8_t)((uint16_t)t >> 8); *p++ = n;
+		break;
+	}
+
 	case CMD_FILE_LIST:
 	case CMD_FILE_WRITE:
 	case CMD_FILE_DELETE:

@@ -37,6 +37,7 @@ void SAAT_Get(uint8_t *Sa, uint8_t *Dk, uint8_t *Sn)
 	*Sa = (uint8_t)(s / 3600U); *Dk = (uint8_t)((s / 60U) % 60U); *Sn = (uint8_t)(s % 60U);
 }
 uint8_t SAAT_Set(uint8_t Sa, uint8_t Dk, uint8_t Sn) { (void)Sa; (void)Dk; (void)Sn; return 1; }
+uint8_t SAAT_SensorOku(int16_t *t, uint8_t *n) { *t = 215; *n = 45; return 1; }	/* Onizleme: 21.5 C, %45 */
 
 /* SpecDisplay.c CV() eslemesinin tersi: 128x32 goruntu */
 static void Goruntu(uint8_t *o)

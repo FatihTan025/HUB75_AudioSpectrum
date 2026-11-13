@@ -54,6 +54,13 @@ import androidx.compose.ui.unit.sp
 import com.spektrum.kontrol.protokol.Tanim
 import kotlin.math.roundToInt
 import com.spektrum.kontrol.protokol.Tur
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
+import com.spektrum.kontrol.protokol.AyarId
 
 // --- Renkler (LED Chord'dan esinli: mor zemin, sari vurgu) -------------------------
 val Mor = Color(0xFF5B3FD1)
@@ -102,7 +109,10 @@ fun AyarSatiri(t: Tanim, deger: Int, degisti: (Int) -> Unit) {
                         uncheckedTrackColor = MorKoyu, uncheckedThumbColor = Pasif, uncheckedBorderColor = MorKoyu))
             }
         }
-        Tur.ENUM -> TekSatir(t.ad) { Secmeli(t.secenekler, deger - t.min) { degisti(t.min + it) } }
+        Tur.ENUM -> TekSatir(t.ad) {
+            if (t.id == AyarId.SAAT_YAZI) SecmeliResim(t.secenekler, deger - t.min) { degisti(t.min + it) }   // Font ornegi
+            else Secmeli(t.secenekler, deger - t.min) { degisti(t.min + it) }
+        }
         Tur.BLOK -> TekSatir(t.ad, t.bloklar.getOrNull(deger - t.min)?.first) { Bloklar(t.bloklar, deger - t.min) { degisti(t.min + it) } }
         Tur.TON -> TekSatir(t.ad) {
             RenkCubugu(deger.toFloat() / (t.max + 1).coerceAtLeast(1), beyaz = false) {
@@ -178,6 +188,32 @@ fun Secmeli(secenekler: List<String>, secili: Int, sec: (Int) -> Unit) {
                     .clickable { sec(i) }.padding(horizontal = 14.dp, vertical = 8.dp),
                 contentAlignment = Alignment.Center
             ) { Text(s, color = if (on) SariYazi else Soluk, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1) }
+        }
+    }
+}
+
+/** Saat yazisi: secenekler o fontla yazilmis "12:34" resmi (assets/saatyazi/<ad>.png); resim yoksa ad yazilir */
+@Composable
+fun SecmeliResim(secenekler: List<String>, secili: Int, sec: (Int) -> Unit) {
+    val ctx = LocalContext.current
+    Row(
+        Modifier.clip(RoundedCornerShape(20.dp)).background(MorKoyu).padding(3.dp).horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        secenekler.forEachIndexed { i, s ->
+            val on = i == secili
+            val resim = remember(s) {
+                runCatching { ctx.assets.open("saatyazi/${sadeAd(s)}.png").use { BitmapFactory.decodeStream(it)?.asImageBitmap() } }.getOrNull()
+            }
+            Box(
+                Modifier.clip(RoundedCornerShape(18.dp)).background(if (on) Sari else Color.Transparent)
+                    .clickable { sec(i) }.padding(horizontal = 12.dp, vertical = 6.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (resim != null) Image(resim, s, Modifier.height(20.dp), filterQuality = FilterQuality.None,
+                    colorFilter = ColorFilter.tint(if (on) SariYazi else Soluk))
+                else Text(s, color = if (on) SariYazi else Soluk, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+            }
         }
     }
 }

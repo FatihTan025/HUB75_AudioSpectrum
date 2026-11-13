@@ -12,4 +12,5 @@ gcc -std=gnu11 -O2 -I"$GEC" "$GEC"/onizleme.c "$GEC"/Spectrum.c "$GEC"/SpecDispl
 mkdir -p "$GEC"/ham
 "$GEC"/onizleme "$GEC"/ham 48 6                                # 48 kare, ~15 kare/sn
 python3 "$KOK"/Tools/Onizleme/png_uret.py "$GEC"/ham "$KOK"/Android/app/src/main/assets/modlar "$KOK"/Tools/Onizleme/onizleme_tablo.png
+python3 "$KOK"/Tools/Onizleme/saat_yazi_png.py     # Saat fontu ornekleri
 rm -rf "$GEC"

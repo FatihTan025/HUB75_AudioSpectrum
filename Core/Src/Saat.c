@@ -156,3 +156,19 @@ uint8_t SAAT_TarihSet(uint8_t Gun, uint8_t Ay, uint16_t Yil)
 	Yaz(Gunler(Gun, Ay, Yil) * 86400U + Simdi() % 86400U);
 	return 1U;
 }
+
+/* Sicaklik / nem: disaridan (CMD_SENSOR) gelir; 10 dk yeni deger gelmezse gecersiz */
+static int16_t  SnsT;
+static uint8_t  SnsN, SnsVar;
+static uint32_t SnsMs;
+
+void SAAT_SensorYaz(int16_t Sicaklik10, uint8_t Nem)
+{
+	SnsT = Sicaklik10; SnsN = (Nem > 100U) ? 100U : Nem; SnsMs = HAL_GetTick(); SnsVar = 1U;
+}
+
+uint8_t SAAT_SensorOku(int16_t *Sicaklik10, uint8_t *Nem)
+{
+	*Sicaklik10 = SnsT; *Nem = SnsN;
+	return (SnsVar && (HAL_GetTick() - SnsMs) < 600000UL) ? 1U : 0U;
+}

@@ -115,27 +115,14 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   1) Ortam (Kind 1) modlarında pompa kapalı. 2) Müzikli modlarda parlaklık %20 altındaysa pompa giderek azalsın,
   en düşükte kapansın. Yan not: düşük parlaklıkta alt bitplane'ler 1 tikte sabit kaldığı için sönük tonlar
   orantılı kısılmıyor (HUB75_DMA.c OnTicks), ileride bakılabilir.
-- **BEKLİYOR – Kar modu yenileme (Fatih "not al", 13 Kasım; "yaz" deyince hepsi birlikte):**
-  1) Taneler asla parlak olmasın: en parlak tane bile eski perde tonu kadar soluk beyaz.
-  2) Kar modunun kendi ayarları (Android + PC'de görünür): Kar parlaklığı, Kar yoğunluğu (tane sayısı),
-     Kayan yıldız sıklığı (Kapalı / Ara sıra / Sık), Saat yazısı (madde 7). Kar'da 4 ayar, Fatih onayladı.
-  3) Rüzgâr/perde TAMAMEN kalksın (SnPerde* kodu ve EsT/EsSonra/EsY/EsYon/EsK silinsin). Eski perde notları iptal.
-  4) Kayan yıldız: ara sıra üst köşelerden birinden girer, yay çizerek (önce yatay, giderek aşağı kıvrılarak)
-     karşı kenarın alt tarafına doğru iner; parlak baş + sönerek kısalan kuyruk, ~1-1.5 s. Saat ve karın arkasında.
-  5) Taneler düzenli adımla insin: şimdi kesirli konum floor ile çiziliyor, adım aralıkları düzensiz -> akıcılık
-     bozuluyor. Her tane "her k karede tam 1 px" (k hızına göre), salınım da aynı kuralla (gözün takip ettiği tane
-     titremesin, ara konumları göz doldursun; sanal px ≈ yenileme/adım hızı − 1, oran tam sayı olmalı).
-  6) Karikatür kristal taneler (Fatih: bu çözünürlükte gerçekçi olmaz): uzak 1 sönük px, orta 3x3 küçük kristal,
-     yakın 4-6 tane 5x5/7x7 altı kollu, uçları dallanan, her biri farklı desen; yakınlar yavaşça döner (2-3 açı).
-  7) Saat yazısı: Fatih birkaç saat fontu hazırlayacak. Ortak font tablosu (FONT_INFO, Font_SaatGecici.h biçimi,
-     0-9 + ':', şimdiki ölçü üst sınır, kod ortalar); seçim GENEL değil, her saatli modun kendi ayarı. Başta yalnız
-     geçici font; Fatih gönderdikçe tabloya ve seçeneklere eklenir. Android'de seçenekler o fontla yazılmış küçük
-     "12:34" resmi olarak görünür; resimleri Claude, Fatih'in verdiği font dosyasından (mod resimleri gibi) üretir.
-     Mod resmi fonta göre değişmez.
-  8) Yerleşim (Fatih kararı: serbest piksel X/Y değil, hazır düzenler): Kar'ın "Yerleşim" ayarı, 3-4 hazır düzen:
-     Yalnız saat ortada | Saat altta (gökyüzü boş, kayan yıldız için) | Saat üstte + altında sıcaklık/nem |
-     Saat ortada + köşelerde küçük sıcaklık/nem. Kod seçilen fonta göre yerleştirir ve ortalar. Sıcaklık/nem
-     CMD_SENSOR'dan. Encoder menüsünden de seçilir. Yeni düzen = tabloya satır. Serbest yerleştirme ileride gerekirse.
+- YAPILDI (13 Kasım, kartta denenmedi): Kar yenilendi + Şömine eklendi (mod 18).
+  Kar: perde/rüzgâr silindi; taneler soluk (Kar Işığı %, tepe 70*%); uzak 1 px, orta 3x3, yakın 5x5/7x7 kristal
+  (2 fazla döner); düzenli adım (SnTn.Kd/Ac 1/16 kare, salınım adımlı); kayan yıldız (yay, Kapalı/Seyrek/Sık).
+  Ortak saat: SaatDurum maske + SaatHazirla (dakika/font/yerleşim değişince), font tablosu SaatYazilari[]
+  (Settings SAAT_YAZI seçenekleri aynı sıra; yeni font: .h + tabloya ekle + seçenek + Max), yerleşim
+  Orta|Alt|Isı altta|Isı yanda. Sıcaklık/nem: CMD_SENSOR 0x41 [Sic10 LE, Nem] (Saat.c, 10 dk geçerli), yoksa "--".
+  Android: Saat Yazısı seçenekleri "12:34" resmi (assets/saatyazi, Tools/Onizleme/saat_yazi_png.py, uret.sh içinde).
+  Kar ayarları: Kar Işığı, Yoğunluk, Kayan Yıldız, Saat Yazısı, Yerleşim (+ Hız).
 - Kartta denenmedi: Hız/Tepki, son düzeltmeler.
 - İleride: VFD modu, Şerit, Aurora, Fırtına, Yağmur, 3D efektler (ayar belgesinde liste),
   ortam modları (saat, sıcaklık), encoder + ekran menüsü, IR, ESP32 köprüsü, Android.
@@ -171,7 +158,7 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 - RAM: duman izgarasi ~4 KB + parcaciklar ~1 KB, U icinde.
 - Alternatif (secilmedi): Kum firtinasi / sok dalgasi.
 
-## Sıradaki: Şömine saat (yeni sohbette başlanacak)
+## Şömine saat (YAZILDI 13 Kasım, kartta denenmedi)
 - Sahne: alev panelin altından yanar, saat rakamları alevin içinde durur (şömine).
 - Rakamlar katı (odun gibi): alev içinden geçmez; rakam aralarından ve iç boşluklarından (0,4,6,8,9) sızar.
   Rakam olmayan kenarlarda alev daha yükselir (ortada alçak, kenarda yüksek doğal görünüm).
@@ -182,6 +169,9 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   hafif salınır, ara sıra dil kopup söner. Altta 2-3 koyu odun + nefes alan közler; ara sıra yükselen kıvılcım.
   Mevcut alev motoru (tamsayı + tablo) kullanılır, piksel başına sinf yok.
 - Ayarlar (Kar'la aynı düzen): Alev boyu, Kıvılcım sıklığı, Saat yazısı, Yerleşim (hazır düzenler).
+- Kod: ModeHearth, U.Sm (Heat, Koz, Yk, Kv). Rakam hücreleri alev örneğinden çıkarılır (alev kenarı yalar);
+  köz = komşu ısıyı (h-k+15)>>4 ile biriktirir, 4 karede 1 soğur, kazanç 1.4-2x + nefes. Palet: SPEC_SetFirePalette(6,
+  7A0C00, FF5000, FFB030) beyazsız. Odunlar en alt 3 satır (iki kütük + nefes alan köz yatağı). Union U +1.7 KB.
 - İki nokta: saniyede bir nefes alan iki küçük köz.
 - Saat kaynağı: RTC + LSE kristal (kartta var). ESP32 NTP ile saati alıp işlemciye gönderir (protokole tek komut).
   VBAT pili varsa saat elektrik kesilince de sürer.
