@@ -223,7 +223,7 @@ static const SET_Param Table[] =
 	  ApplyFire },
 
 	/* --- Tum gorunumler: hareket --- */
-	{ SET_ID_SPEED,			SET_TYPE_ENUM,	SET_FLAG_PER_MODE, ALL_MASK, 0, 3, 1, 2,
+	{ SET_ID_SPEED,			SET_TYPE_ENUM,	SET_FLAG_PER_MODE, ALL_MASK & ~SM_MASK, 0, 3, 1, 2,
 	  "H\304\261z", "Hareket", "Yava\305\237|Normal|Y\303\274ksek|\303\207ok y\303\274ksek", ApplyMotion },	/* Hiz; hepsi tempoya gore */
 	{ SET_ID_REACT,			SET_TYPE_ENUM,	SET_FLAG_PER_MODE, REACT_MASK, 0, 2, 1, 1,
 	  "Tepki", "Hareket", "Sakin|Normal|Hareketli", ApplyMotion },
