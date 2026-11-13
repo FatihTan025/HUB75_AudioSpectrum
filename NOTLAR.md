@@ -130,6 +130,10 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   7) Saat yazısı: Fatih birkaç saat fontu hazırlayacak. Ortak font tablosu (FONT_INFO, Font_SaatGecici.h biçimi,
      0-9 + ':', şimdiki ölçü üst sınır, kod ortalar); seçim GENEL değil, her saatli modun kendi ayarı. Başta yalnız
      geçici font; Fatih gönderdikçe tabloya ve seçeneklere eklenir.
+  8) Yerleşim (Fatih kararı: serbest piksel X/Y değil, hazır düzenler): Kar'ın "Yerleşim" ayarı, 3-4 hazır düzen:
+     Yalnız saat ortada | Saat altta (gökyüzü boş, kayan yıldız için) | Saat üstte + altında sıcaklık/nem |
+     Saat ortada + köşelerde küçük sıcaklık/nem. Kod seçilen fonta göre yerleştirir ve ortalar. Sıcaklık/nem
+     CMD_SENSOR'dan. Encoder menüsünden de seçilir. Yeni düzen = tabloya satır. Serbest yerleştirme ileride gerekirse.
 - Kartta denenmedi: Hız/Tepki, son düzeltmeler.
 - İleride: VFD modu, Şerit, Aurora, Fırtına, Yağmur, 3D efektler (ayar belgesinde liste),
   ortam modları (saat, sıcaklık), encoder + ekran menüsü, IR, ESP32 köprüsü, Android.
