@@ -80,6 +80,7 @@
 #define SET_ID_SH_DALGA		0x030AU	/* Sahil: dalga						*/
 #define SET_ID_SH_RENK		0x030BU	/* Sahil: renk (Gece/Gun batimi/Gunduz)	*/
 #define SET_ID_SAAT_RGB		0x030CU	/* Saatli modlar: saat rengi (mod basina)	*/
+#define SET_ID_SAAT_ISIK	0x030DU	/* Saatli modlar: saat parlakligi %		*/
 
 typedef struct
 {

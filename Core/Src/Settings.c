@@ -64,10 +64,11 @@ static const SET_ModeInfo ModeInfo[] =
 	LOOK0("Orta Patlama",					2, SPEC_MODE_CBLAST),
 	LOOK0("Halka",							2, SPEC_MODE_RINGS),
 	/* --- Ortam (aile 3, Kind 1 = muziksiz) --- */
-	ORTAM("Kar",							SPEC_MODE_SNOW,		{ SET_ID_SAAT_RGB, 0x22283A }),	/* Soluk buz-mavi	*/
-	ORTAM("\305\236\303\266mine",						SPEC_MODE_HEARTH,	{ SET_ID_SAAT_RGB, 0xDCA03C }),	/* Sicak acik sari	*/
-	ORTAM("Ya\304\237mur",						SPEC_MODE_RAIN,		{ SET_ID_SAAT_RGB, 0x1E2432 }),	/* Gri-mavi		*/
-	ORTAM("Sahil",							SPEC_MODE_SHORE,	{ SET_ID_SAAT_RGB, 0x564C3C }),	/* Kum		*/
+	/* Saat: renk tam tonda secilir, parlaklik ayri (gece los kalsin) */
+	ORTAM("Kar",							SPEC_MODE_SNOW,		{ SET_ID_SAAT_RGB, 0x96B0FF }, { SET_ID_SAAT_ISIK, 25 }),	/* Buz-mavi		*/
+	ORTAM("\305\236\303\266mine",						SPEC_MODE_HEARTH,	{ SET_ID_SAAT_RGB, 0xFFBA46 }, { SET_ID_SAAT_ISIK, 85 }),	/* Sicak acik sari	*/
+	ORTAM("Ya\304\237mur",						SPEC_MODE_RAIN,		{ SET_ID_SAAT_RGB, 0x99B8FF }, { SET_ID_SAAT_ISIK, 20 }),	/* Gri-mavi		*/
+	ORTAM("Sahil",							SPEC_MODE_SHORE,	{ SET_ID_SAAT_RGB, 0xFFE1B2 }, { SET_ID_SAAT_ISIK, 35 }),	/* Kum		*/
 };
 
 #define LOOK_COUNT	(sizeof(ModeInfo) / sizeof(ModeInfo[0]))
@@ -152,7 +153,10 @@ static void ApplyOrtam(uint8_t Mode, int32_t Value)
 	SPEC_YmRuzgar = (uint8_t)SET_Global(SET_ID_YM_RUZGAR);
 	SPEC_ShDalga  = (uint8_t)SET_Global(SET_ID_SH_DALGA);
 	SPEC_ShRenk   = (uint8_t)SET_Global(SET_ID_SH_RENK);
-	SPEC_SaatRgb  = (uint32_t)SET_Global(SET_ID_SAAT_RGB);
+	{															/* Saat rengi x saat parlakligi */
+		const uint32_t c = (uint32_t)SET_Global(SET_ID_SAAT_RGB), k = (uint32_t)SET_Global(SET_ID_SAAT_ISIK);
+		SPEC_SaatRgb = ((((c >> 16) & 0xFFU) * k / 100U) << 16) | ((((c >> 8) & 0xFFU) * k / 100U) << 8) | ((c & 0xFFU) * k / 100U);
+	}
 }
 
 static void ApplyPal(uint8_t Mode, int32_t Value)
@@ -273,6 +277,8 @@ static const SET_Param Table[] =
 	  "Yerle\305\237im", "Saat", "Orta|Alt|Is\304\261 altta|Is\304\261 yanda", ApplyOrtam },
 	{ SET_ID_SAAT_RGB,		SET_TYPE_COLOR,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 0xFFFFFF, 1, 0x22283A,
 	  "Saat Rengi", "Saat", "", ApplyOrtam },
+	{ SET_ID_SAAT_ISIK,		SET_TYPE_INT,	SET_FLAG_PER_MODE, SAAT_MASK, 5, 100, 5, 25,
+	  "Saat Parlakl\304\261\304\237\304\261", "Saat", "%", ApplyOrtam },
 };
 
 #define SET_COUNT	(sizeof(Table) / sizeof(Table[0]))

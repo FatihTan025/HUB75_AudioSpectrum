@@ -124,6 +124,12 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   1) Ortam (Kind 1) modlarında pompa kapalı. 2) Müzikli modlarda parlaklık %20 altındaysa pompa giderek azalsın,
   en düşükte kapansın. Yan not: düşük parlaklıkta alt bitplane'ler 1 tikte sabit kaldığı için sönük tonlar
   orantılı kısılmıyor (HUB75_DMA.c OnTicks), ileride bakılabilir.
+- 13 Kasım gece (3. tur, kartta denenmedi): Saat Parlaklığı (0x030D, mod başına %) — renk tam tonda seçilir,
+  ApplyOrtam renk x % hesaplar (gece birden parlamasın; genel parlaklığı kısınca damlalar kayboluyordu).
+  Kar: 5x5 kristal kaldırıldı (Atari gibi), orta katman {14,24,34}. Yağmur: saydam birikinti 4 px (Sağanak 5),
+  yüzey kıpırdayan ışık çizgisi, damla/damlacık yansıması, sıçrama yüzeyden. Sahil: sırtlar parça parça, eğik,
+  kavisi ilerledikçe değişir; kıyıya vuran suyun ucu geniş diller (16 px kontrol noktası); denizde köpük
+  tepecikleri; büyük dalga alta kadar (Sakin hiç, Normal ~1/10, Dalgalı ~1/5). Fatih'in kızı Sahil'i beğendi.
 - 13 Kasım gece (2. tur, kartta denenmedi): Kar "kare düşüyor" -> ara piksel çizim (SnKonum/SnNokta: kesirli
   konum 2x2 komşuya karekök ağırlıkla, CIE yüzünden ışığın karesi korunur). Yağmur: iri damla 3 px yuvarlak baş +
   1 px sönen kuyruk, yere değince damlacıklar yay çizip sıçrar + yerde açılan halka. Sahil baştan: deniz katmanları,
