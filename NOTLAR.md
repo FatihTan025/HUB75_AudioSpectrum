@@ -115,18 +115,21 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   1) Ortam (Kind 1) modlarında pompa kapalı. 2) Müzikli modlarda parlaklık %20 altındaysa pompa giderek azalsın,
   en düşükte kapansın. Yan not: düşük parlaklıkta alt bitplane'ler 1 tikte sabit kaldığı için sönük tonlar
   orantılı kısılmıyor (HUB75_DMA.c OnTicks), ileride bakılabilir.
-- **BEKLİYOR (Fatih "not al, sonra yazacaksın", 13 Kasım):** Kar perdesi önce hızlı, ortaya gelince çok
-  ağırlaşıyor, ekrandan çok geç çıkıyor. Sebep: SnPerdeKatman piksel başına sinf (~5000/kare) -> kare hızı düşüyor;
-  Kar modunda zaman Gdt = 1/CFG_FPS sabit sayıldığı için perde de yavaşlıyor. (Alev/Patlama tamsayı + tablo, sorun yok.)
-  Yapılacak: 1) Lif dokusu tablodan + tamsayı, sinf yalnız sütun başına. 2) Perde süresi HAL_GetTick ile gerçek
-  zamana bağlansın. 3) Perde ekranı biraz daha hızlı geçsin (7.5 s -> ~5-6 s, Fatih deneyerek ayarlar).
-  4) Kar taneleri düzenli adımla insin: şimdi kesirli konum floor ile çiziliyor, adım aralıkları düzensiz
-  (bazen 2 kare durup sıçrıyor) -> akıcılık bozuluyor. Her tane "her k karede tam 1 px" (k hızına göre),
-  salınım da aynı kuralla. Amaç: göz takip ettiği taneyi titremeden görsün, ara konumları kendisi doldursun
-  (kayan yazıdaki "sanal piksel" etkisi; sanal px sayısı ≈ yenileme/adım hızı − 1, oran tam sayı olmalı).
-  5) Taneler karikatür kristal olsun (Fatih: bu çözünürlükte gerçekçi olmaz, karikatürize): uzak 1 sönük px,
-  orta 3x3 küçük kristal (orta parlak, kollar sönük), yakın 4-6 tane 5x5/7x7 altı kollu, uçları dallanan, her biri
-  farklı desen; yakınlar düşerken yavaşça döner (2-3 açının deseni sırayla). Desenler kodda çizilir, resim gerekmez.
+- **BEKLİYOR – Kar modu yenileme (Fatih "not al", 13 Kasım; "yaz" deyince hepsi birlikte):**
+  1) Taneler asla parlak olmasın: en parlak tane bile eski perde tonu kadar soluk beyaz.
+  2) Kar modunun kendi ayarları (Android + PC'de görünür): Kar parlaklığı, Kar yoğunluğu (tane sayısı),
+     Kayan yıldız sıklığı (Kapalı / Ara sıra / Sık), Saat yazısı (madde 7). Kar'da 4 ayar, Fatih onayladı.
+  3) Rüzgâr/perde TAMAMEN kalksın (SnPerde* kodu ve EsT/EsSonra/EsY/EsYon/EsK silinsin). Eski perde notları iptal.
+  4) Kayan yıldız: ara sıra üst köşelerden birinden girer, yay çizerek (önce yatay, giderek aşağı kıvrılarak)
+     karşı kenarın alt tarafına doğru iner; parlak baş + sönerek kısalan kuyruk, ~1-1.5 s. Saat ve karın arkasında.
+  5) Taneler düzenli adımla insin: şimdi kesirli konum floor ile çiziliyor, adım aralıkları düzensiz -> akıcılık
+     bozuluyor. Her tane "her k karede tam 1 px" (k hızına göre), salınım da aynı kuralla (gözün takip ettiği tane
+     titremesin, ara konumları göz doldursun; sanal px ≈ yenileme/adım hızı − 1, oran tam sayı olmalı).
+  6) Karikatür kristal taneler (Fatih: bu çözünürlükte gerçekçi olmaz): uzak 1 sönük px, orta 3x3 küçük kristal,
+     yakın 4-6 tane 5x5/7x7 altı kollu, uçları dallanan, her biri farklı desen; yakınlar yavaşça döner (2-3 açı).
+  7) Saat yazısı: Fatih birkaç saat fontu hazırlayacak. Ortak font tablosu (FONT_INFO, Font_SaatGecici.h biçimi,
+     0-9 + ':', şimdiki ölçü üst sınır, kod ortalar); seçim GENEL değil, her saatli modun kendi ayarı. Başta yalnız
+     geçici font; Fatih gönderdikçe tabloya ve seçeneklere eklenir.
 - Kartta denenmedi: Hız/Tepki, son düzeltmeler.
 - İleride: VFD modu, Şerit, Aurora, Fırtına, Yağmur, 3D efektler (ayar belgesinde liste),
   ortam modları (saat, sıcaklık), encoder + ekran menüsü, IR, ESP32 köprüsü, Android.
