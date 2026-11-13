@@ -4042,6 +4042,7 @@ static void ModeShore(void)
 				const ShYalama *yl = &U.Sh.Yl[i];
 				const int k = (int)Ke[i];
 				const uint8_t Gel = (uint8_t)(yl->T < 0.4f * yl->Sure);
+				const float   q   = Gel ? 0.0f : (yl->T / yl->Sure - 0.4f) / 0.6f;	/* Cekilme ilerlemesi 0..1 */
 				uint32_t a = 0;
 				if(!yl->On || Zf[i] < 0.03f || (float)y < SH_TABAN - 1.0f) continue;
 				if(y == k - 1)                                           a = 150U + (Rand() & 63U);
@@ -4049,7 +4050,12 @@ static void ModeShore(void)
 				else if(y == k - 3 && yl->Kp[x] > 150U && (Rand() & 3U)) a = 60U;
 				else if(y >= k - 6 && y < k && (Rand() % 40U) == 0U)     a = 70U;	/* Kabarcik */
 				else if(!Gel && (y == k || y == k + 1) && (Rand() % 5U) == 0U) a = 110U;	/* Cekilirken kalan */
-				if(a && !Gel) a = (Rand() & 1U) ? (a * 160U) >> 8 : 0U;			/* Cekilen kopuk seyrelir */
+				if(a && !Gel)											/* Cekilirken kademeli: soner + delikler yavasca buyur */
+				{
+					const uint32_t h = ((uint32_t)yl->Kp[x] * 7U + (uint32_t)x * 13U + (uint32_t)y * 29U) & 255U;	/* Sabit: titremez */
+					if((float)h < q * 240.0f) a = 0;
+					else a = (uint32_t)((float)a * (1.0f - q * q));
+				}
 				if(a) ShRenkKat(&r, &g, &b, R->Kp, a);
 			}
 			Set(x, y, (uint8_t)((r > 255U) ? 255U : r), (uint8_t)((g > 255U) ? 255U : g), (uint8_t)((b > 255U) ? 255U : b));
