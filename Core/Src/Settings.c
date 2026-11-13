@@ -271,7 +271,7 @@ static const SET_Param Table[] =
 	{ SET_ID_SAAT_YAZI,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE | H, SAAT_MASK, 0, 0, 1, 0,	/* Tek font varken gizli */
 	  "Saat Yaz\304\261s\304\261", "Saat", "Kal\304\261n", ApplyOrtam },				/* Fatih'in fontlari geldikce: Max + secenek */
 	{ SET_ID_SAAT_YER,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 2, 1, 0,
-	  "Yerle\305\237im", "Saat", "Orta|Alt|S\304\261cakl\304\261k-Nem", ApplyOrtam },
+	  "Yerle\305\237im", "Saat", "Orta|Alt|Is\304\261-Nem", ApplyOrtam },
 	{ SET_ID_SAAT_RGB,		SET_TYPE_COLOR,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 0xFFFFFF, 1, 0x22283A,
 	  "Saat Rengi", "Saat", "", ApplyOrtam },
 	{ SET_ID_SAAT_ISIK,		SET_TYPE_INT,	SET_FLAG_PER_MODE, SAAT_MASK, 5, 100, 5, 25,
