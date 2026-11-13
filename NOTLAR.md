@@ -120,6 +120,10 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   Kar modunda zaman Gdt = 1/CFG_FPS sabit sayıldığı için perde de yavaşlıyor. (Alev/Patlama tamsayı + tablo, sorun yok.)
   Yapılacak: 1) Lif dokusu tablodan + tamsayı, sinf yalnız sütun başına. 2) Perde süresi HAL_GetTick ile gerçek
   zamana bağlansın. 3) Perde ekranı biraz daha hızlı geçsin (7.5 s -> ~5-6 s, Fatih deneyerek ayarlar).
+  4) Kar taneleri düzenli adımla insin: şimdi kesirli konum floor ile çiziliyor, adım aralıkları düzensiz
+  (bazen 2 kare durup sıçrıyor) -> akıcılık bozuluyor. Her tane "her k karede tam 1 px" (k hızına göre),
+  salınım da aynı kuralla. Amaç: göz takip ettiği taneyi titremeden görsün, ara konumları kendisi doldursun
+  (kayan yazıdaki "sanal piksel" etkisi; sanal px sayısı ≈ yenileme/adım hızı − 1, oran tam sayı olmalı).
 - Kartta denenmedi: Hız/Tepki, son düzeltmeler.
 - İleride: VFD modu, Şerit, Aurora, Fırtına, Yağmur, 3D efektler (ayar belgesinde liste),
   ortam modları (saat, sıcaklık), encoder + ekran menüsü, IR, ESP32 köprüsü, Android.
