@@ -129,7 +129,9 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
      yakın 4-6 tane 5x5/7x7 altı kollu, uçları dallanan, her biri farklı desen; yakınlar yavaşça döner (2-3 açı).
   7) Saat yazısı: Fatih birkaç saat fontu hazırlayacak. Ortak font tablosu (FONT_INFO, Font_SaatGecici.h biçimi,
      0-9 + ':', şimdiki ölçü üst sınır, kod ortalar); seçim GENEL değil, her saatli modun kendi ayarı. Başta yalnız
-     geçici font; Fatih gönderdikçe tabloya ve seçeneklere eklenir.
+     geçici font; Fatih gönderdikçe tabloya ve seçeneklere eklenir. Android'de seçenekler o fontla yazılmış küçük
+     "12:34" resmi olarak görünür; resimleri Claude, Fatih'in verdiği font dosyasından (mod resimleri gibi) üretir.
+     Mod resmi fonta göre değişmez.
   8) Yerleşim (Fatih kararı: serbest piksel X/Y değil, hazır düzenler): Kar'ın "Yerleşim" ayarı, 3-4 hazır düzen:
      Yalnız saat ortada | Saat altta (gökyüzü boş, kayan yıldız için) | Saat üstte + altında sıcaklık/nem |
      Saat ortada + köşelerde küçük sıcaklık/nem. Kod seçilen fonta göre yerleştirir ve ortalar. Sıcaklık/nem
