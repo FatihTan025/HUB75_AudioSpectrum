@@ -20,8 +20,9 @@ interface Tasima {
     fun kapat()
 }
 
-/** ESP32 kopru: TCP 5000 (cihazin kendi agi 192.168.4.1 ya da ev agi). */
-class TcpTasima(private val adres: String, private val port: Int = 5000, private val kapsam: CoroutineScope) : Tasima {
+/** ESP32 kopru: TCP 5000 (cihazin kendi agi 192.168.4.1 ya da ev agi). ag verilirse soket acikca o agda acilir. */
+class TcpTasima(private val adres: String, private val port: Int = 5000, private val kapsam: CoroutineScope,
+                private val ag: android.net.Network? = null) : Tasima {
     override val ad = "Wi-Fi"
     override var alici: ((ByteArray) -> Unit)? = null
     override var kopma: ((String) -> Unit)? = null
@@ -31,7 +32,7 @@ class TcpTasima(private val adres: String, private val port: Int = 5000, private
     @Volatile private var kapandi = false
 
     override suspend fun ac() = withContext(Dispatchers.IO) {
-        val s = Socket()
+        val s = ag?.socketFactory?.createSocket() ?: Socket()
         s.tcpNoDelay = true
         s.connect(InetSocketAddress(adres, port), 4000)
         soket = s

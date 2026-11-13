@@ -105,7 +105,8 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
         if (i < 0) bulunanlar.add(b)
         else {
             val e = bulunanlar[i]
-            bulunanlar[i] = e.copy(ble = b.ble ?: e.ble, ipler = (e.ipler + b.ipler).distinct(), rssi = b.rssi ?: e.rssi)
+            bulunanlar[i] = e.copy(ble = b.ble ?: e.ble, ipler = (e.ipler + b.ipler).distinct(), rssi = b.rssi ?: e.rssi,
+                ssid = b.ssid ?: e.ssid)
         }
         val h = otoHedef
         if (h != null && b.ad == h && cihaz.value == null && baglaniyor.value == null) {
@@ -115,21 +116,31 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
     }
 
     // =========================================================================
-    /** Yollar sirayla denenir: ev agi, kendi agi (Wi-Fi hizli), sonra Bluetooth; ilk cevap veren kalir. */
+    /**
+     * Yollar sirayla denenir, ilk cevap veren kalir. Her Wi-Fi soketi kendi aginda acilir (WifiAg):
+     *  1) ev agi  2) cihazin kendi agi, telefon zaten bagliysa  3) Bluetooth
+     *  4) cihazin kendi agi, uygulama baglanir (Android 10+ "yalniz yerel": internet kesilmez; sistem bir kez sorar)
+     * Ag bulunamazsa duz sokete duser (eski davranis).
+     */
     fun baglan(b: Bulunan) {
         if (baglaniyor.value != null) return
         kesif?.durdur(); kesif = null; taraniyor.value = false
         baglaniyor.value = b.ad
         mesaj.value = null
         viewModelScope.launch {
-            val yollar: List<() -> Tasima> =
-                b.ipler.sortedBy { it == KENDI_AG_IP }.map { ip -> { TcpTasima(ip, kapsam = viewModelScope) } } +
-                listOfNotNull(b.ble?.let { d -> { BleTasima(getApplication<Application>(), d) } })
+            val app = getApplication<Application>()
+            WifiAg.birak()
+            val yollar: List<suspend () -> Tasima?> =
+                b.ipler.filter { it != KENDI_AG_IP }.map { ip -> suspend { TcpTasima(ip, kapsam = viewModelScope, ag = WifiAg.agBul(app, ip)) } } +
+                (if (KENDI_AG_IP in b.ipler) listOf(suspend { TcpTasima(KENDI_AG_IP, kapsam = viewModelScope, ag = WifiAg.agBul(app, KENDI_AG_IP, kesin = true)) }) else emptyList()) +
+                listOfNotNull(b.ble?.let { d -> suspend { BleTasima(app, d) } }) +
+                listOfNotNull(b.ssid?.let { s -> suspend { WifiAg.kendiAg(app, s)?.let { n -> TcpTasima(KENDI_AG_IP, kapsam = viewModelScope, ag = n) } } })
             var bulunanC: Cihaz? = null
             var bulunanB: Bilgi? = null
             var sonHata: Exception? = null
             for (yol in yollar) {
-                val a = Cihaz(yol())
+                val ts = try { yol() } catch (e: Exception) { if (e is kotlinx.coroutines.CancellationException) throw e; sonHata = e; null } ?: continue
+                val a = Cihaz(ts)
                 try { a.ac(); bulunanB = a.bilgi(zamanMs = 1500); bulunanC = a; break }
                 catch (e: Exception) { a.kapat(); if (e is kotlinx.coroutines.CancellationException) throw e; sonHata = e }
             }
@@ -172,6 +183,7 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
     fun birak() {
         cihaz.value?.kapat()
         cihaz.value = null
+        WifiAg.birak()                                  // Dogrudan Wi-Fi istegi birakilir: telefon eski agina doner
         otoHedef = null
         tercih.edit().remove("son_cihaz").apply()
         taramaBaslat()

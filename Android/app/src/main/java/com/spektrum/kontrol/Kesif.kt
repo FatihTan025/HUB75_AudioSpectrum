@@ -18,19 +18,19 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-import java.net.InetSocketAddress
-import java.net.Socket
 
 /**
  * Ayni cihaz Bluetooth, ev agi ve kendi aginda ayni adla (Spektrum-XXXX) gorunur; tek satirda birlesir.
  * ipler: ev agi adresi ve/veya 192.168.4.1 (kendi agi).
  */
-data class Bulunan(val ad: String, val ble: BluetoothDevice? = null, val ipler: List<String> = emptyList(), val rssi: Int? = null) {
+data class Bulunan(val ad: String, val ble: BluetoothDevice? = null, val ipler: List<String> = emptyList(), val rssi: Int? = null,
+                   val ssid: String? = null) {          // ssid: cihazin kendi agi (dogrudan Wi-Fi) gorulduyse
+    val dogrudan get() = ssid != null || KENDI_AG_IP in ipler
     val ip get() = ipler.firstOrNull()
 }
 
 const val KENDI_AG_IP = "192.168.4.1"
-const val KENDI_AG_AD = "Cihazın kendi ağı"
+const val KENDI_AG_ONEK = "Spektrum-"
 
 /**
  * Bluetooth (NUS servisi) ve ev agi (mDNS _spektrum._tcp) birlikte taranir.
@@ -46,7 +46,8 @@ class Kesif(private val ctx: Context, private val kapsam: CoroutineScope, privat
     private val bleGeri = object : ScanCallback() {
         override fun onScanResult(tip: Int, r: ScanResult) {
             val ad = r.scanRecord?.deviceName ?: r.device.name ?: return
-            bildir(Bulunan(ad, ble = r.device, rssi = r.rssi))
+            // Kopru BLE adi = kendi aginin adi: dogrudan Wi-Fi yolu da kullanilabilir
+            bildir(Bulunan(ad, ble = r.device, rssi = r.rssi, ssid = if (ad.startsWith(KENDI_AG_ONEK)) ad else null))
         }
     }
 
@@ -73,14 +74,23 @@ class Kesif(private val ctx: Context, private val kapsam: CoroutineScope, privat
         }
         nsdDinleyici = d
         try { nsd.discoverServices("_spektrum._tcp", NsdManager.PROTOCOL_DNS_SD, d) } catch (_: Exception) { }
-        // Cihazin kendi agi: adini kopruden sor, ayni cihazin diger yollariyla birlessin
-        kapsam.launch(Dispatchers.IO) {
-            try {
-                Socket().use { it.connect(InetSocketAddress(KENDI_AG_IP, 5000), 600) }
-            } catch (_: Exception) { return@launch }
-            val t = TcpTasima(KENDI_AG_IP, kapsam = kapsam)
+        // Cihazin kendi agi, Wi-Fi taramasindan (Android 7-11: konum izni BLE icin zaten var)
+        try {
+            @Suppress("DEPRECATION")
+            val wm = ctx.applicationContext.getSystemService(Context.WIFI_SERVICE) as android.net.wifi.WifiManager
+            @Suppress("DEPRECATION") wm.startScan()
+            wm.scanResults?.forEach { r ->
+                @Suppress("DEPRECATION") val s = r.SSID
+                if (s != null && s.startsWith(KENDI_AG_ONEK)) bildir(Bulunan(s, ssid = s))
+            }
+        } catch (_: Exception) { }
+        // Telefon cihazin agina elle baglanmissa (internetsiz Wi-Fi): adini kopruden sor.
+        // Yalniz bu durumda yoklanir; ev agindayken PC aracinin baglantisi dusurulmez.
+        if (WifiAg.internetsizWifi(ctx)) kapsam.launch(Dispatchers.IO) {
+            val ag = WifiAg.agBul(ctx, KENDI_AG_IP, kesin = true) ?: return@launch
+            val t = TcpTasima(KENDI_AG_IP, kapsam = kapsam, ag = ag)
             val ad = try { t.ac(); Cihaz(t).kopruBilgi(1500).ad } catch (_: Exception) { null } finally { t.kapat() }
-            bildir(Bulunan(ad ?: KENDI_AG_AD, ipler = listOf(KENDI_AG_IP)))
+            if (ad != null) bildir(Bulunan(ad, ipler = listOf(KENDI_AG_IP)))
         }
     }
 

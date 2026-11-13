@@ -13,6 +13,15 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   derleme no. Simge: Tools/Ikon/ikon_uret.py (siyah zemin, LED bölmeli spektrum, beyaz tepeler).
 - Derleme ciktilari (Debug/, build/, __pycache__) depoya girmez (.gitignore).
 
+## Android bağlantı mimarisi (13 Kasım)
+- WifiAg.kt: her Wi-Fi soketi kendi ağında açılır (Network.socketFactory), Android'in tahminine bırakılmaz.
+  Sıra: ev ağı -> kendi ağı (telefon zaten bağlıysa) -> Bluetooth -> kendi ağı, uygulama bağlanır
+  (Android 10+ WifiNetworkSpecifier "yalnız yerel": telefonun interneti kesilmez, sistem bir kez sorar;
+  Android 7-9 enableNetwork + 192.168.4.x ağı beklenir, soket o ağa bağlanır -> J4/Huidu sorunu olmaz).
+  Ağ bulunamazsa düz sokete düşer (eski davranış). Keşif: BLE adı = AP adı (ssid), Wi-Fi taraması; 192.168.4.1
+  TCP yoklaması yalnız telefon internetsiz Wi-Fi'dayken (ev ağında PC aracının bağlantısını düşürmesin).
+  Kartta/telefonda denenmedi.
+
 ## Donanım
 - STM32F446RC, 180 MHz. Panel: 2×P5 64×32 = 128×32 (sürücü mantıksal 64×64), 1/8 tarama.
 - 8 bit-plane (en az 7). RAM ~101 KB / 128 KB. Yığın 0x1000.

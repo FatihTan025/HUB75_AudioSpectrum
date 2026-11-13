@@ -156,7 +156,7 @@ private fun CihazSatiri(m: AnaModel, b: Bulunan, secili: Boolean, tikla: () -> U
     // Ulasilabilen yollar; baglanirken bu siraya gore denenir (calisan secilir)
     val yollar = buildList {
         if (b.ipler.any { it != KENDI_AG_IP }) add("ev ağı")
-        if (KENDI_AG_IP in b.ipler) add("doğrudan")
+        if (b.dogrudan) add("doğrudan")
         if (b.ble != null) add("Bluetooth")
     }.joinToString(" · ")
     val alt = if (ad != b.ad) "${b.ad} · $yollar" else yollar
