@@ -118,6 +118,11 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 - Telefon sesi ESP32'ye A2DP ile gelebilir (I2S → STM32); arayan bilgisi Android uygulamasından.
 
 ## Bekleyen işler
+- 14 Kasım (15, kartta denenmedi): Direk en üste kadar, kol 2 px kalın kuğu boynu (direkle tümleşik), cam 4 px
+  (orta 2 tam, yanlar ~%40). Koni dik, iki yana eşit ~30 derece (tan30), direk ışığın önünde (aydınlanmaz).
+  Karışık renk düzeltmesi: sudaki leke ve şerit su rengini ışık rengine KARIŞTIRIR (eklemez), konideki damlalar
+  ışığın rengini alır, YM_ISIK en yakına yuvarlar. Direkler (ve ışıkları) yalnız saat kenarlardan YM_KENAR (7 px)
+  içerideyken ve Isı-Nem yokken çizilir (YmLamba; sola yaslı / Isı-Nem / taşan geniş fontta yok). Ayar yok (Fatih).
 - 14 Kasım (14, kartta denenmedi): Direk tek renk (58,36,18), yeşil kapak kalktı (kapak da direk renginde), yalnız
   iki boğaz açık (104,68,34). Lamba ışığı (cam, koni, sudaki leke ve şerit) saat renginin tam tonu (YmIr/Ig/Ib,
   her kare SPEC_SaatRgb'den; parlaklık ayarından bağımsız).

@@ -3885,23 +3885,25 @@ static inline int32_t YmSin(int32_t v, int32_t Lo, int32_t Hi) { return (v < Lo)
 /* Sokak lambasi: lambanin isik cikan noktasi (sol; sag aynasi) ve gun isigi tonu */
 #define YM_LX		8							/* Lamba basi orta sutunu (solda)		*/
 #define YM_LY		2							/* Isik cikan satir (lamba en ustte)	*/
+#define YM_KENAR	7							/* Saat bu kadar kenara yaklasirsa direk yok	*/
 static uint16_t YmIr = 255U, YmIg = 222U, YmIb = 130U;		/* Lamba isigi: saat renginin tam tonu (her kare)	*/
-#define YM_ISIK(v)	(uint8_t)(((v) * YmIr + 255U) >> 8), (uint8_t)(((v) * YmIg + 255U) >> 8), (uint8_t)(((v) * YmIb + 255U) >> 8)	/* Yukari yuvarlanir: sonukte renk kaymasin */
+static uint8_t  YmLamba = 1U;								/* Direkler var mi (saat kenarlara tasarsa yok)	*/
+#define YM_ISIK(v)	(uint8_t)(((v) * YmIr + 128U) >> 8), (uint8_t)(((v) * YmIg + 128U) >> 8), (uint8_t)(((v) * YmIb + 128U) >> 8)	/* En yakina yuvarlanir */
 
-/* Koni isigi 0..256: genis (~50 derece), ice ~15 derece egik: dis kenari diregin dibine kadar iner; kenari yumusak. Iki lamba. */
+/* Koni isigi 0..256: dik iner, iki yana esit ~30 derece; kenari yumusak, uzakta azalir. Iki lamba.
+   Isik camin ortasindan (YM_LX + 0.5) cikar. Direk isigin onunde cizilir, aydinlanmaz. */
 static uint32_t YmKoni(int x, int y)
 {
 	const int dy = y - YM_LY;
 	uint32_t En = 0U;
 	int k;
-	if(dy <= 0) return 0U;
+	if(!YmLamba || dy <= 0) return 0U;
 	for(k = 0; k < 2; k++)
 	{
-		const int dx = k ? (int)W - 1 - YM_LX - x : x - YM_LX;			/* Sag lamba aynali */
-		const int32_t a = dx * 66 + dy * 247, c = dx * 247 - dy * 66;	/* Eksen boyunca / dik (x256); sin15, cos15 */
+		const int dx2 = 2 * (k ? (int)W - 1 - x : x) - (2 * YM_LX + 1);	/* Yarim piksel (sag aynali) */
+		const int32_t a = dy * 256, c = dx2 * 128;
 		int32_t e, v;
-		if(a <= 0) continue;
-		e = ((c < 0) ? -c : c) * 256 / (((a * 119) >> 8) + 384);			/* tan25 + ucta 1.5 px */
+		e = ((c < 0) ? -c : c) * 256 / (((a * 148) >> 8) + 384);			/* tan30 + ucta 1.5 px */
 		if(e >= 256) continue;
 		v = (e < 128) ? 256 - e / 2 : (256 - e) * 3 / 2;					/* Ici dolu, kenari yumusak */
 		v = (v * (256 - YmSin(a >> 6, 0, 100))) >> 8;					/* Uzakta azalir */
@@ -3910,27 +3912,27 @@ static uint32_t YmKoni(int x, int y)
 	return En;
 }
 
-/* Suslu sokak lambasi (kenardan kesik fotograf gibi): 3 px kahverengi dokme direk, tek renk; yalniz
-   iki bogaz (bilezik) acik. Dibi kavisle genisleyen ayak, ustte kugu boynu kol, en ustte kapak (direkle
-   ayni renk), altinda isik cikan cam (saat renginde). Sag lamba aynali. */
+/* Suslu sokak lambasi (kenardan kesik fotograf gibi): 3 px kahverengi dokme direk, tek renk, en uste
+   kadar; yalniz iki bogaz acik. Dibi kavisle genisleyen ayak; direkten 2 px kalin kugu boynu kol
+   kivrilip kapaga baglanir; kapak direk renginde, altinda 4 px cam (orta iki parlak, yanlar soluk). Sag aynali. */
 static void YmDirek(void)
 {
 	static const uint8_t Gv[3] = { 58, 36, 18 }, Bil[3] = { 104, 68, 34 };
 	static const int8_t Ayak[5] = { 3, 4, 4, 5, 6 };					/* Alt 5 satirda ayak genisligi (kavisli) */
-	static const int8_t Kol[6][2] = { {2,4},{2,3},{3,2},{4,2},{5,1},{6,1} };	/* Kugu boynu: direkten kapaga kivrilir */
+	static const int8_t Kol[8][2] = { {3,2},{3,3},{3,4},{4,1},{4,2},{4,3},{5,1},{5,2} };	/* 2 px kalin kugu boynu */
 	int k, y, x, i;
+	if(!YmLamba) return;
 	for(k = 0; k < 2; k++)
 	{
 		#define YM_DX(x)	(k ? (int)W - 1 - (x) : (x))
 		#define YM_P(x, y, c)	Set(YM_DX(x), (y), (c)[0], (c)[1], (c)[2])
-		for(y = 3; y < (int)H; y++) for(x = 0; x < 3; x++) YM_P(x, y, Gv);				/* Govde */
+		for(y = 0; y < (int)H; y++) for(x = 0; x < 3; x++) YM_P(x, y, Gv);				/* Govde: en uste kadar */
 		for(i = 0; i < 5; i++) for(x = 0; x < Ayak[i]; x++) YM_P(x, (int)H - 5 + i, Gv);	/* Ayak: asagi dogru kavisle genisler */
 		for(x = 0; x < 4; x++) { YM_P(x, (int)H - 7, Bil); YM_P(x, 14, Bil); }				/* Bogazlar */
-		YM_P(1, 2, Gv);																		/* Direk ucu */
-		for(i = 0; i < 6; i++) YM_P(Kol[i][0], Kol[i][1], Gv);								/* Kugu boynu kol */
+		for(i = 0; i < 8; i++) YM_P(Kol[i][0], Kol[i][1], Gv);								/* Kol */
 		for(x = 7; x <= 10; x++) YM_P(x, 0, Gv);											/* Kapak */
 		for(x = 6; x <= 11; x++) YM_P(x, 1, Gv);
-		for(x = 7; x <= 10; x++) Set(YM_DX(x), YM_LY, YM_ISIK((x == YM_LX || x == YM_LX + 1) ? 255U : 190U));	/* Cam */
+		for(x = 7; x <= 10; x++) Set(YM_DX(x), YM_LY, YM_ISIK((x == YM_LX || x == YM_LX + 1) ? 255U : 100U));	/* Cam */
 		#undef YM_P
 		#undef YM_DX
 	}
@@ -3958,9 +3960,15 @@ static void YmDog(YmDamla *d, uint8_t Tur, uint8_t Basta)	/* Tur: 0 uzak, 1 yaki
 static void YmCiz(const YmDamla *d, int32_t Vx)
 {
 	const int x0 = (int)(d->X >> 8), y0 = (int)(d->Y >> 8);
-	const uint32_t Lh = d->L + ((d->L * YmKoni(x0, y0) * 3U) >> 8);		/* Koninin icinde parlar */
+	const uint32_t Kn = YmKoni(x0, y0);
+	const uint32_t Lh = d->L + ((d->L * Kn * 3U) >> 8);					/* Koninin icinde parlar */
 	const uint32_t L = (Lh > 255U) ? 255U : Lh;
+	const uint32_t Cr = (200U * (256U - Kn) + YmIr * Kn) >> 8,			/* Koninin icinde isigin rengini alir */
+	               Cg = (215U * (256U - Kn) + YmIg * Kn) >> 8,
+	               Cb = (256U * (256U - Kn) + YmIb * Kn) >> 8;
 	int k, n;
+	#undef YM_RENK
+	#define YM_RENK(v)	(uint8_t)(((v) * Cr) >> 8), (uint8_t)(((v) * Cg) >> 8), (uint8_t)(((v) * Cb) >> 8)
 	#define YM_X(k)	(x0 - (int)(Vx * (k) / d->Vy))					/* Egim: kuyruk ruzgarin tersine kayar */
 	if(d->Iri)
 	{
@@ -3986,6 +3994,8 @@ static void YmCiz(const YmDamla *d, int32_t Vx)
 		if(v) Add(YM_X(n + k), y0 - n - k, YM_RENK(v));
 	}
 	#undef YM_X
+	#undef YM_RENK
+	#define YM_RENK(v)	(uint8_t)(((v) * 200U) >> 8), (uint8_t)(((v) * 215U) >> 8), (uint8_t)(v)	/* Soguk gri-mavi */
 }
 
 /* Suya degme: yuzeye itme (gucu damla hizina bagli, halka dalga denkleminden) + yakin damlada damlaciklar */
@@ -4089,6 +4099,17 @@ static void ModeRain(void)
 		if(!m) m = 1U;
 		YmIr = (uint16_t)(sr * 255U / m); YmIg = (uint16_t)(sg * 255U / m); YmIb = (uint16_t)(sb * 255U / m);
 	}
+	{																/* Direkler yalniz saat ortada ve kenarlara tasmiyorken (Isi-Nem yok) */
+		int Sol = (int)W, Sag = -1, k;
+		for(y = 0; y < (int)H; y++)
+			for(k = 0; k < (int)(W / 8U); k++)
+				if(U.Ym.S.M[y][k])
+				{
+					if(k * 8 < Sol) Sol = k * 8 + __builtin_clz((uint32_t)U.Ym.S.M[y][k] << 24);
+					if(k * 8 + 7 > Sag) Sag = k * 8 + 7 - __builtin_ctz((uint32_t)U.Ym.S.M[y][k]);
+				}
+		YmLamba = (uint8_t)(!U.Ym.S.Isi && Sol >= YM_KENAR && Sag <= (int)W - 1 - YM_KENAR);
+	}
 
 	/* Su kenari: sabit, duzensiz kiyi cizgisi (kipirdamaz, duz de degil) */
 	yu = (int)H;
@@ -4164,16 +4185,25 @@ static void ModeRain(void)
 				}
 			}
 			{															/* Koninin yere vurdugu yer: dalgayla kirilan isik lekesi */
-				const int32_t v = (int32_t)((YmKoni(x + (int)YmSin(ex >> 7, -2, 2), y) * 95U) >> 8) * (256 + Ib * 8) >> 8;
-				if(v > 0) { r += (v * YmIr + 255) >> 8; g += (v * YmIg + 255) >> 8; b += (v * YmIb + 255) >> 8; }
+				const int32_t f = YmSin((int32_t)((YmKoni(x + (int)YmSin(ex >> 7, -2, 2), y) * 170U) >> 8) * (256 + Ib * 8) >> 8, 0, 230);
+				const int32_t P = YmSin(110 + Ib * 2, 40, 200);					/* Lekenin parlakligi: dalgayla kirilir */
+				if(f > 0)													/* Su rengi isigin rengine dogru (eklenmez: renk karismaz) */
+				{
+					r += ((((int32_t)YmIr * P) >> 8) - r) * f >> 8;
+					g += ((((int32_t)YmIg * P) >> 8) - g) * f >> 8;
+					b += ((((int32_t)YmIb * P) >> 8) - b) * f >> 8;
+				}
 			}
-			{															/* Lambanin dikey yansima seridi: titrer, yer yer kopar */
+			if(YmLamba)													/* Lambanin dikey yansima seridi: titrer, yer yer kopar */
+			{
 				const int xs = x + (int)YmSin(ex >> 7, -2, 2) + Sy, dl = xs - YM_LX, dr = ((int)W - 1 - YM_LX) - xs;
 				const int d = (dl >= -1 && dl <= 1) ? dl : (dr >= -1 && dr <= 1) ? dr : 9;
 				if(d != 9 && ShDoku[((uint32_t)y * 13U + U.Ym.Kare / 3U + (uint32_t)(dl > 1) * 21U) & 63U] > 70U)
 				{
-					const int32_t v = (d == 0) ? 75 : 28;
-					r += (v * YmIr + 255) >> 8; g += (v * YmIg + 255) >> 8; b += (v * YmIb + 255) >> 8;
+					const int32_t f = (d == 0) ? 200 : 90, P = 150;
+					r += ((((int32_t)YmIr * P) >> 8) - r) * f >> 8;
+					g += ((((int32_t)YmIg * P) >> 8) - g) * f >> 8;
+					b += ((((int32_t)YmIb * P) >> 8) - b) * f >> 8;
 				}
 			}
 			c = CV(y, x);
