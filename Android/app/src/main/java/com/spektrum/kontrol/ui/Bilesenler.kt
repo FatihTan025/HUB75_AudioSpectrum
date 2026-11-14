@@ -125,14 +125,9 @@ fun BasmaDugme(yazi: String, acik: Boolean, degistir: (Boolean) -> Unit) {
 /** Basliklii ayar kutusu: zemin rengi hangi tur ayar oldugunu anlatir */
 @Composable
 fun AyarKutusu(baslik: String, zemin: Color, not: String? = null, icerik: @Composable () -> Unit) {
-    Box(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(top = 7.dp).fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(zemin)
-            .padding(start = 10.dp, end = 10.dp, top = 10.dp, bottom = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) { icerik() }
-        // Cerceve basligi: kutunun ust kenarina oturur, ayri satir kaplamaz
-        Text(if (not != null) "$baslik · $not" else baslik, color = Soluk, fontSize = 10.sp, fontWeight = FontWeight.Bold,
-            modifier = Modifier.align(Alignment.TopCenter).clip(RoundedCornerShape(7.dp)).background(zemin)
-                .border(1.dp, Soluk.copy(alpha = 0.35f), RoundedCornerShape(7.dp)).padding(horizontal = 8.dp, vertical = 1.dp))
-    }
+    // Baslik yok: kutunun turunu zemin rengi anlatir
+    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(zemin)
+        .padding(start = 10.dp, end = 10.dp, top = 6.dp, bottom = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) { icerik() }
 }
 
 /** Mod ayarlari kutularda; her ayar tek kutuda: Saat grubu -> SAAT, Hareket grubu -> HAREKET,
@@ -270,7 +265,12 @@ fun AyarSatiri(t: Tanim, deger: Int, ust: Boolean = false, degisti: (Int) -> Uni
             }
         }
         Tur.RENK -> TekSatir(t.ad) {
-            RenkCubugu(rgbKonum(deger), beyaz = true) { degisti(konumRgb(it)) }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.weight(1f)) { RenkCubugu(rgbKonum(deger.coerceAtLeast(0)), beyaz = true) { degisti(konumRgb(it)) } }
+                // Fabrika rengi: -1 gonderilir, cihaz bu modun ilk rengini koyup geri bildirir
+                Box(Modifier.padding(start = 8.dp).size(30.dp).clip(CircleShape).background(DugmeYuz).clickable { degisti(-1) },
+                    contentAlignment = Alignment.Center) { Text("↺", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold) }
+            }
         }
         else -> if (ust) TekSatir("${t.ad}  $deger${t.secenek}", ust = true) { Cubuk(deger, t.min, t.max, t.adim, degisti) }
         else TekSatir(t.ad) {   // INT (ve bilinmeyen turler: sayi gibi)
@@ -420,6 +420,36 @@ fun RenkCubugu(konum: Float, beyaz: Boolean, degisti: (Float) -> Unit) {
                 }
         )
         Box(Modifier.offset(x = (g - 22.dp) * konum.coerceIn(0f, 1f))) { Tutamac() }
+    }
+}
+
+/** Hoparlor simgesi (material-icons-core'da yok): ses dalgalariyla. */
+@Composable
+fun HoparlorSimgesi(renk: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier.size(20.dp)) {
+        val w = size.width; val s = 1.8.dp.toPx()
+        val p = androidx.compose.ui.graphics.Path().apply {
+            moveTo(w * 0.08f, w * 0.38f); lineTo(w * 0.26f, w * 0.38f); lineTo(w * 0.48f, w * 0.18f)
+            lineTo(w * 0.48f, w * 0.82f); lineTo(w * 0.26f, w * 0.62f); lineTo(w * 0.08f, w * 0.62f); close()
+        }
+        drawPath(p, renk)
+        for (k in 1..2) {
+            val r = w * 0.16f * k
+            drawArc(renk, -50f, 100f, false, topLeft = Offset(w * 0.50f - r, w * 0.5f - r),
+                size = androidx.compose.ui.geometry.Size(r * 2, r * 2), style = Stroke(s, cap = StrokeCap.Round))
+        }
+    }
+}
+
+/** Yalniz simgeli basma dugmesi: acikken sari ve basik, kapaliyken soluk ve kabarik. */
+@Composable
+fun SimgeDugme(acik: Boolean, degistir: (Boolean) -> Unit, simge: @Composable (Color) -> Unit) {
+    val sekil = RoundedCornerShape(8.dp)
+    Box(Modifier.size(width = 46.dp, height = 33.dp).clickable { degistir(!acik) }) {
+        if (!acik) Box(Modifier.fillMaxWidth().height(30.dp).align(Alignment.BottomCenter).shadow(3.dp, sekil).clip(sekil).background(DugmeKenar))
+        Box(Modifier.fillMaxWidth().height(30.dp).offset(y = if (acik) 3.dp else 0.dp).clip(sekil)
+            .background(if (acik) Brush.verticalGradient(listOf(SariKenar, Sari, Sari)) else Brush.verticalGradient(listOf(DugmeYuz, DugmeYuz))),
+            contentAlignment = Alignment.Center) { simge(if (acik) SariYazi else Soluk.copy(alpha = 0.6f)) }
     }
 }
 

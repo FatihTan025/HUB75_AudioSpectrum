@@ -104,9 +104,9 @@ typedef struct
 	uint8_t		L;								/* Isik %								*/
 } SnTn;
 
-typedef struct { int32_t X, Y; int16_t Vy; uint8_t Uz, L, Iri; } YmDamla;	/* Yagmur damlasi (8.8)	*/
-typedef struct { float X, Y, Vx, Vy; uint8_t L; } YmZerre;				/* Sicrayan damlacik		*/
-typedef struct { int16_t X; uint8_t Life, Iri; } YmHalka;				/* Yerde acilan halka		*/
+typedef struct { int32_t X, Y; int16_t Vy; uint8_t Uz, L, Iri, Hd; } YmDamla;	/* Yagmur damlasi (8.8); Hd: suya dusecegi satir	*/
+typedef struct { float X, Y, Vx, Vy, Hd; uint8_t L; } YmZerre;			/* Sicrayan damlacik (Hd: suyun satiri)	*/
+typedef struct { float X, Y, R, Hiz; uint8_t Life, Iri; } YmHalka;		/* Suda acilan elips halka	*/
 typedef struct { float T, Sure, Eris; float Pr[128]; uint8_t Kp[128]; uint8_t On; } ShYalama;	/* Kiyiya vuran dalga	*/
 typedef struct { float Y, V, A, Xm, Yari, Egim, Kv, T; int8_t Pr[128]; uint8_t Ana, On; } ShSirt;	/* Denizdeki dalga sirti (parca)	*/
 typedef struct { uint8_t X, Y, Life; } ShKopuk;							/* Denizde kisa omurlu kopuk tepecigi	*/
@@ -122,8 +122,7 @@ typedef struct { uint8_t X, Y, Life; } ShKopuk;							/* Denizde kisa omurlu kop
 #define YM_UZAK			90				/* Yagmur: en cok uzak / yakin damla, sicrama	*/
 #define YM_YAKIN		18
 #define YM_ZERRE		40
-#define YM_HALKA		12
-#define YM_HALKA_OMUR	18U				/* kare (~0.2 s)						*/
+#define YM_HALKA		28				/* Suda ayni anda acik halka			*/
 #define SH_YALAMA		3				/* Sahil: ayni anda kiyiya vuran dalga	*/
 #define SH_SIRT			8				/* Sahil: denizdeki sirt				*/
 #define SH_KOPUK		10				/* Sahil: denizdeki kopuk tepecigi		*/
@@ -188,6 +187,8 @@ static union
 		int16_t		Ix[SN_IZ], Iy[SN_IZ];
 		uint8_t		Sx[SN_YILDIZ], Sy[SN_YILDIZ], MOn, MIz, Ready;
 		uint8_t		NOr, NYa;									/* Etkin orta / yakin tane sayisi	*/
+		uint16_t	Yig[W];										/* Biriken kar yuksekligi (1/16 px)	*/
+		uint8_t		Of[W], Eg[W];								/* Doku kaymasi, yigilma egilimi		*/
 	} Sn;
 	struct											/* Yagmur */
 	{
@@ -195,6 +196,9 @@ static union
 		YmDamla		Uz[YM_UZAK], Ya[YM_YAKIN];
 		YmZerre		Zr[YM_ZERRE];
 		YmHalka		Hl[YM_HALKA];
+		float		Kab[W];							/* Vurusla kabaran su kenari (px)	*/
+		uint8_t		Of[W];							/* Su kenarinin sutun kaymasi		*/
+		uint32_t	Kare;
 		uint8_t		Ready;
 	} Ym;
 	struct											/* Sahil */
@@ -3125,6 +3129,19 @@ static int SaatYuva(const FONT_INFO *F)
 	return g;
 }
 
+/* Glifin gercekten yanan ilk ve son satiri */
+static void SaatSatirlar(const FONT_INFO *F, uint8_t g, int *Ust, int *Alt)
+{
+	const FONT_CHAR_INFO *d = &F->Descriptors[g];
+	const uint8_t *b = &F->Bitmap[d->OffSet];
+	int y, k;
+	*Ust = (int)d->Height; *Alt = -1;
+	for(y = 0; y < (int)d->Height; y++)
+		for(k = 0; k < (int)d->BWidth; k++)
+			if(b[y * d->BWidth + k]) { if(y < *Ust) *Ust = y; *Alt = y; break; }
+	if(*Alt < 0) { *Ust = 0; *Alt = (int)d->Height - 1; }
+}
+
 static void SaatRakamMaske(SaatDurum *S, const FONT_INFO *F, int X0, int Y0, uint8_t r)
 {
 	const FONT_CHAR_INFO *d = &F->Descriptors[r];
@@ -3154,7 +3171,7 @@ static void SaatHazirla(SaatDurum *S)
 	const uint8_t Isi = (uint8_t)(SPEC_SaatIsi && SAAT_SensorOku(&T, &N));
 	uint8_t Sani = SPEC_SaatSn;
 	uint8_t Sa, Dk, Sn, r[6], Buyuk = 0;
-	int tw, x0, y0, i, x, n = 4;
+	int tw, x0, y0, yi, i, x, n = 4;
 
 	SAAT_Get(&Sa, &Dk, &Sn);
 	if(!Sani) Sn = 0;											/* Saniye kapaliysa dakikada bir kurulur */
@@ -3184,6 +3201,12 @@ static void SaatHazirla(SaatDurum *S)
 	S->Ix2 = -1;
 	S->SnVar = Sani;
 
+	{																/* Iki nokta rakamlarin dikey ortasinda (fontta asagida olabilir) */
+		int du, da, iu, ia;
+		SaatSatirlar(F, SaatGlif(F, '0'), &du, &da);
+		SaatSatirlar(F, Ik, &iu, &ia);
+		yi = y0 + ((du + da) - (iu + ia)) / 2;
+	}
 	x = x0;
 	for(i = 0; i < n; i++)
 	{
@@ -3192,7 +3215,7 @@ static void SaatHazirla(SaatDurum *S)
 		x += Yv + SAAT_ARA;
 		if(i == 1 || (i == 3 && Buyuk))
 		{
-			SaatRakamMaske(S, F, x, y0, Ik);
+			SaatRakamMaske(S, F, x, yi, Ik);
 			if(i == 1) { S->Ix = (int16_t)x; S->Iw = (int16_t)Wc; } else S->Ix2 = (int16_t)x;
 			x += Wc + SAAT_ARA;
 		}
@@ -3207,12 +3230,31 @@ static void SaatHazirla(SaatDurum *S)
 			x += SaatRakamGen(K, g) + 1;
 		}
 	}
+	if(Isi || S->Yer == 0U)										/* Sola yasli: ilk yanan piksel panelden 2 px iceride */
+	{
+		int mx = (int)W, kay, yy, xx;
+		for(yy = 0; yy < (int)H; yy++)
+			for(xx = 0; xx < mx; xx++)
+				if(SaatPx(S, xx, yy)) { mx = xx; break; }
+		kay = 2 - mx;
+		if(mx < (int)W && kay)
+		{
+			uint8_t M2[H][W / 8];
+			memset(M2, 0, sizeof(M2));
+			for(yy = 0; yy < (int)H; yy++)
+				for(xx = 0; xx < (int)W; xx++)
+					if(SaatPx(S, xx, yy) && xx + kay >= 0 && xx + kay < (int)W)
+						M2[yy][(xx + kay) >> 3] |= (uint8_t)(0x80U >> ((xx + kay) & 7));
+			memcpy(S->M, M2, sizeof(M2));
+			S->Ix = (int16_t)(S->Ix + kay); S->Sag = (int16_t)(S->Sag + kay);
+			if(S->Ix2 >= 0) S->Ix2 = (int16_t)(S->Ix2 + kay);
+		}
+	}
 }
 
 /* Saat pikseli. Saydamlik 0: kati. Saydamlikta renkli cam: arka plan saat renginin
-   tonundan gecer gibi boyanir (iki renk ust uste binip yeni renk olur), kati renk
-   azalir; Kenar (sol / ust kenar) cama vuran ince isik. */
-static void SaatSet(int x, int y, uint8_t R, uint8_t G, uint8_t B, uint8_t Kenar)
+   tonundan gecer gibi boyanir (iki renk ust uste binip yeni renk olur), kati renk azalir. */
+static void SaatSet(int x, int y, uint8_t R, uint8_t G, uint8_t B)
 {
 	const uint32_t s = (uint32_t)SPEC_SaatSaydam * 256U / 100U;	/* 0..205 */
 	uint32_t m, k, r, g, b;
@@ -3226,14 +3268,10 @@ static void SaatSet(int x, int y, uint8_t R, uint8_t G, uint8_t B, uint8_t Kenar
 	r = (R * (256U - s) >> 8) + ((p[0] * R / m) * k >> 8);
 	g = (G * (256U - s) >> 8) + ((p[1] * G / m) * k >> 8);
 	b = (B * (256U - s) >> 8) + ((p[2] * B / m) * k >> 8);
-	if(Kenar) { const uint32_t i = s / 4U; r += i; g += i; b += i; }
 	p[0] = (uint8_t)((r > 255U) ? 255U : r);
 	p[1] = (uint8_t)((g > 255U) ? 255U : g);
 	p[2] = (uint8_t)((b > 255U) ? 255U : b);
 }
-
-/* Cama vuran isik: sol ya da ust komsusu rakam disi olan piksel */
-static uint8_t SaatKenar(const SaatDurum *S, int x, int y) { return (uint8_t)(!SaatPx(S, x - 1, y) || !SaatPx(S, x, y - 1)); }
 
 /* Iki nokta: saniye gosterilirken sabit, yoksa saniyede bir yanip soner */
 static uint8_t SaatNoktaYanik(const SaatDurum *S) { return (uint8_t)(S->SnVar || (HAL_GetTick() % 1000U) < 500U); }
@@ -3303,6 +3341,27 @@ static void SaatIsiCiz(const SaatDurum *S, uint8_t R, uint8_t G, uint8_t B)
 	else FontYazi(F, (int)W - FontYazi(F, 0, 0, t, 0, 0, 0, 0), ((int)H - (int)F->Height) / 2, t, R, G, B, 1);
 }
 
+/* Ortam modlarinin ortak dokusu: 64 adimli yumusak dalga, 0..255 (Kar, Yagmur, Sahil) */
+static const uint8_t ShDoku[64] =
+{
+	128,140,153,165,177,188,199,209,218,226,234,240,245,250,253,254,255,254,253,250,245,240,234,226,218,209,199,188,177,165,153,140,
+	128,115,102, 90, 78, 67, 56, 46, 37, 29, 21, 15, 10,  5,  2,  1,  0,  1,  2,  5, 10, 15, 21, 29, 37, 46, 56, 67, 78, 90,102,115
+};
+
+/* Kenar / doku kaymasi: 16 px'de bir kontrol noktasi, yumusak gecis (duz cizgi olmasin) */
+static void OrtamKayma(uint8_t *Of, float Gen)
+{
+	float c[W / 16U + 2U];
+	uint32_t k;
+	int x;
+	for(k = 0; k < W / 16U + 2U; k++) c[k] = RandF() * Gen;
+	for(x = 0; x < (int)W; x++)
+	{
+		const float u = (float)(x & 15) / 16.0f, sm = u * u * (3.0f - 2.0f * u);
+		Of[x] = (uint8_t)(c[x >> 4] + (c[(x >> 4) + 1] - c[x >> 4]) * sm);
+	}
+}
+
 /* ==========================================================================
    MOD -- KAR (Ortam, muziksiz)
    Gece pencereden kar: siyah gok, ara sira parlayan yildizlar, arada yay
@@ -3311,6 +3370,10 @@ static void SaatIsiCiz(const SaatDurum *S, uint8_t R, uint8_t G, uint8_t B)
             sonup kaybolur (hepsi ayni cizgiye "dusmez"), saatin arkasinda
      orta : 3x3 yumusak tane, orta hiz, yana en cok ~1.5 px/s
      yakin: 3x3 yumusak tane, hizli, saatin onunde, yana en cok ~3 px/s
+   Yerde biriken kar: mod acilinca bos; orta ve yakin taneler dustukleri yere
+   eklenir, 3-4 dakikada 12-13 px'e kadar yukselir ve orada dengelenir. Ust
+   kenari tumsek ve cukurlu (komsusundan cok yukselen sutun yana kayar),
+   ici doku ve derinlik golgeli, asla parlak degil; saatin arkasinda kalir.
    Salinim (gidip gelme) yok: tane bir yone kayar, birkac saniyede bir yeni
    yon secip oraya yavasca doner (bazen sola, bazen saga, bazen duz). 3x3
    taneler birbirinin dibinde dogmaz, yaklasinca birbirinden uzaklasir.
@@ -3518,7 +3581,7 @@ static void SaatCiz(const SaatDurum *S, uint8_t R, uint8_t G, uint8_t B)
 	int x, y;
 	for(y = 0; y < (int)H; y++)
 		for(x = 0; x < (int)W; x++)
-			if(SaatPx(S, x, y) && (Yanik || !SaatNokta(S, x))) SaatSet(x, y, R, G, B, SaatKenar(S, x, y));
+			if(SaatPx(S, x, y) && (Yanik || !SaatNokta(S, x))) SaatSet(x, y, R, G, B);
 }
 
 /* Saat secilen renkte; sicaklik / nem biraz daha acik */
@@ -3528,6 +3591,67 @@ static void SaatCizRgb(const SaatDurum *S)
 	SaatCiz(S, (uint8_t)r, (uint8_t)g, (uint8_t)b);
 	SaatIsiCiz(S, (uint8_t)((r * 3U / 2U > 255U) ? 255U : r * 3U / 2U), (uint8_t)((g * 3U / 2U > 255U) ? 255U : g * 3U / 2U),
 	              (uint8_t)((b * 3U / 2U > 255U) ? 255U : b * 3U / 2U));
+}
+
+/* Tane yere (kar ortusune) degdi mi; degdiyse ortuye ekle. Ekleme ust sinira yaklastikca azalir. */
+static uint8_t SnKondu(const SnTn *t, uint32_t Pay)
+{
+	int X0, Y0, k;
+	(void)SnKonum(t, &X0, &Y0);
+	X0++;														/* 3x3 desenin ortasi */
+	if(X0 < 0 || X0 >= (int)W) return 0U;
+	if(Y0 + 1 < (int)H - (int)(U.Sn.Yig[X0] >> 4)) return 0U;
+	for(k = -1; k <= 1; k++)
+	{
+		const int x = X0 + k;
+		uint32_t h, Ust, e;
+		if(x < 0 || x >= (int)W) continue;
+		h   = U.Sn.Yig[x];
+		Ust = (11U * 16U) + ((uint32_t)U.Sn.Of[x] * 3U / 4U) + ((uint32_t)U.Sn.Eg[(x * 7) & (W - 1U)] >> 3);	/* 11-14.5 px, tumsek/cukur */
+		if(h >= Ust) continue;
+		e   = Pay * (55U + U.Sn.Eg[x]) / 100U;						/* Yer yer daha cok yigilir */
+		e   = (Ust - h < Ust / 2U) ? e * (Ust - h) * 2U / Ust + 1U : e;	/* Son yarida yavaslar */
+		U.Sn.Yig[x] = (uint16_t)(h + e);
+	}
+	return 1U;
+}
+
+/* Kar ortusu: yana kayma (sivri diken olmaz) ve cizim (saatin arkasinda) */
+static void SnOrtu(uint32_t Tepe)
+{
+	int x, y;
+	for(x = 0; x < (int)W - 1; x++)								/* Komsusundan 1.4 px'ten cok yuksekse yana kayar */
+	{
+		const int d = (int)U.Sn.Yig[x] - (int)U.Sn.Yig[x + 1];
+		if(d > 22)       { U.Sn.Yig[x] -= 2U; U.Sn.Yig[x + 1] += 2U; }
+		else if(d < -22) { U.Sn.Yig[x] += 2U; U.Sn.Yig[x + 1] -= 2U; }
+	}
+	for(x = 0; x < (int)W; x++)
+	{
+		const uint32_t h = U.Sn.Yig[x];
+		const int      yt = (int)H - (int)(h >> 4);					/* Tam dolu ilk satir */
+		const uint32_t fr = h & 15U;								/* Ust satirin dolulugu */
+		int32_t Egim = 0;
+		if(!h) continue;
+		if(x > 0)            Egim += (int32_t)U.Sn.Yig[x] - (int32_t)U.Sn.Yig[x - 1];	/* Sola bakan yamac aydinlik */
+		if(x < (int)W - 1)   Egim -= (int32_t)U.Sn.Yig[x + 1] - (int32_t)U.Sn.Yig[x];
+		for(y = yt - 1; y < (int)H; y++)
+		{
+			uint32_t L, d, m, a;
+			if(y < 0) continue;
+			if(y == yt - 1) { if(!fr) continue; a = fr * 16U; }		/* Yumusak ust kenar */
+			else a = 256U;
+			d = (uint32_t)(y - yt + 1);
+			L = Tepe * (56U - ((d > 8U) ? 8U : d) * 3U) / 100U;		/* Yuzey acik, derin koyu */
+			m = 200U + (ShDoku[((uint32_t)y * 5U + U.Sn.Of[x] + (uint32_t)x / 3U) & 63U] * 90U >> 8);	/* Yogunluk lekeleri */
+			L = L * m >> 8;
+			if(d < 3U) L = (uint32_t)((int32_t)L + Egim / 4);			/* Tumsegin isikli yuzu */
+			if(d < 2U && (Rand() % 2500U) == 0U) L += L >> 1;		/* Seyrek parilti */
+			if((int32_t)L < 0) L = 0;
+			L = L * a >> 8;
+			Set(x, y, (uint8_t)((L * 205U) >> 8), (uint8_t)((L * 225U) >> 8), (uint8_t)((L > 255U) ? 255U : L));
+		}
+	}
 }
 
 static void ModeSnow(void)
@@ -3552,6 +3676,9 @@ static void ModeSnow(void)
 			U.Sn.Sy[i] = (uint8_t)(Rand() % (H * 2U / 3U));
 		}
 		U.Sn.MSonra = 5.0f + 10.0f * RandF();
+		memset(U.Sn.Yig, 0, sizeof(U.Sn.Yig));					/* Yer bos baslar */
+		OrtamKayma(U.Sn.Of, 64.0f);
+		OrtamKayma(U.Sn.Eg, 90.0f);								/* Tumsek / cukur egilimi (0..90) */
 		U.Sn.Ready = 1;
 	}
 	SaatHazirla(&U.Sn.S);
@@ -3589,6 +3716,7 @@ static void ModeSnow(void)
 		}
 	}
 
+	SnOrtu(Tepe);												/* Yerdeki kar: saatin arkasinda */
 	SaatCizRgb(&U.Sn.S);
 
 	/* Orta kar: 3x3 yumusak, orta hiz */
@@ -3596,7 +3724,7 @@ static void ModeSnow(void)
 	{
 		SnTn *t = &U.Sn.Or[i];
 		SnIn(t, Adim);
-		if(t->Y >= t->Son) SnDog(t, 5.0f + 2.0f * RandF(), 1, 60, 0);
+		if(t->Y >= t->Son || SnKondu(t, 9U)) { SnDog(t, 5.0f + 2.0f * RandF(), 1, 60, 0); continue; }
 		SnDesen(t, SnYumusak, 3, Tepe * t->L / 100U);
 	}
 
@@ -3605,7 +3733,7 @@ static void ModeSnow(void)
 	{
 		SnTn *t = &U.Sn.Ya[i];
 		SnIn(t, Adim);
-		if(t->Y >= t->Son) SnDog(t, 14.0f + 6.0f * RandF(), 2, 100, 0);
+		if(t->Y >= t->Son || SnKondu(t, 11U)) { SnDog(t, 14.0f + 6.0f * RandF(), 2, 100, 0); continue; }
 		SnDesen(t, SnYumusak, 3, Tepe);
 	}
 }
@@ -3735,10 +3863,10 @@ static void ModeHearth(void)
 			uint32_t h = 0, k;
 			uint8_t r, g, b;
 			if(!SaatPx(S, x, y)) continue;
-			if(SaatNokta(S, x)) { if(SaatNoktaYanik(S)) SaatSet(x, y, nr, ng, nb, 0); continue; }
+			if(SaatNokta(S, x)) { if(SaatNoktaYanik(S)) SaatSet(x, y, nr, ng, nb); continue; }
 			if(SPEC_SaatSaydam)									/* Saydam: kor yok, cam rengi */
 			{
-				SaatSet(x, y, (uint8_t)((SPEC_SaatRgb >> 16) & 0xFFU), (uint8_t)((SPEC_SaatRgb >> 8) & 0xFFU), (uint8_t)(SPEC_SaatRgb & 0xFFU), SaatKenar(S, x, y));
+				SaatSet(x, y, (uint8_t)((SPEC_SaatRgb >> 16) & 0xFFU), (uint8_t)((SPEC_SaatRgb >> 8) & 0xFFU), (uint8_t)(SPEC_SaatRgb & 0xFFU));
 				continue;
 			}
 			if(y > 0          && U.Sm.Heat[y - 1][x] > h) h = U.Sm.Heat[y - 1][x];
@@ -3758,7 +3886,7 @@ static void ModeHearth(void)
 				g = (uint8_t)((sg * (255U - a) + g * a) / 255U);
 				b = (uint8_t)((sb * (255U - a) + b * a) / 255U);
 			}
-			SaatSet(x, y, r, g, b, 0);
+			SaatSet(x, y, r, g, b);
 		}
 
 	SaatIsiCiz(S, (uint8_t)((SPEC_SaatRgb >> 16) & 0xFFU), (uint8_t)((SPEC_SaatRgb >> 8) & 0xFFU), (uint8_t)(SPEC_SaatRgb & 0xFFU));
@@ -3800,11 +3928,16 @@ static void ModeHearth(void)
      yakin: saatin onunde. Iri damlalar: 3 px yuvarlak bas (ortasi tam,
             yanlari yari isikli, alt ucu burun) + 1 px sonen kuyruk.
             Kucukler: 1 px bas + kisa kuyruk.
-   Yakin damla yere degince sicrar: iri damla 3-5, kucuk 1-2 damlacik
-   yukari / yana sacilip yercekimiyle yay cizer ve geri duser; yerde iki
-   yana acilip sonen bir halka kalir. Ruzgar egimi ayarli, simsek yok.
-   Konum 8.8 sabit nokta. Durum U.Ym.
+   Altta saydam su (gol): 10-12 px, Saganakta 15'e kadar. Ust kenari asla duz
+   degil: sutun sutun kontrol noktali, yavasca kayan, vurusla kabaran, 2 px'te
+   yumusakca beliren bir kenar. Perspektif: suyun ustu uzak, alti yakin; uzak
+   damlalar uste, yakinlar alta duser. Her damla dustugu yerde yassi elips
+   halkalar acar (uzakta kucuk ve basik, yakinda genis), halkanin hizi ve
+   buyuklugu damlanin hizina bagli; yakin damla damlacik sicratir. Su saati
+   ortmez: altindaki gorunur, koyu mavi tonlu ve 1 px dalgalanarak.
+   Ruzgar egimi ayarli, simsek yok. Konum 8.8 sabit nokta. Durum U.Ym.
    ========================================================================== */
+#define YM_DERIN(Si)	(((Si) == 2U) ? 15U : ((Si) == 0U) ? 10U : 12U)	/* Su derinligi (satir) */
 #define YM_RENK(v)	(uint8_t)(((v) * 200U) >> 8), (uint8_t)(((v) * 215U) >> 8), (uint8_t)(v)	/* Soguk gri-mavi */
 
 /* Damla: X,Y 8.8 (Y = burun satiri); Vy px/kare*256; Uz = kuyruk; L = isik */
@@ -3816,6 +3949,12 @@ static void YmDog(YmDamla *d, uint8_t Tur, uint8_t Basta)	/* Tur: 0 uzak, 1 yaki
 	d->X   = (int32_t)(Rand() % (W + 24U)) * 256 - 12 * 256;		/* Egimle kenardan da girsin */
 	d->Y   = Basta ? (int32_t)(Rand() % H) * 256 : -(int32_t)(2U + Rand() % 12U) * 256;
 	d->Iri = (uint8_t)(Tur == 2U);
+	{														/* Dusecegi satir: uzak -> suyun ust (uzak) kismi, yakin -> alt kismi */
+		const uint32_t Ys = H - YM_DERIN(SPEC_YmSiddet);
+		const uint32_t D  = H - Ys;
+		d->Hd = (Tur == 0U) ? (uint8_t)(Ys + 1U + Rand() % (D * 2U / 5U)) : (uint8_t)(Ys + D / 2U + Rand() % (D - D / 2U));
+		if(d->Hd >= H) d->Hd = (uint8_t)(H - 1U);
+	}
 	d->Uz  = (Tur == 2U) ? (uint8_t)(5U + Rand() % 4U) : (Tur == 1U) ? (uint8_t)(3U + Rand() % 2U) : (uint8_t)(3U + Rand() % 3U);
 	d->L   = (Tur == 2U) ? (uint8_t)(120U + Rand() % 25U) : (Tur == 1U) ? (uint8_t)(80U + Rand() % 20U) : (uint8_t)(22U + Rand() % 16U);
 }
@@ -3852,28 +3991,60 @@ static void YmCiz(const YmDamla *d, int32_t Vx)
 	#undef YM_X
 }
 
-/* Yere degme: damlaciklar + halka */
-static void YmSicrat(const YmDamla *d)
+/* Suya degme: halka (hizi damla hizina bagli) + yakin damlada damlaciklar + kenar kabarmasi */
+static void YmSicrat(const YmDamla *d, uint8_t Yakin)
 {
-	const uint32_t Adet = d->Iri ? 3U + Rand() % 3U : 1U + Rand() % 2U;
-	const float x = (float)(d->X >> 8) + 0.5f;
+	const float x = (float)(d->X >> 8) + 0.5f, y = (float)d->Hd;
+	const float Hiz = (float)d->Vy * CFG_FPS / 256.0f;			/* Damla hizi px/s */
 	uint32_t i, j;
-	for(i = 0, j = 0; i < Adet && j < YM_ZERRE; j++)
-	{
-		YmZerre *z = &U.Ym.Zr[j];
-		if(z->L) continue;
-		z->X  = x; z->Y = (float)H - 1.5f;
-		z->Vx = ((Rand() & 1U) ? 1.0f : -1.0f) * (d->Iri ? 12.0f + 26.0f * RandF() : 8.0f + 14.0f * RandF());
-		z->Vy = -(d->Iri ? 22.0f + 22.0f * RandF() : 12.0f + 12.0f * RandF());
-		z->L  = d->Iri ? 115U : 75U;
-		i++;
-	}
 	for(j = 0; j < YM_HALKA; j++)
 		if(!U.Ym.Hl[j].Life)
 		{
-			U.Ym.Hl[j].X = (int16_t)(d->X >> 8); U.Ym.Hl[j].Iri = d->Iri; U.Ym.Hl[j].Life = YM_HALKA_OMUR;
+			YmHalka *h = &U.Ym.Hl[j];
+			h->X = x; h->Y = y; h->R = 0.5f; h->Iri = d->Iri;
+			h->Hiz  = Hiz * (Yakin ? 0.15f : 0.10f) * (d->Iri ? 1.3f : 1.0f);	/* Hizli damla hizli halka (px/s) */
+			h->Life = Yakin ? 255U : 150U;
 			break;
 		}
+	if(x >= 0.0f && x < (float)W)								/* Kenara yakin dustuyse kenar kabarir */
+	{
+		const int k = (int)x;
+		if(U.Ym.Kab[k] < 2.0f) U.Ym.Kab[k] += d->Iri ? 1.5f : 0.8f;
+		if(k > 0 && U.Ym.Kab[k - 1] < 2.0f)            U.Ym.Kab[k - 1] += 0.5f;
+		if(k < (int)W - 1 && U.Ym.Kab[k + 1] < 2.0f)   U.Ym.Kab[k + 1] += 0.5f;
+	}
+	if(!Yakin) return;
+	{
+		const uint32_t Adet = d->Iri ? 3U + Rand() % 3U : 1U + Rand() % 2U;
+		for(i = 0, j = 0; i < Adet && j < YM_ZERRE; j++)
+		{
+			YmZerre *z = &U.Ym.Zr[j];
+			if(z->L) continue;
+			z->X  = x; z->Y = y - 0.5f; z->Hd = y;
+			z->Vx = ((Rand() & 1U) ? 1.0f : -1.0f) * (d->Iri ? 12.0f + 26.0f * RandF() : 8.0f + 14.0f * RandF());
+			z->Vy = -(d->Iri ? 22.0f + 22.0f * RandF() : 12.0f + 12.0f * RandF());
+			z->L  = d->Iri ? 115U : 75U;
+			i++;
+		}
+	}
+}
+
+/* Elips halka: uzakta basik (perspektif), genisledikce soner */
+static void YmHalkaCiz(const YmHalka *h, float Ys0)
+{
+	static const int8_t Cs[16][2] = { {64,0},{59,24},{45,45},{24,59},{0,64},{-24,59},{-45,45},{-59,24},
+	                                  {-64,0},{-59,-24},{-45,-45},{-24,-59},{0,-64},{24,-59},{45,-45},{59,-24} };
+	const float z = (h->Y - Ys0) / ((float)H - Ys0 + 0.01f);		/* 0 uzak .. 1 yakin */
+	const float ry = h->R * (0.22f + 0.30f * z);
+	const uint32_t v = (uint32_t)h->Life * (h->Iri ? 120U : 80U) >> 8;
+	int k;
+	if(!v) return;
+	for(k = 0; k < 16; k++)
+	{
+		const int x = (int)(h->X + h->R * (float)Cs[k][0] / 64.0f);
+		const int y = (int)(h->Y + ry * (float)Cs[k][1] / 64.0f + 0.5f);
+		if(y >= (int)Ys0 - 1 && y < (int)H) Add(x, y, YM_RENK(v));
+	}
 }
 
 static void ModeRain(void)
@@ -3883,72 +4054,111 @@ static void ModeRain(void)
 	const float   Gdt = 1.0f / CFG_FPS;
 	const uint8_t Si  = (SPEC_YmSiddet < 3U) ? SPEC_YmSiddet : 1U;
 	const uint8_t Ru  = (SPEC_YmRuzgar < 3U) ? SPEC_YmRuzgar : 1U;
+	const float   Ys0 = (float)(H - YM_DERIN(Si));				/* Suyun ortalama ust kenari */
+	float   Ys[W];
 	uint32_t i;
 	int x, y;
 
 	if(!U.Ym.Ready)
 	{
+		OrtamKayma(U.Ym.Of, 64.0f);
+		memset(U.Ym.Kab, 0, sizeof(U.Ym.Kab));
 		for(i = 0; i < YM_UZAK; i++)  YmDog(&U.Ym.Uz[i], 0, 1);
 		for(i = 0; i < YM_YAKIN; i++) YmDog(&U.Ym.Ya[i], (i < NIri[2]) ? 2U : 1U, 1);
 		U.Ym.Ready = 1;
 	}
+	U.Ym.Kare++;
 	SaatHazirla(&U.Ym.S);
+
+	/* Su kenari: kontrol noktali yavas dalga (+-2.5 px) + vurus kabarmasi; hicbir an duz degil */
+	for(x = 0; x < (int)W; x++)
+	{
+		const float b = ((float)ShDoku[(U.Ym.Of[x] + (U.Ym.Kare / 6U)) & 63U] - 128.0f) * (2.5f / 128.0f)
+		              + ((float)ShDoku[(U.Ym.Of[(x * 5) & (W - 1)] / 2U + 32U - (U.Ym.Kare / 11U)) & 63U] - 128.0f) * (1.0f / 128.0f);
+		Ys[x] = Ys0 + b - U.Ym.Kab[x];
+		U.Ym.Kab[x] *= 0.90f;
+	}
 
 	for(y = 0; y < (int)H; y++)
 		for(x = 0; x < (int)W; x++)
 			Set(x, y, 0, 0, 0);
 
-	/* Uzak yagmur: saatin arkasinda */
+	/* Uzak yagmur: saatin arkasinda, suyun uzak kismina duser */
 	for(i = 0; i < NUz[Si]; i++)
 	{
 		YmDamla *d = &U.Ym.Uz[i];
 		const int32_t Vx = (int32_t)d->Vy * Egim[Ru] / 256;
 		d->Y += d->Vy; d->X += Vx;
-		if((d->Y >> 8) - (int32_t)d->Uz - 3 >= (int32_t)H) YmDog(d, 0, 0);
+		if((d->Y >> 8) >= (int32_t)d->Hd) { YmSicrat(d, 0); YmDog(d, 0, 0); continue; }
 		YmCiz(d, Vx);
 	}
 
 	SaatCizRgb(&U.Ym.S);
 
-	/* Yakin yagmur: saatin onunde; ilk NIri tanesi iri. Burun alt satira degince sicrar. */
+	/* Su: saydam; altindaki (saat, damla) koyu mavi tonla ve hafif dalgalanarak gorunur.
+	   Ust 2 px'te yumusakca belirir (keskin cizgi yok). */
+	for(y = (int)Ys0 - 4; y < (int)H; y++)
+	{
+		uint8_t Sat[W][3];
+		const float z = ((float)y - Ys0) / ((float)H - Ys0);			/* 0 uzak .. 1 yakin */
+		const uint32_t tr = 6U + (uint32_t)(6.0f * z), tg = 14U + (uint32_t)(10.0f * z), tb = 28U + (uint32_t)(16.0f * z);
+		if(y < 0) continue;
+		for(x = 0; x < (int)W; x++) { const uint8_t *c = CV(y, x); Sat[x][0] = c[0]; Sat[x][1] = c[1]; Sat[x][2] = c[2]; }
+		for(x = 0; x < (int)W; x++)
+		{
+			const float a = ((float)y + 1.0f - Ys[x]) * 0.5f;			/* Kenarda 0 -> 2 px'te 1 */
+			uint32_t A, r, g, b, m;
+			int sx;
+			if(a <= 0.0f) continue;
+			A  = (a >= 1.0f) ? 256U : (uint32_t)(a * 256.0f);
+			sx = x + ((ShDoku[((uint32_t)y * 9U + U.Ym.Of[x] + U.Ym.Kare / 3U) & 63U] > 215U) ? 1 : 0);	/* Kirilma */
+			if(sx >= (int)W) sx = (int)W - 1;
+			m  = 150U + (ShDoku[((uint32_t)y * 13U + U.Ym.Of[x] / 2U + 64U - (U.Ym.Kare / 4U)) & 63U] >> 2);	/* Su ici kipirti */
+			r  = ((Sat[sx][0] * m) >> 8) + tr; g = ((Sat[sx][1] * m) >> 8) + tg; b = ((Sat[sx][2] * m) >> 8) + tb;
+			if((Rand() % 900U) == 0U) { r += 30U; g += 34U; b += 40U; }	/* Seyrek isik parlamasi */
+			{
+				uint8_t *c = CV(y, x);
+				c[0] = (uint8_t)((Sat[x][0] * (256U - A) + ((r > 255U) ? 255U : r) * A) >> 8);
+				c[1] = (uint8_t)((Sat[x][1] * (256U - A) + ((g > 255U) ? 255U : g) * A) >> 8);
+				c[2] = (uint8_t)((Sat[x][2] * (256U - A) + ((b > 255U) ? 255U : b) * A) >> 8);
+			}
+		}
+	}
+
+	/* Halkalar: hizlari damlanin hizina gore genisler, soner */
+	for(i = 0; i < YM_HALKA; i++)
+	{
+		YmHalka *h = &U.Ym.Hl[i];
+		if(!h->Life) continue;
+		h->R += h->Hiz * Gdt;
+		h->Life = (h->Life > 5U) ? (uint8_t)(h->Life - 5U) : 0U;
+		YmHalkaCiz(h, Ys0);
+	}
+
+	/* Yakin yagmur: saatin ve suyun onunde; ilk NIri tanesi iri. Suya degince sicrar. */
 	for(i = 0; i < NYa[Si]; i++)
 	{
 		YmDamla *d = &U.Ym.Ya[i];
 		const int32_t Vx = (int32_t)d->Vy * Egim[Ru] / 256;
 		d->Y += d->Vy; d->X += Vx;
-		if((d->Y >> 8) >= (int32_t)H - 1)
+		if((d->Y >> 8) >= (int32_t)d->Hd)
 		{
-			YmSicrat(d);
+			YmSicrat(d, 1);
 			YmDog(d, (i < NIri[Si]) ? 2U : 1U, 0);
+			continue;
 		}
 		YmCiz(d, Vx);
 	}
 
-	/* Damlaciklar: yay cizip geri duser */
+	/* Damlaciklar: yay cizip suya geri duser */
 	for(i = 0; i < YM_ZERRE; i++)
 	{
 		YmZerre *z = &U.Ym.Zr[i];
 		if(!z->L) continue;
 		z->X += z->Vx * Gdt; z->Y += z->Vy * Gdt; z->Vy += 260.0f * Gdt;
-		if(z->Y >= (float)H - 0.5f || z->X < 0.0f || z->X >= (float)W) { z->L = 0; continue; }
+		if((z->Vy > 0.0f && z->Y >= z->Hd) || z->X < 0.0f || z->X >= (float)W) { z->L = 0; continue; }
 		Add((int)z->X, (int)z->Y, YM_RENK(z->L));
 		z->L = (z->L > 2U) ? (uint8_t)(z->L - 2U) : 0U;
-	}
-
-	/* Halka: yerde iki yana acilir ve soner */
-	for(i = 0; i < YM_HALKA; i++)
-	{
-		YmHalka *h = &U.Ym.Hl[i];
-		if(!h->Life) continue;
-		{
-			const uint32_t Yas = YM_HALKA_OMUR - h->Life;
-			const int      r   = (int)(Yas * (h->Iri ? 5U : 3U) / YM_HALKA_OMUR) + 1;
-			const uint32_t v   = (uint32_t)h->Life * (h->Iri ? 90U : 55U) / YM_HALKA_OMUR;
-			if(Yas < 3U && h->Iri) Add(h->X, (int)H - 1, YM_RENK(140U));	/* Carpma parlamasi */
-			Add(h->X - r, (int)H - 1, YM_RENK(v));
-			Add(h->X + r, (int)H - 1, YM_RENK(v));
-		}
-		h->Life--;
 	}
 }
 
@@ -3986,13 +4196,6 @@ static const ShRenk ShRenkler[2] =
 
 static const float ShSure[3] = { 3.4f, 2.8f, 2.2f };		/* Kiyiya vuran dalganin omru (s)		*/
 static const float ShEris[3] = { 11.0f, 14.0f, 16.0f };		/* Kumun uzerinde en cok kac satir		*/
-
-/* Kipirti bandi: 64 adimli yumusak dalga, 0..255 */
-static const uint8_t ShDoku[64] =
-{
-	128,140,153,165,177,188,199,209,218,226,234,240,245,250,253,254,255,254,253,250,245,240,234,226,218,209,199,188,177,165,153,140,
-	128,115,102, 90, 78, 67, 56, 46, 37, 29, 21, 15, 10,  5,  2,  1,  0,  1,  2,  5, 10, 15, 21, 29, 37, 46, 56, 67, 78, 90,102,115
-};
 
 static void ShRenkKat(uint32_t *r, uint32_t *g, uint32_t *b, const uint8_t *c, uint32_t a)	/* a: 0..256 */
 {
@@ -4097,16 +4300,7 @@ static void ModeShore(void)
 	if(!U.Sh.Ready)
 	{
 		memset(U.Sh.Islak, 0, sizeof(U.Sh.Islak));
-		{													/* Bantlar paralel olmasin: 16 px'de bir kontrol noktasi */
-			float c[W / 16U + 2U];
-			uint32_t k;
-			for(k = 0; k < W / 16U + 2U; k++) c[k] = RandF() * 40.0f;
-			for(x = 0; x < (int)W; x++)
-			{
-				const float u = (float)(x & 15) / 16.0f, sm = u * u * (3.0f - 2.0f * u);
-				U.Sh.Of[x] = (uint8_t)(c[x >> 4] + (c[(x >> 4) + 1] - c[x >> 4]) * sm);
-			}
-		}
+		OrtamKayma(U.Sh.Of, 40.0f);							/* Bantlar paralel olmasin */
 		ShYalamaBaslat(Dl, 0);
 		U.Sh.Sonra = 0.3f;
 		U.Sh.Ready = 1;

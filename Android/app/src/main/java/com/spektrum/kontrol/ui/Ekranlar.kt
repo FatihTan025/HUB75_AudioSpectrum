@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.size
@@ -299,7 +300,7 @@ private fun ModSekmesi(m: AnaModel, muziksiz: Boolean, bosYazi: String) {
         Column(Modifier.padding(horizontal = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             AyarGruplari(m.modAyarlari(mod), { t -> m.deger(t, mod) }) { t, v -> m.ayarYaz(t, v, mod) }
             m.tanimBul(AyarId.PARLAKLIK)?.let { t ->
-                AyarKutusu("PANEL", PanelZemin, "tüm modlar") {
+                Box(Modifier.padding(horizontal = 10.dp, vertical = 2.dp)) {      // Kutusuz: tum modlar icin
                     TekSatir("Parlaklık") {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(Modifier.weight(1f)) { Cubuk(m.deger(t, MOD_GENEL), t.min, t.max, t.adim) { m.ayarYaz(t, it, MOD_GENEL) } }
@@ -340,6 +341,10 @@ private fun AyarlarSekmesi(m: AnaModel) {
                             val d = m.deger(t, MOD_GENEL)
                             Box(Modifier.weight(1f)) { Cubuk(d, t.min, t.max, t.adim) { m.ayarYaz(t, it, MOD_GENEL) } }
                             Text(if (d == 0) "Kapalı" else "$d sn", color = Soluk, fontSize = 12.sp, modifier = Modifier.padding(start = 6.dp))
+                            m.tanimBul(AyarId.MUZIK_GEC)?.let { mg ->               // Muzik algila: yalniz simge
+                                Spacer(Modifier.width(8.dp))
+                                SimgeDugme(m.deger(mg, MOD_GENEL) != 0, { m.ayarYaz(mg, if (it) 1 else 0, MOD_GENEL) }) { HoparlorSimgesi(it) }
+                            }
                         }
                     }
                 }
@@ -354,9 +359,9 @@ private fun AyarlarSekmesi(m: AnaModel) {
         }
         val fa = m.tanimBul(AyarId.FREQ_LO)
         val fu = m.tanimBul(AyarId.FREQ_HI)
-        if (fa != null && fu != null) Grup("SES") {
+        if (fa != null && fu != null) Grup(null) {
             Column(Modifier.padding(horizontal = 14.dp, vertical = 6.dp)) {
-                Text("Frekans aralığı", color = Color.White, fontSize = 15.sp)
+                Text("Frekans", color = Color.White, fontSize = 15.sp)
                 FrekansCubugu(m.deger(fa, MOD_GENEL), m.deger(fu, MOD_GENEL)) { a, u ->
                     m.ayarYaz(fa, a, MOD_GENEL); m.ayarYaz(fu, u, MOD_GENEL)
                 }
@@ -426,9 +431,9 @@ private fun EvAgiPenceresi(m: AnaModel, kapat: () -> Unit) {
 }
 
 @Composable
-private fun Grup(baslik: String, icerik: @Composable () -> Unit) {
+private fun Grup(baslik: String?, icerik: @Composable () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(baslik, color = Soluk, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 4.dp))
+        if (baslik != null) Text(baslik, color = Soluk, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 4.dp))
         Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(MorKart)) { icerik() }
     }
 }

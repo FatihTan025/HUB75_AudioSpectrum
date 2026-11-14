@@ -128,6 +128,17 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 - 14 Kasım: Fatih'in ilk saat fontu Arial Bold (arialbold24px.c/.h, HUB75 Aracı çıktısı, 24 px, oransal, 0-9 : C)
   eklendi; geçici font (Font_SaatGecici.h) silindi (PC'de dosya duruyorsa kullanılmıyor). Rakamlar en geniş rakam
   kadar yuvaya ortalanır (dakika değişince saat kaymasın). Saat Yazısı tek font olduğu için hâlâ gizli.
+- 14 Kasım (9): Saat camındaki kenar parlatması kalktı. Sol (ve Isı-Nem) yerleşimde ilk yanan piksel x=2'de.
+  ':' her fontta rakamların dikey ortasında. Renk ayarına -1 yazılırsa o modun fabrika rengi (LookDef) gelir;
+  Android'de renk çubuğu kısaldı, yanında ↺ düğmesi. "Müzikte geç" adı "Müzik algıla"; Android'de Oto geçiş
+  satırının sağında yalnız hoparlör simgesi (açık sarı basık, kapalı soluk). Kutu başlıkları (GÖRÜNÜM/RENK/
+  HAREKET/SAAT) ve "SES" başlığı kalktı; Parlaklık kutusuz; etiket "Frekans".
+  Yağmur: altta perspektifli saydam göl (Hafif 10, Normal 12, Sağanak 15 px); üst sınır iki dokudan + damla
+  kabarmasından, asla düz değil. Uzak damla suyun üst (uzak) kısmına, yakın damla alta düşer; düştüğü yerde
+  damla hızına göre hızı/boyu değişen elips halka (YmHalka, 28 adet), yakın damlada sıçrama. Saat suyun
+  altında kırılarak, renklenerek görünür.
+  Kar: alttaki örtü boş başlar, ~3,5 dk'da 11-14,5 px'e çıkar (sütuna göre tavan: Of + Eg dokusu = tümsek/
+  çukur); 1,4 px'ten dik basamak yana kayar ama yüzey düzleşmez. Sönük mavimsi, dokulu, saatin arkasında.
 - 14 Kasım (8): "Müzikte geç" (0x0007, genel BOOL, Ayarlar > Genel): ortam modunda 4 sn müzik (SPEC_MusicLevel =
   sessizlik kapısı > 0.5) -> en son spektrum modu; 1 dk sessizlik -> önceki ortam modu; arada elle mod değişirse
   dönüş iptal. Oto geçiş artık yalnız müzikli modlarda çalışır (önceden ortam modundan da çıkarıyordu).

@@ -189,7 +189,7 @@ static const SET_Param Table[] =
 	{ SET_ID_AUTO_SEC,		SET_TYPE_INT,	0U,		0U,		0,	600, 5,	(int32_t)CFG_AUTO_MODE_SEC,
 	  "Otomatik mod ge\303\247i\305\237i", "Mod", "sn (0 = kapal\304\261)", 0 },	/* Otomatik mod gecisi, kapali */
 	{ SET_ID_MUZIK_GEC,		SET_TYPE_BOOL,	0U,		0U,		0,	1, 1,	0,
-	  "M\303\274zikte ge\303\247", "Mod", "", 0 },	/* main.c izler: ortamda 4 sn muzik -> spektrum, 1 dk sessiz -> geri */
+	  "M\303\274zik alg\304\261la", "Mod", "", 0 },	/* main.c izler: ortamda 4 sn muzik -> spektrum, 1 dk sessiz -> geri */
 
 	{ SET_ID_FAV,			SET_TYPE_INT,	SET_FLAG_HIDDEN, 0U, 0, (int32_t)((1UL << LOOK_COUNT) - 1U), 1, 0,
 	  "Favoriler", "Mod", "", 0 },											/* Uygulamadaki kalpler */
@@ -398,6 +398,16 @@ static void ApplyAll(void)
 			ApplyOne(i, Live.Mode);
 }
 
+/* Bir ayarin bu moddaki fabrika degeri (mod ozel varsayilani varsa o) */
+static int32_t LookDef(uint16_t i, uint8_t m)
+{
+	int32_t v = Table[i].Def;
+	if(Table[i].Flags & SET_FLAG_PER_MODE)
+		for(uint8_t o = 0; o < ModeInfo[m].NOvr; o++)
+			if(ModeInfo[m].Ovr[o][0] == Table[i].Id) v = ModeInfo[m].Ovr[o][1];
+	return v;
+}
+
 static void Defaults(SET_Store *s)
 {
 	memset(s, 0, sizeof(*s));
@@ -423,12 +433,7 @@ static void Defaults(SET_Store *s)
 		if(Table[i].Flags & SET_FLAG_PER_MODE)
 		{
 			for(uint8_t m = 0; m < LOOK_COUNT; m++)
-			{
-				int32_t v = Table[i].Def;
-				for(uint8_t o = 0; o < ModeInfo[m].NOvr; o++)
-					if(ModeInfo[m].Ovr[o][0] == Table[i].Id) v = ModeInfo[m].Ovr[o][1];
-				s->PerMode[m][Slot[i]] = v;
-			}
+				s->PerMode[m][Slot[i]] = LookDef(i, m);
 		}
 		else
 			s->Global[Slot[i]] = Table[i].Def;
@@ -563,6 +568,8 @@ uint8_t SET_Set(uint8_t Mode, uint16_t Id, int32_t Value, int32_t *Applied)
 		Mode = Live.Mode;
 	if(!Available((uint16_t)i, Mode))
 		return SET_ERR_PARAM;
+	if(Table[i].Type == SET_TYPE_COLOR && Value < 0)				/* -1: bu modun fabrika rengi */
+		Value = LookDef((uint16_t)i, Mode);
 
 	v = Clamp(&Table[i], Value);
 	*Cell((uint16_t)i, Mode) = v;

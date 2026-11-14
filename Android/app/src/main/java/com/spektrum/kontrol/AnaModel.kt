@@ -273,7 +273,7 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
 
     /** Ayarlar sekmesindeki genel ayarlar (parlaklik ve oto haric; onlarin yeri ayri). */
     fun genelAyarlar() = tanimlar.filter {
-        !it.modBasina && !it.gizli && !it.gelismis && it.id != AyarId.PARLAKLIK && it.id != AyarId.OTO_SN &&
+        !it.modBasina && !it.gizli && !it.gelismis && it.id != AyarId.PARLAKLIK && it.id != AyarId.OTO_SN && it.id != AyarId.MUZIK_GEC &&
             genel.containsKey(it.id) && gorunur(it, MOD_GENEL)
     }
 
