@@ -166,6 +166,13 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   Kar: zemindeki kar örtüsü kaldırıldı, kar eski haline döndü (Fatih onayladı, öyle kalsın).
   Not: PC'ye kopyalarken her seferinde dosya boyutunu kontrol et (aynı adla tekrar gönderilen dosya eski
   kopya olarak gitti).
+- **YAPILACAKLAR (14 Kasım öğleden sonra, Fatih "şimdilik uygulama", başka maddeler de gelecek; "yaz" deyince):**
+  Yağmur lambası:
+  1. Hüzme saat renginin ÇOK daha düşük tonu. Kademe kademe yumuşak geçiş (tek düz ton olmasın) ama her kademede
+     R:G:B oranı saat rengiyle aynı. Bir kanal panelde gösterilemeyecek kadar küçük kalıyorsa piksel tamamen sönük
+     (yeşil/kırmızı kaymış piksel çıkmasın; sebep: düşük değerlerde kanallar farklı basamağa yuvarlanıyor).
+  2. Sudaki ışık lekesi mavi suyla karışmasın: yalnız saat renginin tonu, dalga açık/koyusu parlaklık olarak kalsın.
+  3. Direkteki iki boğaz biraz koyu: (104,68,34) -> (80,52,26).
 - **BEKLİYOR (Fatih "şimdilik dursun", 13 Kasım):** Kısık parlaklıkta Kar/saat saniyede birkaç kez parlayıp sönüyor.
   Sebep: SPEC_Draw sonundaki vuruş pompası (CFG_BEAT_BRIGHT_BOOST %25 * BeatEnv) Ortam modlarında da çalışıyor;
   müziksizken giriş gürültüsü vuruş sayılıyor, düşük parlaklıkta OE birkaç tik olduğu için küçük artış büyük
