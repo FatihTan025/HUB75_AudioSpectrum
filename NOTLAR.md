@@ -186,6 +186,11 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   hafif beyaz. Havai fişek: her patlamanın parçaları kendi tonunda (PtTonSec: arkadaki alevden 120-210 derece öte,
   bir öncekinden farklı; Frags.Ton), parçalar kendi renginde çizilir (PtParcaCiz), parlama da o renkte; hareket,
   şekil, boyut aynı. Kıvılcımlar rastgele gökkuşağı tonu. Android'deki Aurora bloğu (28AA6E,8C5AD2) aynı kaldı.
+- **YAPILACAKLAR (14 Kasım 15:46, Fatih "not al"; "yaz" deyince):**
+  Hız (SET_ID_SPEED) bütün modlarda 3 kademe: Yavaş | Normal | Yüksek ("Çok yüksek" kalkar).
+  Kar: eski Yavaş aşırı yavaş -> yeni Yavaş = eski Yüksek (1.0), Normal = 1.3, Yüksek = ~1.7 (mod başına çarpan).
+  Diğer modlar: öneri {0.7, 1.0, 1.3} (eski Normal/Yüksek/Çok yüksek; Fatih panelde bakıp onaylayacak).
+  Kat[] (SpecDisplay.c ~5000) mod başına tablo olur; kayıtlı 3 (Çok yüksek) değeri 2'ye sınırlanmalı.
 - **BEKLİYOR (Fatih "şimdilik dursun", 13 Kasım):** Kısık parlaklıkta Kar/saat saniyede birkaç kez parlayıp sönüyor.
   Sebep: SPEC_Draw sonundaki vuruş pompası (CFG_BEAT_BRIGHT_BOOST %25 * BeatEnv) Ortam modlarında da çalışıyor;
   müziksizken giriş gürültüsü vuruş sayılıyor, düşük parlaklıkta OE birkaç tik olduğu için küçük artış büyük
