@@ -198,6 +198,10 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   satırda (Rüzgâr | Oto), APK güncellemesi gerekir.
 - 14 Kasım (22, kartta denenmedi): Saydamlık: saatin ışığı düşmez (SaatSet: c + (max(c,zemin)-c)*s; koyu zeminde saat
   aynen, parlak zemin rakamın içinde görünür). Yağmur hüzmesi Lv {0,4,7,10}.
+- **YAPILACAK (14 Kasım 16:12, Fatih "not al, yazma"; akşam Android görsel düzenlemeleriyle birlikte):**
+  Android: Rüzgâr | Oto satırı eşit bölündüğü için Rüzgâr seçenekleri sıkıştı, Oto ince uzun oldu. Oto küçük sabit
+  genişlikli düğme (hoparlör SimgeDugme gibi, ~46dp) satırın en sağında; kısa seçim kalan genişliği alır
+  (Bilesenler.kt AyarListesi, kısa seçim + BOOL çifti). Akşam: Android arayüzünde başka görsel düzeltmeler gelecek.
 - **BEKLİYOR (Fatih "şimdilik dursun", 13 Kasım):** Kısık parlaklıkta Kar/saat saniyede birkaç kez parlayıp sönüyor.
   Sebep: SPEC_Draw sonundaki vuruş pompası (CFG_BEAT_BRIGHT_BOOST %25 * BeatEnv) Ortam modlarında da çalışıyor;
   müziksizken giriş gürültüsü vuruş sayılıyor, düşük parlaklıkta OE birkaç tik olduğu için küçük artış büyük
