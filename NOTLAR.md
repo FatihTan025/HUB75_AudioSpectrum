@@ -207,6 +207,11 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   (ust = true) ad üste çıkıp düğmeler altına iniyor -- İSTENMİYOR. Olması gereken: normal tek satır (ad solda, seçenekler
   yanında, eskisi gibi) + satırın en sağında KÜÇÜK "Oto" düğmesi: şimdiki seçenek düğmesi boyunun YARISINDAN biraz küçük.
   (Bilesenler.kt AyarListesi'ndeki "kısa seçim + BOOL" çift kuralı kalkar; yerine bu özel satır.)
+  Android HATA: otomatik geçişte mod bazen bir önceki moda dönüp sonra tekrar ileri gidiyor (kalpli favorilerde).
+  Sebep (Ekranlar.kt ~261): kart modu değiştirip bildirince uygulama sayfayı animateScrollToPage ile kaydırıyor;
+  LaunchedEffect(settledPage) programatik kaydırmayı kullanıcı kaydırması sanıp modSec gönderiyor -- animasyon yarıda
+  kesilirse ya da sayfa ara/eski sayfada durursa kartı YANLIŞ moda geri yolluyor. Çözüm: yalnız kullanıcının
+  kaydırması (sürükleme) mod göndersin; kartın bildirdiği mod için sayfa kayarken gönderim yok.
   ANDROID KURALI (Fatih): arayüzde simetri ve düzen bozulmayacak -- satırlar hizalı, aynı türden düğmeler aynı boyda,
   ad sütunu ve kenar boşlukları her satırda aynı; değişiklikten sonra komşu satırlarla hizayı kontrol et. Düğme boyu içindeki
   yazıdan çok büyük olmayacak: düğme yazıyı az bir iç boşlukla sarar (ör. "Oto" düğmesi yazısı kadar, ince kenar payı). Akşam: Android arayüzünde başka görsel düzeltmeler gelecek.
