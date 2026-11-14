@@ -193,12 +193,8 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   (KyKuyruk: baş tarafında 3 px, yarıya kadar yavaşça incelir). Yağmur'a nadir küçük kayan yıldız (YmKayan: 25-50 sn,
   ~0.5-0.9 sn, 12 px kuyruk, YM_KY_ALT 8. satırın altına inmez, uzak yağmurun arkasında). Önizlemede 0-16 aynı;
   17-20 farkı Kar hızı ve rastgele sayı sırasından (Kar hızı eşitlenince Şömine de bayt bayt aynı).
-- **YAPILACAKLAR (14 Kasım 15:59, Fatih "not al"; "yaz" deyince):**
-  1. Saydamlık: saatin ışığı HİÇ düşmeden saydam görünsün (Fatih baştan bunu istemişti). SaatSet kanal başına:
-     out = c + (max(c, zemin) - c) * s  -> zemin koyuysa saat aynen, zemin saatten parlaksa (alev, köpük, damla,
-     lamba ışığı) saydamlık oranında rakamın içinde görünür. Şimdiki alfa karışımı karanlık zeminde saati söndürüyor.
-  2. Yağmur lamba hüzmesi bariz daha sönük: 8/13/19 çok parlak -> Lv { 0, 4, 7, 10 } (oran kontrolü sürüyor:
-     kanal kaybolursa kademe sönük).
+- 14 Kasım (22, kartta denenmedi): Saydamlık: saatin ışığı düşmez (SaatSet: c + (max(c,zemin)-c)*s; koyu zeminde saat
+  aynen, parlak zemin rakamın içinde görünür). Yağmur hüzmesi Lv {0,4,7,10}.
 - **BEKLİYOR (Fatih "şimdilik dursun", 13 Kasım):** Kısık parlaklıkta Kar/saat saniyede birkaç kez parlayıp sönüyor.
   Sebep: SPEC_Draw sonundaki vuruş pompası (CFG_BEAT_BRIGHT_BOOST %25 * BeatEnv) Ortam modlarında da çalışıyor;
   müziksizken giriş gürültüsü vuruş sayılıyor, düşük parlaklıkta OE birkaç tik olduğu için küçük artış büyük

@@ -3337,8 +3337,8 @@ static void SaatHazirla(SaatDurum *S)
 	}
 }
 
-/* Saat pikseli. Saydamlik 0: kati. Saydamlikta saat rengi zeminle saydamlik oraninda karisir
-   (alfa): arkadaki alev / dalga rakamin icinden gorunur, renkli cam gibi karartmaz. Tam sayi. */
+/* Saat pikseli. Saydamlik 0: kati. Saydamlikta saatin isigi hic dusmez: zemin saatten koyuysa saat
+   aynen kalir, zemin daha parlaksa (alev, kopuk, damla, isik) saydamlik oraninda rakamin icinde gorunur. */
 static void SaatSet(int x, int y, uint8_t R, uint8_t G, uint8_t B)
 {
 	const uint32_t s = (uint32_t)SPEC_SaatSaydam * 256U / 100U;	/* 0..205 */
@@ -3346,9 +3346,9 @@ static void SaatSet(int x, int y, uint8_t R, uint8_t G, uint8_t B)
 	if(!s) { Set(x, y, R, G, B); return; }
 	if((unsigned)x >= W || (unsigned)y >= H) return;
 	p = CV(y, x);
-	p[0] = (uint8_t)(((uint32_t)R * (256U - s) + (uint32_t)p[0] * s) >> 8);
-	p[1] = (uint8_t)(((uint32_t)G * (256U - s) + (uint32_t)p[1] * s) >> 8);
-	p[2] = (uint8_t)(((uint32_t)B * (256U - s) + (uint32_t)p[2] * s) >> 8);
+	p[0] = (uint8_t)(R + ((p[0] > R) ? (((uint32_t)(p[0] - R) * s) >> 8) : 0U));
+	p[1] = (uint8_t)(G + ((p[1] > G) ? (((uint32_t)(p[1] - G) * s) >> 8) : 0U));
+	p[2] = (uint8_t)(B + ((p[2] > B) ? (((uint32_t)(p[2] - B) * s) >> 8) : 0U));
 }
 
 /* Iki nokta: saniye gosterilirken sabit, yoksa saniyede bir yanip soner */
@@ -3991,14 +3991,14 @@ static uint8_t  YmLamba = 1U;								/* Direkler var mi (saat kenarlara tasarsa 
 #define YM_KADEME	4										/* Hava huzmesi: 0 (sonuk) + 3 kademe		*/
 static uint8_t  YmHz[YM_KADEME][3];							/* Kademe renkleri: panel cikisinda saat rengiyle ayni oran */
 
-/* Hava huzmesinin kademeleri: panel (CIE + bitplane) cikisinda en parlak kanal 8, 13, 19 basamak (ust
+/* Hava huzmesinin kademeleri: panel (CIE + bitplane) cikisinda en parlak kanal 4, 7, 10 basamak (ust
    bitplane'lere tasinir: 1 basamak yuvarlama tonu belirgin kaydirmaz, sonukte esitlenen alt bitler belirleyici olmaz);
    diger kanallar ayni oranda yuvarlanir. Orani tutmayan kademe (kanal sifira duser) sonuk kalir:
    dusuk degerlerde kanallar farkli basamaga yuvarlanip yesil / kirmizi piksel cikmasin. */
 static void YmHzKur(void)
 {
 	static const uint8_t *const T[3] = { CIE_RED, CIE_GREEN, CIE_BLUE };
-	static const uint8_t Lv[YM_KADEME] = { 0, 8, 13, 19 };			/* En parlak kanalin cikis basamagi */
+	static const uint8_t Lv[YM_KADEME] = { 0, 4, 7, 10 };			/* En parlak kanalin cikis basamagi */
 	const uint32_t Ka = 8U - HUB75_BITPLANES;
 	const uint32_t I[3] = { YmIr, YmIg, YmIb };
 	uint32_t m = I[0], k, ch;
