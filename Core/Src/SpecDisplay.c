@@ -22,6 +22,7 @@
 #include "bahncond30.h"
 #include "arialbd13.h"
 #include "bahnbd16.h"
+#include "HUB75_CIE.h"
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
@@ -136,7 +137,7 @@ static union
 	{
 		uint8_t		Heat[H + 2][W];					/* +2: gizli yakit satirlari */
 		Particle	Embers[MAX_EMBERS];
-		struct { float X, Y, Vx, Vy; uint8_t Life; } Frags[120];	/* PATLAMA */
+		struct { float X, Y, Vx, Vy; uint8_t Life, Ton; } Frags[120];	/* PATLAMA (Ton: Aurora'da parca rengi 0..255) */
 	} Fire;
 	Ring		Rings[MAX_RINGS];
 	Particle	Parts[MAX_PARTICLES];				/* Halka, Fiskiye */
@@ -276,6 +277,25 @@ static inline int SatI(int v)
 {
 	return (v < 0) ? 0 : ((v > 255) ? 255 : v);
 }
+
+/* Doygun gokkusagi tonu 0..1535 (6 x 256): her yerde bir kanal tam (sari / camgobegi soluk kalmaz) */
+static void GkTon(uint32_t Hu, uint8_t *c)
+{
+	const uint8_t f = (uint8_t)(Hu & 255U);
+	switch((Hu >> 8) % 6U)
+	{
+	case 0:  c[0] = 255U;     c[1] = f;        c[2] = 0U;       break;	/* kirmizi -> sari		*/
+	case 1:  c[0] = 255U - f; c[1] = 255U;     c[2] = 0U;       break;	/* sari -> yesil		*/
+	case 2:  c[0] = 0U;       c[1] = 255U;     c[2] = f;        break;	/* yesil -> camgobegi	*/
+	case 3:  c[0] = 0U;       c[1] = 255U - f; c[2] = 255U;     break;	/* camgobegi -> mavi	*/
+	case 4:  c[0] = f;        c[1] = 0U;       c[2] = 255U;     break;	/* mavi -> mor			*/
+	default: c[0] = 255U;     c[1] = 0U;       c[2] = 255U - f; break;	/* mor -> kirmizi		*/
+	}
+}
+
+/* Aurora (alev ailesi): panel boyunca gokkusagi, ~25 sn'de bir tur yavasca kayar */
+#define GK_TUR_SN		25.0f
+static inline uint32_t GkSutun(int x) { return (uint32_t)(Time * (1536.0f / GK_TUR_SN)) + (uint32_t)x * 9U; }	/* 128 px ~ 3/4 tur */
 
 /* Ton 0..767: kirmizi -> yesil -> mavi -> kirmizi */
 static void Hue(uint32_t Hu, uint8_t *R, uint8_t *G, uint8_t *B)
@@ -888,7 +908,7 @@ static void FireEmbers(const uint8_t Pal[256][3], uint8_t Mirror)
 				p->Y  = (float)H - 2.0f - RandF() * 10.0f;
 				p->Vx = (RandF() - 0.5f) * 20.0f;
 				p->Vy = -(25.0f + 45.0f * RandF());
-				p->Hue = (uint16_t)(90U + Rand() % 166U);		/* Aurora: her kivilcim kendi tonunda */
+				p->Hue = (uint16_t)(Rand() % 1536U);			/* Aurora: her kivilcim kendi gokkusagi tonunda */
 				p->Life = 255U;
 				break;
 			}
@@ -909,7 +929,8 @@ static void FireEmbers(const uint8_t Pal[256][3], uint8_t Mirror)
 		if(SPEC_FireAurora)										/* Renk renk kivilcim: tonu sabit, omurle soner */
 		{
 			const uint32_t k = 128U + (p->Life >> 1);
-			const uint8_t *c = Pal[p->Hue];
+			uint8_t c[3];
+			GkTon(p->Hue, c);
 			if(p->Y >= 0.0f) Add((int)p->X, (int)p->Y, (uint8_t)((c[0] * k) >> 8), (uint8_t)((c[1] * k) >> 8), (uint8_t)((c[2] * k) >> 8));
 			continue;
 		}
@@ -925,6 +946,22 @@ static void FireRender(const uint8_t Pal[256][3])
 {
 	int x, y;
 
+	if(SPEC_FireAurora && Pal == ActPal)					/* Gokkusagi: ton sutundan, parlaklik isidan, en sicakta beyaza */
+	{
+		uint8_t Tc[W][3];
+		for(x = 0; x < W; x++) GkTon(GkSutun(x), Tc[x]);
+		for(y = 0; y < H; y++)
+			for(x = 0; x < W; x++)
+			{
+				const uint32_t h = U.Fire.Heat[y][x];
+				const uint32_t L = (h * h * 3U > 255U * 255U) ? 255U : (h * h * 3U) / 255U;	/* Koyu taban, parlak govde */
+				const uint32_t w = (h > 215U) ? (h - 215U) * 3U : 0U;		/* 0..120: uc beyazlasir */
+				Set(x, y, (uint8_t)(((Tc[x][0] * L >> 8) * (256U - w) + L * w) >> 8),
+				          (uint8_t)(((Tc[x][1] * L >> 8) * (256U - w) + L * w) >> 8),
+				          (uint8_t)(((Tc[x][2] * L >> 8) * (256U - w) + L * w) >> 8));
+			}
+		return;
+	}
 	for(y = 0; y < H; y++)
 		for(x = 0; x < W; x++)
 		{
@@ -1039,6 +1076,40 @@ static void ModeFireBlue(void)
 #define FRAGS		(U.Fire.Frags)
 
 static float	GlowX = 64.0f, Glow = 0.0f;
+static uint8_t	PtTon;								/* Aurora: son patlamanin tonu (0..255)	*/
+
+/* Aurora: yeni patlamanin tonu -- arkadaki alevden belirgin farkli (120..210 derece ote) ve bir oncekinden farkli */
+static uint8_t PtTonSec(float Cx)
+{
+	const uint32_t Alev = (GkSutun((int)Cx) % 1536U) * 256U / 1536U;
+	uint8_t t = (uint8_t)(Alev + 85U + Rand() % 64U);
+	if((uint8_t)(t - PtTon) < 24U || (uint8_t)(PtTon - t) < 24U) t = (uint8_t)(t + 48U);
+	return PtTon = t;
+}
+
+/* Aurora: patlama parcalari kendi renginde parlar (alev izi arkada gokkusagi kalir); hareket aynen */
+static void PtParcaCiz(void)
+{
+	uint32_t i;
+	if(!SPEC_FireAurora) return;
+	for(i = 0; i < MAX_FRAGS; i++)
+	{
+		__typeof__(&FRAGS[0]) f = &FRAGS[i];
+		uint8_t c[3];
+		uint32_t k;
+		if(!f->Life || f->Y < 0.0f || f->X < 0.0f || f->X >= (float)W || f->Y >= (float)H) continue;
+		GkTon((uint32_t)f->Ton * 6U, c);
+		k = 110U + (f->Life >> 1);								/* Omurle soner */
+		Set((int)f->X, (int)f->Y, (uint8_t)((c[0] * k) >> 8), (uint8_t)((c[1] * k) >> 8), (uint8_t)((c[2] * k) >> 8));
+	}
+}
+
+/* Parlama rengi: Aurora'da patlamanin tonu, yoksa ates turuncusu */
+static void PtParlamaRenk(uint8_t *c, uint8_t R, uint8_t G, uint8_t B)
+{
+	if(SPEC_FireAurora) GkTon((uint32_t)PtTon * 6U, c);
+	else { c[0] = R; c[1] = G; c[2] = B; }
+}
 
 static void BlastSpawn(void)
 {
@@ -1062,6 +1133,7 @@ static void BlastSpawn(void)
 	}
 
 	/* Savrulan alev parcaciklari: yukari yarim daire, yataya yakin acilar az */
+	(void)PtTonSec(Cx);
 	for(n = 0; n < Count; n++)
 		for(i = 0; i < MAX_FRAGS; i++)
 		{
@@ -1075,6 +1147,7 @@ static void BlastSpawn(void)
 			f->Vx = cosf(a) * v;
 			f->Vy = -sinf(a) * v;
 			f->Life = 255U;
+			f->Ton = (uint8_t)(PtTon + Rand() % 12U);			/* Ayni patlama ayni renk ailesi */
 			break;
 		}
 
@@ -1123,11 +1196,14 @@ static void ModeBlast(void)
 	}
 
 	FireRender(ActPal);
+	PtParcaCiz();
 
 	/* Yerden yayilan parlama: patlama noktasinda, ~60 ms'de soner */
 	if(Glow > 0.02f)
 	{
 		int y;
+		uint8_t Gc[3];
+		PtParlamaRenk(Gc, 255U, 170U, 60U);
 		for(y = 0; y < H; y++)
 			for(x = 0; x < W; x++)
 			{
@@ -1136,7 +1212,7 @@ static void ModeBlast(void)
 				if(d > 0.0f)
 				{
 					uint16_t s = (uint16_t)(d * d * Glow * 150.0f);
-					Add(x, y, (uint8_t)((255U * s) >> 8), (uint8_t)((170U * s) >> 8), (uint8_t)((60U * s) >> 8));
+					Add(x, y, (uint8_t)((Gc[0] * s) >> 8), (uint8_t)((Gc[1] * s) >> 8), (uint8_t)((Gc[2] * s) >> 8));
 				}
 			}
 	}
@@ -1181,6 +1257,7 @@ static void CenterBlastSpawn(void)
 		}
 
 	/* Iki yana savrulan parcaciklar: yataya yakin, hafif yukari */
+	(void)PtTonSec(64.0f);
 	for(n = 0; n < Count; n++)
 		for(i = 0; i < MAX_FRAGS; i++)
 		{
@@ -1195,6 +1272,7 @@ static void CenterBlastSpawn(void)
 			f->Vx = Dir * cosf(a) * v;
 			f->Vy = -sinf(a) * v;
 			f->Life = 255U;
+			f->Ton = (uint8_t)(PtTon + Rand() % 12U);
 			break;
 		}
 
@@ -1284,10 +1362,13 @@ static void ModeCenterBlast(void)
 	}
 
 	FireRender(ActPal);
+	PtParcaCiz();
 
 	/* Ortadan yayilan parlama */
 	if(Glow > 0.02f)
 	{
+		uint8_t Gc[3];
+		PtParlamaRenk(Gc, 255U, 160U, 50U);
 		for(y = 0; y < H; y++)
 			for(x = 0; x < W; x++)
 			{
@@ -1296,7 +1377,7 @@ static void ModeCenterBlast(void)
 				if(d > 0.0f)
 				{
 					uint16_t s = (uint16_t)(d * d * Glow * 140.0f);
-					Add(x, y, (uint8_t)((255U * s) >> 8), (uint8_t)((160U * s) >> 8), (uint8_t)((50U * s) >> 8));
+					Add(x, y, (uint8_t)((Gc[0] * s) >> 8), (uint8_t)((Gc[1] * s) >> 8), (uint8_t)((Gc[2] * s) >> 8));
 				}
 			}
 	}
@@ -3888,6 +3969,36 @@ static inline int32_t YmSin(int32_t v, int32_t Lo, int32_t Hi) { return (v < Lo)
 #define YM_KENAR	7							/* Saat bu kadar kenara yaklasirsa direk yok	*/
 static uint16_t YmIr = 255U, YmIg = 222U, YmIb = 130U;		/* Lamba isigi: saat renginin tam tonu (her kare)	*/
 static uint8_t  YmLamba = 1U;								/* Direkler var mi (saat kenarlara tasarsa yok)	*/
+#define YM_KADEME	4										/* Hava huzmesi: 0 (sonuk) + 3 kademe		*/
+static uint8_t  YmHz[YM_KADEME][3];							/* Kademe renkleri: panel cikisinda saat rengiyle ayni oran */
+
+/* Hava huzmesinin kademeleri: panel (CIE + bitplane) cikisinda en parlak kanal 1, 2, 3 basamak;
+   diger kanallar ayni oranda yuvarlanir. Orani tutmayan kademe (kanal sifira duser) sonuk kalir:
+   dusuk degerlerde kanallar farkli basamaga yuvarlanip yesil / kirmizi piksel cikmasin. */
+static void YmHzKur(void)
+{
+	static const uint8_t *const T[3] = { CIE_RED, CIE_GREEN, CIE_BLUE };
+	const uint32_t Ka = 8U - HUB75_BITPLANES;
+	const uint32_t I[3] = { YmIr, YmIg, YmIb };
+	uint32_t m = I[0], k, ch;
+	if(I[1] > m) m = I[1];
+	if(I[2] > m) m = I[2];
+	if(!m) m = 1U;
+	memset(YmHz, 0, sizeof(YmHz));
+	for(k = 1; k < YM_KADEME; k++)
+	{
+		uint8_t Ok = 1U, c[3];
+		for(ch = 0; ch < 3U; ch++)
+		{
+			const uint32_t o = (k * I[ch] + m / 2U) / m;					/* Hedef cikis basamagi */
+			uint32_t v = 0U;
+			if(o == 0U) { if(I[ch] * 4U >= m) Ok = 0U; c[ch] = 0U; continue; }	/* Onemli kanal kayboluyorsa kademe yok */
+			while(v < 255U && (uint32_t)(T[ch][v] >> Ka) < o) v++;		/* CIE'nin tersi: o basamagi veren en kucuk giris */
+			c[ch] = (uint8_t)v;
+		}
+		if(Ok) memcpy(YmHz[k], c, 3);
+	}
+}
 #define YM_ISIK(v)	(uint8_t)(((v) * YmIr + 128U) >> 8), (uint8_t)(((v) * YmIg + 128U) >> 8), (uint8_t)(((v) * YmIb + 128U) >> 8)	/* En yakina yuvarlanir */
 
 /* Koni isigi 0..256: dik iner, iki yana esit ~30 derece; kenari yumusak, uzakta azalir. Iki lamba.
@@ -3917,7 +4028,7 @@ static uint32_t YmKoni(int x, int y)
    kivrilip kapaga baglanir; kapak direk renginde, altinda 4 px cam (orta iki parlak, yanlar soluk). Sag aynali. */
 static void YmDirek(void)
 {
-	static const uint8_t Gv[3] = { 58, 36, 18 }, Bil[3] = { 104, 68, 34 };
+	static const uint8_t Gv[3] = { 58, 36, 18 }, Bil[3] = { 80, 52, 26 };
 	static const int8_t Ayak[5] = { 3, 4, 4, 5, 6 };					/* Alt 5 satirda ayak genisligi (kavisli) */
 	static const int8_t Kol[8][2] = { {3,2},{3,3},{3,4},{4,1},{4,2},{4,3},{5,1},{5,2} };	/* 2 px kalin kugu boynu */
 	int k, y, x, i;
@@ -4098,6 +4209,7 @@ static void ModeRain(void)
 		uint32_t m = sr; if(sg > m) m = sg; if(sb > m) m = sb;
 		if(!m) m = 1U;
 		YmIr = (uint16_t)(sr * 255U / m); YmIg = (uint16_t)(sg * 255U / m); YmIb = (uint16_t)(sb * 255U / m);
+		YmHzKur();
 	}
 	{																/* Direkler yalniz saat ortada ve kenarlara tasmiyorken (Isi-Nem yok) */
 		int Sol = (int)W, Sag = -1, k;
@@ -4121,11 +4233,12 @@ static void ModeRain(void)
 	}
 	if(yu < (int)H - YM_SU_H) yu = (int)H - YM_SU_H;
 
-	for(y = 0; y < (int)H; y++)										/* Gece; koninin icindeki hava hafifce aydinlanir */
+	for(y = 0; y < (int)H; y++)										/* Gece; koninin icindeki hava kademe kademe, cok sonuk aydinlanir */
 		for(x = 0; x < (int)W; x++)
 		{
-			const uint32_t v = (YmKoni(x, y) * 34U) >> 8;
-			Set(x, y, YM_ISIK(v));
+			const uint32_t k = (YmKoni(x, y) * YM_KADEME) >> 8;
+			const uint8_t *c = YmHz[(k < YM_KADEME) ? k : YM_KADEME - 1U];
+			Set(x, y, c[0], c[1], c[2]);
 		}
 
 	/* Uzak yagmur: saatin arkasinda, suyun uzak kismina duser */

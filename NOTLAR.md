@@ -166,20 +166,15 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   Kar: zemindeki kar örtüsü kaldırıldı, kar eski haline döndü (Fatih onayladı, öyle kalsın).
   Not: PC'ye kopyalarken her seferinde dosya boyutunu kontrol et (aynı adla tekrar gönderilen dosya eski
   kopya olarak gitti).
-- **YAPILACAKLAR (14 Kasım öğleden sonra, Fatih "şimdilik uygulama", başka maddeler de gelecek; "yaz" deyince):**
-  Yağmur lambası:
-  1. Hüzme saat renginin ÇOK daha düşük tonu. Kademe kademe yumuşak geçiş (tek düz ton olmasın) ama her kademede
-     R:G:B oranı saat rengiyle aynı. Bir kanal panelde gösterilemeyecek kadar küçük kalıyorsa piksel tamamen sönük
-     (yeşil/kırmızı kaymış piksel çıkmasın; sebep: düşük değerlerde kanallar farklı basamağa yuvarlanıyor).
-  2. Sudaki ışık lekesi ve yansıma DEĞİŞMESİN (Fatih: güzel görünüyor).
-  3. Direkteki iki boğaz biraz koyu: (104,68,34) -> (80,52,26).
-  Alev ailesi "Aurora" renk modu (Fatih "15. mod" dedi: 14 Patlama ya da 15 Orta Patlama; ikisinde de geçerli; şimdiki hali beğenilmedi):
-  4. Soluk aurora yerine doygun gökkuşağı cümbüşü. Ton panel boyunca (x) ve zamanla yavaşça kayar (tam tur
-     ~20-30 sn), geçişler çok yumuşak, hiçbir yerde ani renk değişimi yok; parlaklık ısıdan.
-  5. Havaya savrulan şiddetli patlama parçaları bir renk, arkadaki alevler ondan belirgin farklı renk
-     (ör. ton +120..180 derece kaydırılmış) -> aynı anda birkaç renk görünsün.
-  6. Hedef his: güzel bir havai fişek gösterisi gibi (her patlamanın parçaları kendi canlı tonunda, bir sonraki
-     patlama başka tonda). AMA şimdiki halinden çok değişmesin: hareket, şekil, boyut aynı kalsın, yalnız renk.
+- 14 Kasım (17, kartta denenmedi): Lamba hava hüzmesi kademeli ve çok sönük (YM_KADEME 4: sönük + 3 kademe).
+  Kademe renkleri her karede saat renginden (YmHzKur): panel çıkışında (CIE tablosu + bitplane) en parlak kanal
+  1/2/3 basamak, diğerleri aynı oranda; önemli bir kanal sıfıra düşerse o kademe sönük (yeşil/kırmızı piksel yok).
+  Sudaki ışık ve yansıma DEĞİŞMEDİ (Fatih beğendi). Boğazlar (80,52,26).
+  Alev ailesi Aurora (14 Patlama, 15 Orta Patlama ve diğer alevler): soluk aurora paleti yerine doygun gökkuşağı
+  (GkTon 0..1535); ton panel boyunca ~3/4 tur ve ~25 sn'de bir tur kayar (GK_TUR_SN), parlaklık ısıdan, en sıcakta
+  hafif beyaz. Havai fişek: her patlamanın parçaları kendi tonunda (PtTonSec: arkadaki alevden 120-210 derece öte,
+  bir öncekinden farklı; Frags.Ton), parçalar kendi renginde çizilir (PtParcaCiz), parlama da o renkte; hareket,
+  şekil, boyut aynı. Kıvılcımlar rastgele gökkuşağı tonu. Android'deki Aurora bloğu (28AA6E,8C5AD2) aynı kaldı.
 - **BEKLİYOR (Fatih "şimdilik dursun", 13 Kasım):** Kısık parlaklıkta Kar/saat saniyede birkaç kez parlayıp sönüyor.
   Sebep: SPEC_Draw sonundaki vuruş pompası (CFG_BEAT_BRIGHT_BOOST %25 * BeatEnv) Ortam modlarında da çalışıyor;
   müziksizken giriş gürültüsü vuruş sayılıyor, düşük parlaklıkta OE birkaç tik olduğu için küçük artış büyük
