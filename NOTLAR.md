@@ -192,6 +192,10 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   Diğer modlar: öneri {0.7, 1.0, 1.3} (eski Normal/Yüksek/Çok yüksek; Fatih panelde bakıp onaylayacak).
   Kat[] (SpecDisplay.c ~5000) mod başına tablo olur; kayıtlı 3 (Çok yüksek) değeri 2'ye sınırlanmalı.
   Yağmur lamba hüzmesi: 10/17/24 fazla parlak, 6/10/14 de sönüktü -> arası: Lv { 0, 8, 13, 19 }.
+  Kar kayan yıldız: baş yuvarlak, kuyruk hemen incelip kayboluyor -> düşen su damlası şekli: baş yuvarlak, kuyruk
+     başın hemen arkasında hâlâ geniş, uca doğru YAVAŞ YAVAŞ incelir (ani küçülme yok).
+  Yağmur'a nadir kayan yıldız: Kar'dakinden küçük ve kısa, gökyüzünün üst/uzak kısmında kalır, suya ve alt
+     bölgeye asla inmez; seyrek (yağmurda boşluk az, sahne kalabalıklaşmasın).
 - **BEKLİYOR (Fatih "şimdilik dursun", 13 Kasım):** Kısık parlaklıkta Kar/saat saniyede birkaç kez parlayıp sönüyor.
   Sebep: SPEC_Draw sonundaki vuruş pompası (CFG_BEAT_BRIGHT_BOOST %25 * BeatEnv) Ortam modlarında da çalışıyor;
   müziksizken giriş gürültüsü vuruş sayılıyor, düşük parlaklıkta OE birkaç tik olduğu için küçük artış büyük
