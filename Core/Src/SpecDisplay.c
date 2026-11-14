@@ -187,8 +187,6 @@ static union
 		int16_t		Ix[SN_IZ], Iy[SN_IZ];
 		uint8_t		Sx[SN_YILDIZ], Sy[SN_YILDIZ], MOn, MIz, Ready;
 		uint8_t		NOr, NYa;									/* Etkin orta / yakin tane sayisi	*/
-		uint16_t	Yig[W];										/* Biriken kar yuksekligi (1/16 px)	*/
-		uint8_t		Of[W], Eg[W];								/* Doku kaymasi, yigilma egilimi		*/
 	} Sn;
 	struct											/* Yagmur */
 	{
@@ -3593,67 +3591,6 @@ static void SaatCizRgb(const SaatDurum *S)
 	              (uint8_t)((b * 3U / 2U > 255U) ? 255U : b * 3U / 2U));
 }
 
-/* Tane yere (kar ortusune) degdi mi; degdiyse ortuye ekle. Ekleme ust sinira yaklastikca azalir. */
-static uint8_t SnKondu(const SnTn *t, uint32_t Pay)
-{
-	int X0, Y0, k;
-	(void)SnKonum(t, &X0, &Y0);
-	X0++;														/* 3x3 desenin ortasi */
-	if(X0 < 0 || X0 >= (int)W) return 0U;
-	if(Y0 + 1 < (int)H - (int)(U.Sn.Yig[X0] >> 4)) return 0U;
-	for(k = -1; k <= 1; k++)
-	{
-		const int x = X0 + k;
-		uint32_t h, Ust, e;
-		if(x < 0 || x >= (int)W) continue;
-		h   = U.Sn.Yig[x];
-		Ust = (11U * 16U) + ((uint32_t)U.Sn.Of[x] * 3U / 4U) + ((uint32_t)U.Sn.Eg[(x * 7) & (W - 1U)] >> 3);	/* 11-14.5 px, tumsek/cukur */
-		if(h >= Ust) continue;
-		e   = Pay * (55U + U.Sn.Eg[x]) / 100U;						/* Yer yer daha cok yigilir */
-		e   = (Ust - h < Ust / 2U) ? e * (Ust - h) * 2U / Ust + 1U : e;	/* Son yarida yavaslar */
-		U.Sn.Yig[x] = (uint16_t)(h + e);
-	}
-	return 1U;
-}
-
-/* Kar ortusu: yana kayma (sivri diken olmaz) ve cizim (saatin arkasinda) */
-static void SnOrtu(uint32_t Tepe)
-{
-	int x, y;
-	for(x = 0; x < (int)W - 1; x++)								/* Komsusundan 1.4 px'ten cok yuksekse yana kayar */
-	{
-		const int d = (int)U.Sn.Yig[x] - (int)U.Sn.Yig[x + 1];
-		if(d > 22)       { U.Sn.Yig[x] -= 2U; U.Sn.Yig[x + 1] += 2U; }
-		else if(d < -22) { U.Sn.Yig[x] += 2U; U.Sn.Yig[x + 1] -= 2U; }
-	}
-	for(x = 0; x < (int)W; x++)
-	{
-		const uint32_t h = U.Sn.Yig[x];
-		const int      yt = (int)H - (int)(h >> 4);					/* Tam dolu ilk satir */
-		const uint32_t fr = h & 15U;								/* Ust satirin dolulugu */
-		int32_t Egim = 0;
-		if(!h) continue;
-		if(x > 0)            Egim += (int32_t)U.Sn.Yig[x] - (int32_t)U.Sn.Yig[x - 1];	/* Sola bakan yamac aydinlik */
-		if(x < (int)W - 1)   Egim -= (int32_t)U.Sn.Yig[x + 1] - (int32_t)U.Sn.Yig[x];
-		for(y = yt - 1; y < (int)H; y++)
-		{
-			uint32_t L, d, m, a;
-			if(y < 0) continue;
-			if(y == yt - 1) { if(!fr) continue; a = fr * 16U; }		/* Yumusak ust kenar */
-			else a = 256U;
-			d = (uint32_t)(y - yt + 1);
-			L = Tepe * (56U - ((d > 8U) ? 8U : d) * 3U) / 100U;		/* Yuzey acik, derin koyu */
-			m = 200U + (ShDoku[((uint32_t)y * 5U + U.Sn.Of[x] + (uint32_t)x / 3U) & 63U] * 90U >> 8);	/* Yogunluk lekeleri */
-			L = L * m >> 8;
-			if(d < 3U) L = (uint32_t)((int32_t)L + Egim / 4);			/* Tumsegin isikli yuzu */
-			if(d < 2U && (Rand() % 2500U) == 0U) L += L >> 1;		/* Seyrek parilti */
-			if((int32_t)L < 0) L = 0;
-			L = L * a >> 8;
-			Set(x, y, (uint8_t)((L * 205U) >> 8), (uint8_t)((L * 225U) >> 8), (uint8_t)((L > 255U) ? 255U : L));
-		}
-	}
-}
-
 static void ModeSnow(void)
 {
 	static const uint8_t NUz[3] = { 30, 50, 70 }, NOr[3] = { 15, 25, 35 }, NYa[3] = { 3, 5, 6 };
@@ -3676,9 +3613,6 @@ static void ModeSnow(void)
 			U.Sn.Sy[i] = (uint8_t)(Rand() % (H * 2U / 3U));
 		}
 		U.Sn.MSonra = 5.0f + 10.0f * RandF();
-		memset(U.Sn.Yig, 0, sizeof(U.Sn.Yig));					/* Yer bos baslar */
-		OrtamKayma(U.Sn.Of, 64.0f);
-		OrtamKayma(U.Sn.Eg, 90.0f);								/* Tumsek / cukur egilimi (0..90) */
 		U.Sn.Ready = 1;
 	}
 	SaatHazirla(&U.Sn.S);
@@ -3716,7 +3650,6 @@ static void ModeSnow(void)
 		}
 	}
 
-	SnOrtu(Tepe);												/* Yerdeki kar: saatin arkasinda */
 	SaatCizRgb(&U.Sn.S);
 
 	/* Orta kar: 3x3 yumusak, orta hiz */
@@ -3724,7 +3657,7 @@ static void ModeSnow(void)
 	{
 		SnTn *t = &U.Sn.Or[i];
 		SnIn(t, Adim);
-		if(t->Y >= t->Son || SnKondu(t, 9U)) { SnDog(t, 5.0f + 2.0f * RandF(), 1, 60, 0); continue; }
+		if(t->Y >= t->Son) SnDog(t, 5.0f + 2.0f * RandF(), 1, 60, 0);
 		SnDesen(t, SnYumusak, 3, Tepe * t->L / 100U);
 	}
 
@@ -3733,7 +3666,7 @@ static void ModeSnow(void)
 	{
 		SnTn *t = &U.Sn.Ya[i];
 		SnIn(t, Adim);
-		if(t->Y >= t->Son || SnKondu(t, 11U)) { SnDog(t, 14.0f + 6.0f * RandF(), 2, 100, 0); continue; }
+		if(t->Y >= t->Son) SnDog(t, 14.0f + 6.0f * RandF(), 2, 100, 0);
 		SnDesen(t, SnYumusak, 3, Tepe);
 	}
 }

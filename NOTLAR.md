@@ -137,8 +137,8 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   kabarmasından, asla düz değil. Uzak damla suyun üst (uzak) kısmına, yakın damla alta düşer; düştüğü yerde
   damla hızına göre hızı/boyu değişen elips halka (YmHalka, 28 adet), yakın damlada sıçrama. Saat suyun
   altında kırılarak, renklenerek görünür.
-  Kar: alttaki örtü boş başlar, ~3,5 dk'da 11-14,5 px'e çıkar (sütuna göre tavan: Of + Eg dokusu = tümsek/
-  çukur); 1,4 px'ten dik basamak yana kayar ama yüzey düzleşmez. Sönük mavimsi, dokulu, saatin arkasında.
+  Kar örtüsü denendi, KALDIRILDI (Fatih: kar yumağı/tümsek görünmüyor, yalnız farklı tonda pikseller; zeminde
+  kar olmasın). Kar eski haline döndü, kodu tamamen silindi.
 - 14 Kasım (8): "Müzikte geç" (0x0007, genel BOOL, Ayarlar > Genel): ortam modunda 4 sn müzik (SPEC_MusicLevel =
   sessizlik kapısı > 0.5) -> en son spektrum modu; 1 dk sessizlik -> önceki ortam modu; arada elle mod değişirse
   dönüş iptal. Oto geçiş artık yalnız müzikli modlarda çalışır (önceden ortam modundan da çıkarıyordu).
