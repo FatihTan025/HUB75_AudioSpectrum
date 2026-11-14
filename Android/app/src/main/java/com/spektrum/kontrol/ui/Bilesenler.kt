@@ -217,14 +217,14 @@ fun AyarListesi(liste: List<Tanim>, deger: (Tanim) -> Int, yaz: (Tanim, Int) -> 
 /** Kaydirma cubuklu sayi ayari (iki tanesi yarim genislikte yan yana sigar) */
 fun sayiAyar(t: Tanim) = t.tur != Tur.BOOL && t.tur != Tur.ENUM && t.tur != Tur.BLOK && t.tur != Tur.TON && t.tur != Tur.RENK
 
-/** Saat kutusu: Font + Saniye / Sol Orta Alt / Isi-Nem / Renk / Parlaklik + Saydamlik. Bilinmeyen saat ayarlari altta. */
+/** Saat kutusu: Font + Saniye / Sol Orta Alt / Isi-Nem / Renk / Parlaklik. Bilinmeyen saat ayarlari altta. */
 @Composable
 fun SaatDuzeni(liste: List<Tanim>, deger: (Tanim) -> Int, yaz: (Tanim, Int) -> Unit) {
     fun bul(id: Int) = liste.firstOrNull { it.id == id }
     val font = bul(AyarId.SAAT_YAZI); val sn = bul(AyarId.SAAT_SN); val yer = bul(AyarId.SAAT_YER)
     val alt = bul(AyarId.SAAT_ALT); val isi = bul(AyarId.SAAT_ISI); val rgb = bul(AyarId.SAAT_RGB)
-    val isik = bul(AyarId.SAAT_ISIK); val say = bul(AyarId.SAAT_SAYDAM)
-    val bilinen = setOfNotNull(font, sn, yer, alt, isi, rgb, isik, say)
+    val isik = bul(AyarId.SAAT_ISIK)
+    val bilinen = setOfNotNull(font, sn, yer, alt, isi, rgb, isik)
     if (font != null || sn != null) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
         if (font != null) Box(Modifier.weight(2f)) {
             SecmeliResim(font.secenekler, deger(font) - font.min, saniye = sn != null && deger(sn) != 0) { yaz(font, font.min + it) }
@@ -240,7 +240,7 @@ fun SaatDuzeni(liste: List<Tanim>, deger: (Tanim) -> Int, yaz: (Tanim, Int) -> U
         Spacer(Modifier.weight(2f))
     }
     if (rgb != null) TekSatir("Renk") { SaatRenk(deger(rgb)) { yaz(rgb, it) } }
-    val cubuklar = listOfNotNull(isik?.copy(ad = "Parlaklık"), say)
+    val cubuklar = listOfNotNull(isik?.copy(ad = "Parlaklık"))
     if (cubuklar.isNotEmpty()) AyarListesi(cubuklar, { t -> deger(liste.first { it.id == t.id }) }) { t, v -> yaz(liste.first { it.id == t.id }, v) }
     val kalan = liste.filter { it !in bilinen }
     if (kalan.isNotEmpty()) AyarListesi(kalan, deger, yaz)

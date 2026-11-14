@@ -81,7 +81,6 @@
 #define SET_ID_SH_ISIK		0x030BU	/* Sahil: isik (Gece/Gunduz)			*/
 #define SET_ID_SAAT_RGB		0x030CU	/* Saatli modlar: saat rengi (mod basina)	*/
 #define SET_ID_SAAT_ISIK	0x030DU	/* Saatli modlar: saat parlakligi %		*/
-#define SET_ID_SAAT_SAYDAM	0x030EU	/* Saatli modlar: saat saydamligi %		*/
 #define SET_ID_SAAT_ALT		0x030FU	/* Saatli modlar: alta yasli			*/
 #define SET_ID_SAAT_ISI		0x0310U	/* Saatli modlar: sicaklik / nem goster	*/
 #define SET_ID_SAAT_SN		0x0311U	/* Saatli modlar: saniye goster			*/

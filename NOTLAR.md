@@ -193,6 +193,10 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   (KyKuyruk: baş tarafında 3 px, yarıya kadar yavaşça incelir). Yağmur'a nadir küçük kayan yıldız (YmKayan: 25-50 sn,
   ~0.5-0.9 sn, 12 px kuyruk, YM_KY_ALT 8. satırın altına inmez, uzak yağmurun arkasında). Önizlemede 0-16 aynı;
   17-20 farkı Kar hızı ve rastgele sayı sırasından (Kar hızı eşitlenince Şömine de bayt bayt aynı).
+- 14 Kasım (24, kartta denenmedi): SAYDAMLIK TAMAMEN KALDIRILDI (ayar 0x030E, SPEC_SaatSaydam, SaatSet -> Set,
+  SmEngel/Şömine saydam dalları, Android satırı ve AyarId). Ayar tablosu değişti -> kayıtlı ayarlar bir kez fabrikaya.
+  Yağmur lambası sabit krem (255,217,160), saat renginden bağımsız; YmHzKur yalnız açılışta. Önizlemede 0-18 ve 20
+  bayt bayt aynı, Yağmur'da lamba tonu en çok 1 basamak farklı (eski yuvarlama).
 - 14 Kasım (23, kartta denenmedi): Yağmur Oto ayrı BOOL ayar (SET_ID_YM_OTO 0x0312, "Oto"); Şiddet yine 3 seçenek.
   Yeni ayar -> kayıtlı ayarlar bir kez fabrikaya döner (Fatih: sorun değil). Android: kısa seçim + yanındaki BOOL aynı
   satırda (Rüzgâr | Oto), APK güncellemesi gerekir.
@@ -202,11 +206,6 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   Android: Rüzgâr | Oto satırı eşit bölündüğü için Rüzgâr seçenekleri sıkıştı, Oto ince uzun oldu. Oto küçük sabit
   genişlikli düğme (hoparlör SimgeDugme gibi, ~46dp) satırın en sağında; kısa seçim kalan genişliği alır
   (Bilesenler.kt AyarListesi, kısa seçim + BOOL çifti). Akşam: Android arayüzünde başka görsel düzeltmeler gelecek.
-  Yağmur lambası: ışık saat rengine BAĞLI OLMASIN (Fatih "o renkten olsun" demişti, bağla değil): şu anki krem
-  ton sabit (YmIr/Ig/Ib = 255,217,160; YmHzKur bir kez), saat rengi değişince lamba değişmez.
-  SAYDAMLIK TAMAMEN KALKSIN (Fatih): SET_ID_SAAT_SAYDAM ayarı, SPEC_SaatSaydam, SaatSet'in saydam dalı (SaatSet -> Set),
-  SmEngel'deki saydam koşulu, Şömine'nin saydam dalı, Android SaatDuzeni'ndeki satır ve AyarId. Yeni tablo ->
-  kayıtlı ayarlar bir kez fabrikaya döner.
 - **BEKLİYOR (Fatih "şimdilik dursun", 13 Kasım):** Kısık parlaklıkta Kar/saat saniyede birkaç kez parlayıp sönüyor.
   Sebep: SPEC_Draw sonundaki vuruş pompası (CFG_BEAT_BRIGHT_BOOST %25 * BeatEnv) Ortam modlarında da çalışıyor;
   müziksizken giriş gürültüsü vuruş sayılıyor, düşük parlaklıkta OE birkaç tik olduğu için küçük artış büyük

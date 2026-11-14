@@ -31,7 +31,7 @@ object Bayrak { const val MOD = 0x01; const val SALT_OKUNUR = 0x02; const val GI
 
 object AyarId { const val PARLAKLIK = 0x0001; const val OTO_SN = 0x0002; const val FREQ_LO = 0x0003; const val FREQ_HI = 0x0004
     const val FAV = 0x0006; const val MUZIK_GEC = 0x0007; const val SAAT_YAZI = 0x0304; const val SAAT_YER = 0x0305; const val SAAT_RGB = 0x030C
-    const val SAAT_ISIK = 0x030D; const val SAAT_SAYDAM = 0x030E; const val SAAT_ALT = 0x030F; const val SAAT_ISI = 0x0310
+    const val SAAT_ISIK = 0x030D; const val SAAT_ALT = 0x030F; const val SAAT_ISI = 0x0310
     const val SAAT_SN = 0x0311 }
 
 const val MOD_GENEL = 0xFF

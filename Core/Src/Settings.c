@@ -144,7 +144,6 @@ static void ApplyOrtam(uint8_t Mode, int32_t Value)
 	SPEC_SaatAlt  = (uint8_t)SET_Global(SET_ID_SAAT_ALT);
 	SPEC_SaatIsi  = (uint8_t)SET_Global(SET_ID_SAAT_ISI);
 	SPEC_SaatSn   = (uint8_t)SET_Global(SET_ID_SAAT_SN);
-	SPEC_SaatSaydam = (uint8_t)SET_Global(SET_ID_SAAT_SAYDAM);
 	SPEC_SmBoy    = (uint8_t)SET_Global(SET_ID_SM_BOY);
 	SPEC_YmSiddet = (uint8_t)SET_Global(SET_ID_YM_SIDDET);
 	SPEC_YmRuzgar = (uint8_t)SET_Global(SET_ID_YM_RUZGAR);
@@ -285,8 +284,6 @@ static const SET_Param Table[] =
 	  "Saat Rengi", "Saat", "", ApplyOrtam },
 	{ SET_ID_SAAT_ISIK,		SET_TYPE_INT,	SET_FLAG_PER_MODE, SAAT_MASK, 5, 100, 5, 25,
 	  "Saat Parlakl\304\261\304\237\304\261", "Saat", "%", ApplyOrtam },
-	{ SET_ID_SAAT_SAYDAM,	SET_TYPE_INT,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 80, 10, 0,
-	  "Saydaml\304\261k", "Saat", "%", ApplyOrtam },
 };
 
 #define SET_COUNT	(sizeof(Table) / sizeof(Table[0]))

@@ -3184,7 +3184,6 @@ uint8_t SPEC_SmBoy = 1U;
 uint8_t SPEC_YmSiddet = 1U, SPEC_YmRuzgar = 1U, SPEC_YmOto = 0U;
 uint8_t SPEC_ShDalga = 1U, SPEC_ShIsik = 0U;
 uint8_t  SPEC_SaatAlt = 0U, SPEC_SaatIsi = 0U, SPEC_SaatSn = 0U;							/* Saat: alta, isi-nem goster	*/
-uint8_t  SPEC_SaatSaydam = 0U;									/* Saat saydamligi % (0 = kati)	*/
 uint32_t SPEC_SaatRgb = 0x0A0D13UL;						/* Saat rengi 0xRRGGBB (Settings: renk x parlaklik)	*/
 
 /* Saat fontlari: Fatih'in fontlari geldikce buraya eklenir (Settings.c SAAT_YAZI
@@ -3335,20 +3334,6 @@ static void SaatHazirla(SaatDurum *S)
 			if(S->Ix2 >= 0) S->Ix2 = (int16_t)(S->Ix2 + kay);
 		}
 	}
-}
-
-/* Saat pikseli. Saydamlik 0: kati. Saydamlikta saatin isigi hic dusmez: zemin saatten koyuysa saat
-   aynen kalir, zemin daha parlaksa (alev, kopuk, damla, isik) saydamlik oraninda rakamin icinde gorunur. */
-static void SaatSet(int x, int y, uint8_t R, uint8_t G, uint8_t B)
-{
-	const uint32_t s = (uint32_t)SPEC_SaatSaydam * 256U / 100U;	/* 0..205 */
-	uint8_t *p;
-	if(!s) { Set(x, y, R, G, B); return; }
-	if((unsigned)x >= W || (unsigned)y >= H) return;
-	p = CV(y, x);
-	p[0] = (uint8_t)(R + ((p[0] > R) ? (((uint32_t)(p[0] - R) * s) >> 8) : 0U));
-	p[1] = (uint8_t)(G + ((p[1] > G) ? (((uint32_t)(p[1] - G) * s) >> 8) : 0U));
-	p[2] = (uint8_t)(B + ((p[2] > B) ? (((uint32_t)(p[2] - B) * s) >> 8) : 0U));
 }
 
 /* Iki nokta: saniye gosterilirken sabit, yoksa saniyede bir yanip soner */
@@ -3674,7 +3659,7 @@ static void SaatCiz(const SaatDurum *S, uint8_t R, uint8_t G, uint8_t B)
 	int x, y;
 	for(y = 0; y < (int)H; y++)
 		for(x = 0; x < (int)W; x++)
-			if(SaatPx(S, x, y) && (Yanik || !SaatNokta(S, x))) SaatSet(x, y, R, G, B);
+			if(SaatPx(S, x, y) && (Yanik || !SaatNokta(S, x))) Set(x, y, R, G, B);
 }
 
 /* Saat secilen renkte; sicaklik / nem biraz daha acik */
@@ -3791,9 +3776,8 @@ static void SmKozRenk(uint32_t k, uint8_t *r, uint8_t *g, uint8_t *b)
 	else         { *r = 235U + (uint8_t)((k - 160U) / 5U); *g = (uint8_t)(59U + (k - 160U)); *b = (uint8_t)(4U + (k - 160U) / 3U); }
 }
 
-/* Rakamlar alev icin engel; Saydamlik acikken alev rakamlarin icinden de yanar.
-   Iki nokta engel degil (sonunce yeri kara kalmasin, alev arkasinda yanar). */
-static inline uint8_t SmEngel(const SaatDurum *S, int x, int y) { return (uint8_t)(SPEC_SaatSaydam == 0U && SaatPx(S, x, y) && !SaatNokta(S, x)); }
+/* Rakamlar alev icin engel. Iki nokta engel degil (sonunce yeri kara kalmasin, alev arkasinda yanar). */
+static inline uint8_t SmEngel(const SaatDurum *S, int x, int y) { return (uint8_t)(SaatPx(S, x, y) && !SaatNokta(S, x)); }
 
 static void ModeHearth(void)
 {
@@ -3896,12 +3880,7 @@ static void ModeHearth(void)
 			uint32_t h = 0, k;
 			uint8_t r, g, b;
 			if(!SaatPx(S, x, y)) continue;
-			if(SaatNokta(S, x)) { if(SaatNoktaYanik(S)) SaatSet(x, y, nr, ng, nb); continue; }
-			if(SPEC_SaatSaydam)									/* Saydam: kor yok, cam rengi */
-			{
-				SaatSet(x, y, (uint8_t)((SPEC_SaatRgb >> 16) & 0xFFU), (uint8_t)((SPEC_SaatRgb >> 8) & 0xFFU), (uint8_t)(SPEC_SaatRgb & 0xFFU));
-				continue;
-			}
+			if(SaatNokta(S, x)) { if(SaatNoktaYanik(S)) Set(x, y, nr, ng, nb); continue; }
 			if(y > 0          && U.Sm.Heat[y - 1][x] > h) h = U.Sm.Heat[y - 1][x];
 			if(y < (int)H - 1 && U.Sm.Heat[y + 1][x] > h) h = U.Sm.Heat[y + 1][x];
 			if(x > 0          && U.Sm.Heat[y][x - 1] > h) h = U.Sm.Heat[y][x - 1];
@@ -3919,7 +3898,7 @@ static void ModeHearth(void)
 				g = (uint8_t)((sg * (255U - a) + g * a) / 255U);
 				b = (uint8_t)((sb * (255U - a) + b * a) / 255U);
 			}
-			SaatSet(x, y, r, g, b);
+			Set(x, y, r, g, b);
 		}
 
 	SaatIsiCiz(S, (uint8_t)((SPEC_SaatRgb >> 16) & 0xFFU), (uint8_t)((SPEC_SaatRgb >> 8) & 0xFFU), (uint8_t)(SPEC_SaatRgb & 0xFFU));
@@ -3986,7 +3965,7 @@ static inline int32_t YmSin(int32_t v, int32_t Lo, int32_t Hi) { return (v < Lo)
 #define YM_LX		8							/* Lamba basi orta sutunu (solda)		*/
 #define YM_LY		2							/* Isik cikan satir (lamba en ustte)	*/
 #define YM_KENAR	7							/* Saat bu kadar kenara yaklasirsa direk yok	*/
-static uint16_t YmIr = 255U, YmIg = 222U, YmIb = 130U;		/* Lamba isigi: saat renginin tam tonu (her kare)	*/
+static const uint16_t YmIr = 255U, YmIg = 217U, YmIb = 160U;	/* Lamba isigi: sabit krem (saat renginden bagimsiz)	*/
 static uint8_t  YmLamba = 1U;								/* Direkler var mi (saat kenarlara tasarsa yok)	*/
 #define YM_KADEME	4										/* Hava huzmesi: 0 (sonuk) + 3 kademe		*/
 static uint8_t  YmHz[YM_KADEME][3];							/* Kademe renkleri: panel cikisinda saat rengiyle ayni oran */
@@ -4267,6 +4246,7 @@ static void ModeRain(void)
 		U.Ym.Ak = 0;
 		U.Ym.OtoS = U.Ym.OtoSH = 1.0f; U.Ym.OtoE = U.Ym.OtoEH = 40.0f; U.Ym.OtoSonra = 20.0f;
 		U.Ym.KyOn = 0U; U.Ym.KySonra = 10.0f + 20.0f * RandF();
+		YmHzKur();													/* Lamba renginin kademeleri (sabit renk: bir kez) */
 		U.Ym.Ready = 1;
 	}
 	if(Oto)
@@ -4288,12 +4268,6 @@ static void ModeRain(void)
 	}
 	U.Ym.Kare++;
 	SaatHazirla(&U.Ym.S);
-	{																/* Lamba isigi saat renginde, tam tonda (parlaklik ayarindan bagimsiz) */
-		uint32_t m = sr; if(sg > m) m = sg; if(sb > m) m = sb;
-		if(!m) m = 1U;
-		YmIr = (uint16_t)(sr * 255U / m); YmIg = (uint16_t)(sg * 255U / m); YmIb = (uint16_t)(sb * 255U / m);
-		YmHzKur();
-	}
 	{																/* Direkler yalniz saat ortada ve kenarlara tasmiyorken (Isi-Nem yok) */
 		int Sol = (int)W, Sag = -1, k;
 		for(y = 0; y < (int)H; y++)
