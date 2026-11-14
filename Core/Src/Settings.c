@@ -103,7 +103,7 @@ static void ApplyClassic(uint8_t Mode, int32_t Value)
 
 /* Alev rengi: bloklu cubuk sirasi -> SPEC_SetFirePalette secimi.
    Her blok elle ayarlanmis bir palet; ara ton yok (gercekcilik bozulmasin). */
-static const uint8_t FirePal[] = { 1U, 7U, 4U, 2U, 3U };	/* Ates, Pembe, Mor, Mavi gaz, Yesil */
+static const uint8_t FirePal[] = { 1U, 7U, 4U, 2U, 3U, 8U };	/* Ates, Pembe, Mor, Mavi gaz, Yesil, Aurora */
 
 static void ApplyFire(uint8_t Mode, int32_t Value)
 {
@@ -226,9 +226,9 @@ static const SET_Param Table[] =
 	  "Yerle\305\237im", "Ekstra", "Bas solda|Bas ortada", ApplyClassic },			/* Yerlesim: gorunume sabit (Ayna, Orta Dag) */
 
 	/* --- Alev modlari: bloklu renk cubugu (hazir paletler) --- */
-	{ SET_ID_FIRE_COLOR,	SET_TYPE_SWATCH, SET_FLAG_PER_MODE, FIRE_MASK, 0, 4, 1, 0,
+	{ SET_ID_FIRE_COLOR,	SET_TYPE_SWATCH, SET_FLAG_PER_MODE, FIRE_MASK, 0, 5, 1, 0,
 	  "Alev Renk", "Alev",
-	  "Ate\305\237:FF7A10|Pembe:FF3C8C|Mor:A040FF|Mavi gaz:2C7CFF|Ye\305\237il:50E040",	/* Ates ... Yesil */
+	  "Ate\305\237:FF7A10|Pembe:FF3C8C|Mor:A040FF|Mavi gaz:2C7CFF|Ye\305\237il:50E040|Aurora:28AA6E,8C5AD2",	/* Ates ... Aurora */
 	  ApplyFire },
 
 	/* --- Tum gorunumler: hareket --- */

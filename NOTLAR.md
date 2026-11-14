@@ -128,6 +128,9 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 - 14 Kasım: Fatih'in ilk saat fontu Arial Bold (arialbold24px.c/.h, HUB75 Aracı çıktısı, 24 px, oransal, 0-9 : C)
   eklendi; geçici font (Font_SaatGecici.h) silindi (PC'de dosya duruyorsa kullanılmıyor). Rakamlar en geniş rakam
   kadar yuvaya ortalanır (dakika değişince saat kaymasın). Saat Yazısı tek font olduğu için hâlâ gizli.
+- 14 Kasım (7): Alev Renk'e "Aurora" bloğu (FirePal 8): soluk gökkuşağı turkuaz-yeşil-camgöbeği-mor-pembe-şeftali;
+  alev ailesinin hepsinde seçilebilir. Aurora seçiliyken kıvılcımlar (FireEmbers) her biri kendi tonunda
+  (Particle.Hue), ömürle söner (SPEC_FireAurora).
 - 14 Kasım (6): Model adı SPA12832 (SPA + panel genişlik + yükseklik, tiresiz). STM32 fabrika cihaz adı bu.
   ESP32 açılışta STM32'ye CMD_INFO sorar (2 sn, tekrarlı), Bluetooth/AP/mDNS adı SPA12832-1A2B (tire yalnız
   MAC'ten önce); cevap yoksa Spektrum-1A2B. Kullanıcı adı sadece uygulamada, radyo adı değişmez. Android kendi

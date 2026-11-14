@@ -342,6 +342,7 @@ static void Fade(uint16_t Keep)
 /* Alev paleti: tum alev modlari bunu kullanir. Ayar degisince yeniden
    hesaplanir (768 bayt). 0 = soguk/siyah, 255 = en sicak.			*/
 static uint8_t ActPal[256][3];
+static uint8_t SPEC_FireAurora;									/* Alev paleti aurora: kivilcimlar renk renk */
 
 static void PalSet(int v, float r, float g, float b)
 {
@@ -351,13 +352,14 @@ static void PalSet(int v, float r, float g, float b)
 }
 
 /* Sel: 0 = modun kendi rengi, 1 ates, 2 mavi gaz, 3 yesil, 4 mor, 5 buz,
-   6 ozel (Kor / Govde / Uc renkleri, 0x00RRGGBB), 7 pembe				*/
+   6 ozel (Kor / Govde / Uc renkleri, 0x00RRGGBB), 7 pembe, 8 aurora		*/
 void SPEC_SetFirePalette(uint8_t Sel, uint32_t Kor, uint32_t Govde, uint32_t Uc)
 {
 	int v;
 
 	if(Sel == 0U)
 		Sel = (Mode == SPEC_MODE_FIRE_BLUE) ? 2U : 1U;
+	SPEC_FireAurora = (uint8_t)(Sel == 8U);
 
 	for(v = 0; v < 256; v++)
 	{
@@ -372,6 +374,20 @@ void SPEC_SetFirePalette(uint8_t Sel, uint32_t Kor, uint32_t Govde, uint32_t Uc)
 		case 4:	PalSet(v, a * 0.85f, t, f * f * 3.3f);					break;	/* mor-eflatun-pembe-beyaz */
 		case 5:	PalSet(v, (f - 0.55f) * 2.4f, (f - 0.30f) * 1.6f, f * 2.0f);	break;	/* buz: mavi-beyaz */
 		case 7:	PalSet(v, a, (f - 0.70f) * 3.0f, m * 0.9f);				break;	/* pembe: bordo-fusya-pembe-beyaz */
+		case 8:														/* aurora: soluk gokkusagi, kuzey isiklari tonlari */
+		{
+			static const float Dr[7][4] =							/* konum, r, g, b: turkuaz-yesil-camgobegi-mor-pembe-seftali */
+			{ { 0.00f, 0.00f, 0.00f, 0.00f }, { 0.18f, 0.00f, 0.22f, 0.26f }, { 0.34f, 0.16f, 0.62f, 0.40f },
+			  { 0.50f, 0.22f, 0.68f, 0.76f }, { 0.65f, 0.52f, 0.36f, 0.84f }, { 0.82f, 0.86f, 0.44f, 0.72f },
+			  { 1.00f, 0.95f, 0.72f, 0.62f } };
+			int k = 0;
+			float u;
+			while(k < 5 && f > Dr[k + 1][0]) k++;
+			u = (f - Dr[k][0]) / (Dr[k + 1][0] - Dr[k][0]);
+			PalSet(v, Dr[k][1] + (Dr[k + 1][1] - Dr[k][1]) * u, Dr[k][2] + (Dr[k + 1][2] - Dr[k][2]) * u,
+			          Dr[k][3] + (Dr[k + 1][3] - Dr[k][3]) * u);
+			break;
+		}
 		default:
 		{
 			/* Ozel: siyah -> Kor -> Govde -> Uc (0, 0.35, 0.70, 1.0) */
@@ -870,6 +886,7 @@ static void FireEmbers(const uint8_t Pal[256][3], uint8_t Mirror)
 				p->Y  = (float)H - 2.0f - RandF() * 10.0f;
 				p->Vx = (RandF() - 0.5f) * 20.0f;
 				p->Vy = -(25.0f + 45.0f * RandF());
+				p->Hue = (uint16_t)(90U + Rand() % 166U);		/* Aurora: her kivilcim kendi tonunda */
 				p->Life = 255U;
 				break;
 			}
@@ -887,6 +904,13 @@ static void FireEmbers(const uint8_t Pal[256][3], uint8_t Mirror)
 		p->Life = (p->Life > 6U) ? (uint8_t)(p->Life - 6U) : 0U;
 		if(p->Y < -2.0f || p->Y >= (float)H || p->X < 0.0f || p->X >= (float)W) { p->Life = 0; continue; }
 
+		if(SPEC_FireAurora)										/* Renk renk kivilcim: tonu sabit, omurle soner */
+		{
+			const uint32_t k = 128U + (p->Life >> 1);
+			const uint8_t *c = Pal[p->Hue];
+			if(p->Y >= 0.0f) Add((int)p->X, (int)p->Y, (uint8_t)((c[0] * k) >> 8), (uint8_t)((c[1] * k) >> 8), (uint8_t)((c[2] * k) >> 8));
+			continue;
+		}
 		v = (uint8_t)(160U + (p->Life >> 2) + (Rand() & 31U));
 		if(p->Y >= 0.0f) Add((int)p->X, (int)p->Y, Pal[v][0], Pal[v][1], Pal[v][2]);
 	}
