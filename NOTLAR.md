@@ -130,6 +130,8 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
      damla iter, halka kendiliğinden yayılır, girişim (tepe+tepe güçlenir, tepe+çukur söner), perspektifle
      uzakta basık. Yüzey eğimi yansımayı ve ışık çizgilerini bozar. Beyaz yok, yalnız su tonları.
   5. Su kenarı sabit ve düzensiz kalsın (bu yapıldı).
+  5b. Su tonu çok koyu (R 6-12, G 14-24, B 28-44): dalga farkı birkaç adımda kalıyor, kısık parlaklıkta hiç
+     seçilmiyor. Su tonu açılsın, dalga tepe/çukur farkı en az 15-20 adım olsun.
   Şömine:
   6. Saydamlık 0'da iki nokta alev için engel sayılmasın (nokta sönünce orası simsiyah kalıyor).
   7. Alevin ALT kısmı daha sarı (paletin sıcak ucu); üst kısım iyi, değişmesin.
