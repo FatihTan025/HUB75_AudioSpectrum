@@ -118,31 +118,20 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 - Telefon sesi ESP32'ye A2DP ile gelebilir (I2S → STM32); arayan bilgisi Android uygulamasından.
 
 ## Bekleyen işler
-- **YAPILACAKLAR (14 Kasım, Fatih onayı bekliyor; "yaz" deyince):**
-  Yağmur:
-  1. YÜK: su katmanındaki piksel başına 2 sinf kalksın (yağmur ağır çekim gibi yavaşladı). Tablo / tam sayı.
-  2. Saat bozulmasın: kırılma (sx kaydırma) kalksın; saatin suyun içindeki kısmı tam parlak, hafif mavimsi;
-     dalga tonu ve halkalar rakamların üstüne binmesin.
-  3. Su gibi görünsün: saatin ters, sönük, satır satır dalgalanan yansıması; Sahil'deki gibi kısa yatay açık
-     mavi ışık çizgileri (uzakta küçük/sık, yakında uzun/seyrek, yavaş kayar).
-  4. Halkalar uzun yaşasın, geniş yayılsın (20-30 px), birbirinin içinden geçsin; yüzey sürekli dalgalı
-     (sağanakta en hareketli). Doğru yol: su alanında (128x16) tam sayı dalga denklemi (yükseklik alanı);
-     damla iter, halka kendiliğinden yayılır, girişim (tepe+tepe güçlenir, tepe+çukur söner), perspektifle
-     uzakta basık. Yüzey eğimi yansımayı ve ışık çizgilerini bozar. Beyaz yok, yalnız su tonları.
-  5. Su kenarı sabit ve düzensiz kalsın (bu yapıldı).
-  5b. Su tonu çok koyu (R 6-12, G 14-24, B 28-44): dalga farkı birkaç adımda kalıyor, kısık parlaklıkta hiç
-     seçilmiyor. Su tonu açılsın, dalga tepe/çukur farkı en az 15-20 adım olsun.
-  Şömine:
-  6. Saydamlık 0'da iki nokta alev için engel sayılmasın (nokta sönünce orası simsiyah kalıyor).
-  7. Alevin ALT kısmı daha sarı (paletin sıcak ucu); üst kısım iyi, değişmesin.
-  Bütün modlar:
-  8. Saydamlıkta saat, alttaki zeminin rengiyle SÜZÜLMESİN (renkli cam gibi karartıyor: turuncu alev mavi
-     saatte kararıyor); saat rengiyle karıştırılarak gösterilsin, zemin parlaksa saat de parlak görünsün.
-  Android:
-  9. Saat rengi için ikinci çubuk (renk çubuğunun altında): sol koyu ton, orta rengin kendisi, sağ açık/pastel
-     (beyaza doğru); Sahil'deki gibi ara tonlar. Kart değişmez (saat rengi zaten tek RGB); Android ilk çubuktan
-     tonu, ikinciden açıklığı alıp tek RGB gönderir (gelen RGB'den ikisini geri hesaplar). ↺ ikisini birden
-     fabrika rengine döndürür. Bir kez APK güncellemesi gerekir. Sahil'deki Gece/Gündüz yerinde kalır.
+- 14 Kasım (10, kartta denenmedi): YAPILACAKLAR listesi yazıldı.
+  Yağmur: su artık 128x16 tam sayı dalga denklemi (U.Ym.Dl[2][16][128] int16, Ym union'ı ~11.5 KB -> union
+  ~3 KB büyüdü). Dalga 2 karede bir adım (YmDalga), yatay YM_KX 64, dikey uzakta ~%35 (basık halka), sönüm >>7,
+  üst/alt 2 satır yutar (yansıyıp bulamaçlaşmasın). Damla suya değince iter (YmIt, güç = hız; uzakların 1/8'i iz
+  bırakır, yakın 18, iri 30); halka kendiliğinden yayılır, girişim var. YmHalka ve kırılma (sx kaydırma) silindi;
+  su katmanında sinf yok. Su tonu açıldı (R 14-24, G 34-52, B 62-86), eğimle ±24 tepe/çukur. Saatin ters sönük
+  yansıması (eğim + satır satır kıpırtı), kısa yatay ışık çizgileri (uzakta 3 px sık, yakında 12 px seyrek, yavaş
+  kayar, eğimle bükülür). Saat suyun ÖNÜNDE: dalga rakamların üstüne binmez, sudaki kısmı hafif mavimsi.
+  Ayar noktaları (kartta bakılacak): Ib >> 6 (dalga kontrastı), YmIt güçleri, sönüm >>7, YM_KX.
+  Şömine: ':' alev için engel değil (sönünce yeri kara kalmıyor). Alt 10 satırda ısı palete +%0..94 kayar
+  (SM_SARI, taban sarı), üst aynı.
+  Bütün modlar: saydam saat artık ekran karışımı (SaatSet): saat rengi zeminle karışır, zemin parlaksa saat de parlak.
+  Android: Saat > Renk iki çubuk (SaatRenk): ton + açıklık (sol koyu %15, orta renk, sağ pastel beyaza %80);
+  kart tek RGB, iki değer RGB'den geri hesaplanır; ↺ fabrika rengi. APK güncellemesi gerekir.
   Kar: zemindeki kar örtüsü kaldırıldı, kar eski haline döndü (Fatih onayladı, öyle kalsın).
   Not: PC'ye kopyalarken her seferinde dosya boyutunu kontrol et (aynı adla tekrar gönderilen dosya eski
   kopya olarak gitti).

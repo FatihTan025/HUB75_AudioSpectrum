@@ -238,7 +238,7 @@ fun SaatDuzeni(liste: List<Tanim>, deger: (Tanim) -> Int, yaz: (Tanim, Int) -> U
         Box(Modifier.weight(1f)) { BasmaDugme(isi.ad, deger(isi) != 0) { yaz(isi, if (it) 1 else 0) } }
         Spacer(Modifier.weight(2f))
     }
-    if (rgb != null) AyarSatiri(rgb.copy(ad = "Renk"), deger(rgb)) { yaz(rgb, it) }
+    if (rgb != null) TekSatir("Renk") { SaatRenk(deger(rgb)) { yaz(rgb, it) } }
     val cubuklar = listOfNotNull(isik?.copy(ad = "Parlaklık"), say)
     if (cubuklar.isNotEmpty()) AyarListesi(cubuklar, { t -> deger(liste.first { it.id == t.id }) }) { t, v -> yaz(liste.first { it.id == t.id }, v) }
     val kalan = liste.filter { it !in bilinen }
@@ -403,13 +403,13 @@ fun konumRgb(k: Float): Int = if (k < BEYAZ) 0xFFFFFF else tonRgb(((k - BEYAZ) /
 
 /** Renk cubugu: konum 0..1; beyaz = basta beyaz bolum (renk ayarlari). */
 @Composable
-fun RenkCubugu(konum: Float, beyaz: Boolean, degisti: (Float) -> Unit) {
+fun RenkCubugu(konum: Float, beyaz: Boolean, firca: Brush? = null, degisti: (Float) -> Unit) {
     val guncel by rememberUpdatedState(degisti)      // pointerInput(Unit) eski lambdayi tutmasin
     BoxWithConstraints(Modifier.fillMaxWidth().height(28.dp), contentAlignment = Alignment.CenterStart) {
         val g = maxWidth
         Box(
             Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(6.dp))
-                .background(if (beyaz) beyazTonFircasi else tonFircasi)
+                .background(firca ?: if (beyaz) beyazTonFircasi else tonFircasi)
                 .pointerInput(Unit) {
                     awaitEachGesture {
                         val d = awaitFirstDown()
@@ -420,6 +420,47 @@ fun RenkCubugu(konum: Float, beyaz: Boolean, degisti: (Float) -> Unit) {
                 }
         )
         Box(Modifier.offset(x = (g - 22.dp) * konum.coerceIn(0f, 1f))) { Tutamac() }
+    }
+}
+
+/* Saat rengi: ton (ilk cubuk) + aciklik (ikinci cubuk: sol koyu, orta rengin kendisi, sag pastel).
+   Kart tek RGB tutar; iki deger gelen RGB'den geri hesaplanir. Beyaz ton: koyu tarafta gri kademe. */
+private const val KOYU_TABAN = 0.15f        // En sol: rengin %15'i
+private const val PASTEL_UST = 0.8f         // En sag: beyaza %80 (ton secilebilir kalsin)
+
+private fun acikRgb(taban: Int, a: Float): Int {
+    fun k(c: Int): Int = if (a < 0.5f) (c * (KOYU_TABAN + (1f - KOYU_TABAN) * a * 2f)).roundToInt()
+                         else (c + (255 - c) * (a - 0.5f) * 2f * PASTEL_UST).roundToInt()
+    return (k(taban shr 16 and 255).coerceIn(0, 255) shl 16) or (k(taban shr 8 and 255).coerceIn(0, 255) shl 8) or k(taban and 255).coerceIn(0, 255)
+}
+
+/** RGB -> (taban renk, aciklik 0..1) */
+private fun rgbAyir(v: Int): Pair<Int, Float> {
+    val r = v shr 16 and 255; val g = v shr 8 and 255; val b = v and 255
+    val m = maxOf(r, g, b); val n = minOf(r, g, b)
+    if (m == 0) return 0xFFFFFF to 0f
+    val hsv = FloatArray(3); android.graphics.Color.colorToHSV(0xFF000000.toInt() or v, hsv)
+    if (hsv[1] < 0.1f) return 0xFFFFFF to (0.5f * ((m / 255f - KOYU_TABAN) / (1f - KOYU_TABAN))).coerceIn(0f, 0.5f)
+    val taban = tonRgb(hsv[0])
+    return taban to (if (n > 0 && m >= 250) 0.5f + 0.5f * (n / 255f / PASTEL_UST).coerceIn(0f, 1f)
+                     else (0.5f * ((m / 255f - KOYU_TABAN) / (1f - KOYU_TABAN))).coerceIn(0f, 0.5f))
+}
+
+@Composable
+fun SaatRenk(deger: Int, degisti: (Int) -> Unit) {
+    val (taban, acik) = rgbAyir(deger.coerceAtLeast(0))
+    fun renk(c: Int) = Color(0xFF000000.toInt() or c)
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            RenkCubugu(rgbKonum(taban), beyaz = true) { degisti(acikRgb(konumRgb(it), acik)) }
+            RenkCubugu(acik, beyaz = false,
+                firca = Brush.horizontalGradient(listOf(renk(acikRgb(taban, 0f)), renk(taban), renk(acikRgb(taban, 1f))))) {
+                degisti(acikRgb(taban, it))
+            }
+        }
+        // Fabrika rengi: -1 gonderilir, cihaz bu modun ilk rengini koyup geri bildirir (iki cubuk birden doner)
+        Box(Modifier.padding(start = 8.dp).size(30.dp).clip(CircleShape).background(DugmeYuz).clickable { degisti(-1) },
+            contentAlignment = Alignment.Center) { Text("↺", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold) }
     }
 }
 
