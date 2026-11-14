@@ -17,7 +17,7 @@
 #include "HUB75.h"
 #include "Audio_ADC.h"
 #include "Saat.h"
-#include "Font_SaatGecici.h"
+#include "arialbold24px.h"
 #include <string.h>
 #include <math.h>
 
@@ -3068,7 +3068,7 @@ uint32_t SPEC_SaatRgb = 0x0A0D13UL;						/* Saat rengi 0xRRGGBB (Settings: renk 
 
 /* Saat fontlari: Fatih'in fontlari geldikce buraya eklenir (Settings.c SAAT_YAZI
    secenek listesi ve Max ile ayni sirada). Bicim: FONT_INFO, 0-9.		*/
-static const FONT_INFO *const SaatYazilari[] = { &FontSaatGecici };
+static const FONT_INFO *const SaatYazilari[] = { &arialbold24pxFontInfo };
 #define SAAT_YAZI_SAYISI	(sizeof(SaatYazilari) / sizeof(SaatYazilari[0]))
 
 uint8_t SPEC_SaatYaziSayisi(void) { return (uint8_t)SAAT_YAZI_SAYISI; }
@@ -3084,6 +3084,14 @@ static inline uint8_t SaatPx(const SaatDurum *S, int x, int y)
 }
 
 static int SaatRakamGen(const FONT_INFO *F, uint8_t r) { return (int)F->Descriptors[r].Width; }
+
+/* Rakam yuvasi: en genis rakam kadar (oransal fontta dakika degisince saat kaymasin) */
+static int SaatYuva(const FONT_INFO *F)
+{
+	int r, g = 0;
+	for(r = 0; r < 10; r++) if(SaatRakamGen(F, (uint8_t)r) > g) g = SaatRakamGen(F, (uint8_t)r);
+	return g;
+}
 
 static void SaatRakamMaske(SaatDurum *S, const FONT_INFO *F, int X0, int Y0, uint8_t r)
 {
@@ -3105,6 +3113,7 @@ static void SaatHazirla(SaatDurum *S)
 	const uint8_t Yazi = (SPEC_SaatYazi < SAAT_YAZI_SAYISI) ? SPEC_SaatYazi : 0U;
 	const FONT_INFO *F = SaatYazilari[Yazi];
 	const int fh = (int)F->Height;
+	const int Yv = SaatYuva(F);
 	uint8_t Sa, Dk, Sn, r[4];
 	int tw, x0, y0, i, x;
 
@@ -3114,7 +3123,7 @@ static void SaatHazirla(SaatDurum *S)
 	memset(S->M, 0, sizeof(S->M));
 
 	r[0] = (uint8_t)(Sa / 10U); r[1] = (uint8_t)(Sa % 10U); r[2] = (uint8_t)(Dk / 10U); r[3] = (uint8_t)(Dk % 10U);
-	tw = SaatRakamGen(F, r[0]) + SaatRakamGen(F, r[1]) + SaatRakamGen(F, r[2]) + SaatRakamGen(F, r[3]) + 2 * SAAT_ARA + SAAT_IKI;
+	tw = 4 * Yv + 2 * SAAT_ARA + SAAT_IKI;
 
 	S->Isi = (S->Yer == 2U) ? 1U : 0U;
 	switch(S->Yer)
@@ -3129,8 +3138,8 @@ static void SaatHazirla(SaatDurum *S)
 	x = x0;
 	for(i = 0; i < 4; i++)
 	{
-		SaatRakamMaske(S, F, x, y0, r[i]);
-		x += SaatRakamGen(F, r[i]) + ((i == 1) ? SAAT_IKI + SAAT_ARA : SAAT_ARA);
+		SaatRakamMaske(S, F, x + (Yv - SaatRakamGen(F, r[i])) / 2, y0, r[i]);	/* Yuvada ortali */
+		x += Yv + ((i == 1) ? SAAT_IKI + SAAT_ARA : SAAT_ARA);
 		if(i == 1) { S->Ix = (int16_t)(x - SAAT_IKI - SAAT_ARA + SAAT_IKI / 2 - 1); S->Iy = (int16_t)(y0 + fh / 2 - 5); }
 	}
 }

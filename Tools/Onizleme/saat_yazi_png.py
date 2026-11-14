@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Saat fontu ornekleri: SpecDisplay.c SaatYazilari[] sirasindaki her fonttan "12:34" resmi uretir.
 Adlar Settings.c SAAT_YAZI secenek listesinden (ayni sira). Cikti: assets/saatyazi/<sade_ad>.png
-Fatih'in fontu (FONT_INFO, 0-9) Core/Inc altina konup tabloya eklenince ornegi kendiliginden cikar."""
+Fatih'in fontu (FONT_INFO, 0-9; .h ya da .c icinde) tabloya eklenince ornegi kendiliginden cikar."""
 import re, sys, pathlib
 from PIL import Image
 KOK = pathlib.Path(__file__).resolve().parents[2]
@@ -14,7 +14,8 @@ sd = (KOK / 'Core/Src/SpecDisplay.c').read_text(encoding='utf-8', errors='replac
 fontlar = re.findall(r'&(\w+)', re.search(r'SaatYazilari\[\]\s*=\s*\{([^}]*)\}', sd).group(1))
 st = (KOK / 'Core/Src/Settings.c').read_text(encoding='ascii')
 adlar = coz(re.search(r'\{ SET_ID_SAAT_YAZI,.*?"[^"]*",\s*"[^"]*",\s*"([^"]*)"', st, re.S).group(1)).split('|')
-basliklar = ''.join(p.read_text(encoding='utf-8', errors='replace') for p in (KOK / 'Core/Inc').glob('*.h'))
+basliklar = re.sub(r'/\*.*?\*/', ' ', ''.join(p.read_text(encoding='utf-8', errors='replace')
+                    for p in [*(KOK / 'Core/Inc').glob('*.h'), *(KOK / 'Core/Src').glob('*.c')] if 'FONT_INFO' in p.read_text(encoding='utf-8', errors='replace')), flags=re.S)  # yorumlar silinir
 
 def font_oku(ad):
     m = re.search(r'FONT_INFO\s+' + ad + r'\s*=\s*\{\s*(\d+)\s*,[^,]*,[^,]*,\s*(\w+)\s*,\s*(\w+)', basliklar)
