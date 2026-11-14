@@ -3972,12 +3972,14 @@ static uint8_t  YmLamba = 1U;								/* Direkler var mi (saat kenarlara tasarsa 
 #define YM_KADEME	4										/* Hava huzmesi: 0 (sonuk) + 3 kademe		*/
 static uint8_t  YmHz[YM_KADEME][3];							/* Kademe renkleri: panel cikisinda saat rengiyle ayni oran */
 
-/* Hava huzmesinin kademeleri: panel (CIE + bitplane) cikisinda en parlak kanal 1, 2, 3 basamak;
+/* Hava huzmesinin kademeleri: panel (CIE + bitplane) cikisinda en parlak kanal 6, 10, 14 basamak (ust
+   bitplane'lere tasinir: 1 basamak yuvarlama tonu belirgin kaydirmaz, sonukte esitlenen alt bitler belirleyici olmaz);
    diger kanallar ayni oranda yuvarlanir. Orani tutmayan kademe (kanal sifira duser) sonuk kalir:
    dusuk degerlerde kanallar farkli basamaga yuvarlanip yesil / kirmizi piksel cikmasin. */
 static void YmHzKur(void)
 {
 	static const uint8_t *const T[3] = { CIE_RED, CIE_GREEN, CIE_BLUE };
+	static const uint8_t Lv[YM_KADEME] = { 0, 6, 10, 14 };			/* En parlak kanalin cikis basamagi */
 	const uint32_t Ka = 8U - HUB75_BITPLANES;
 	const uint32_t I[3] = { YmIr, YmIg, YmIb };
 	uint32_t m = I[0], k, ch;
@@ -3990,7 +3992,7 @@ static void YmHzKur(void)
 		uint8_t Ok = 1U, c[3];
 		for(ch = 0; ch < 3U; ch++)
 		{
-			const uint32_t o = (k * I[ch] + m / 2U) / m;					/* Hedef cikis basamagi */
+			const uint32_t o = (Lv[k] * I[ch] + m / 2U) / m;				/* Hedef cikis basamagi */
 			uint32_t v = 0U;
 			if(o == 0U) { if(I[ch] * 4U >= m) Ok = 0U; c[ch] = 0U; continue; }	/* Onemli kanal kayboluyorsa kademe yok */
 			while(v < 255U && (uint32_t)(T[ch][v] >> Ka) < o) v++;		/* CIE'nin tersi: o basamagi veren en kucuk giris */

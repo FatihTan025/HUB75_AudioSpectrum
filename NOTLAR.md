@@ -166,6 +166,9 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   Kar: zemindeki kar örtüsü kaldırıldı, kar eski haline döndü (Fatih onayladı, öyle kalsın).
   Not: PC'ye kopyalarken her seferinde dosya boyutunu kontrol et (aynı adla tekrar gönderilen dosya eski
   kopya olarak gitti).
+- 14 Kasım (19, kartta denenmedi): Yağmur hava hüzmesi biraz parlak: kademeler panel çıkışında en parlak kanal
+  6/10/14 basamak (Lv; önce 1/2/3 idi, sönükte renk kayıyordu). Sudaki ışık aynı (suyu boğmasın, Fatih).
+  Kök sebep (ileride, tüm modlar): düşük genel parlaklıkta alt bitplane'ler 1 tikte sabit (HUB75_DMA.c OnTicks).
 - 14 Kasım (18): Android ayarYaz debounce (60 ms bekle + iptal) yerine akış: yolda en çok bir gönderim, arada gelenlerden
   yalnız sonuncusu (bekleyen) cevap gelince gider. Kaydırırken panel hemen güncellenir (renk, parlaklık, frekans...).
 - 14 Kasım (17, kartta denenmedi): Lamba hava hüzmesi kademeli ve çok sönük (YM_KADEME 4: sönük + 3 kademe).
