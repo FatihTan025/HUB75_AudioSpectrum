@@ -124,6 +124,8 @@ typedef struct { uint8_t X, Y, Life; } ShKopuk;							/* Denizde kisa omurlu kop
 #define YM_YAKIN		18
 #define YM_ZERRE		40
 #define YM_SU_H			16				/* Yagmur: dalga alani satiri (panelin alti)	*/
+#define YM_KY_IZ		12				/* Yagmur: kayan yildiz kuyrugu (kucuk)		*/
+#define YM_KY_ALT		8				/* Yagmur: kayan yildiz bu satirin altina inmez	*/
 #define SH_YALAMA		3				/* Sahil: ayni anda kiyiya vuran dalga	*/
 #define SH_SIRT			8				/* Sahil: denizdeki sirt				*/
 #define SH_KOPUK		10				/* Sahil: denizdeki kopuk tepecigi		*/
@@ -197,6 +199,9 @@ static union
 		int16_t		Dl[2][YM_SU_H][W];				/* Su yuzeyi yuksekligi (dalga denklemi; simdiki / onceki)	*/
 		uint8_t		Ak;								/* Simdiki tampon					*/
 		float		OtoS, OtoSH, OtoE, OtoEH, OtoSonra;	/* Oto: siddet 0..2 ve egim 0..100 (simdiki / hedef), yeni hedefe kalan sn */
+		float		KyX, KyY, KyVx, KyVy, KyYas, KyOmur, KySonra;	/* Nadir, kucuk kayan yildiz (ust gokyuzu)	*/
+		int16_t		KyIx[YM_KY_IZ], KyIy[YM_KY_IZ];
+		uint8_t		KyOn, KyIz;
 		uint8_t		Of[W];							/* Su kenarinin sutun kaymasi		*/
 		uint32_t	Kare;
 		uint8_t		Ready;
@@ -469,9 +474,9 @@ static void UpdateBars(void)
 	const float    RDT   = 1.0f / CFG_FPS;
 	/* Cubuk modlarinda (Klasik, Neon, Orta Dag) Hiz = dusus/tepe hizi (dogrusal),
 	   yavasta yukselis de yumusar. Animasyonlarda cubuk dinamigi sabit. */
-	static const float KatBar[4] = { 0.2f, 0.4f, 0.8f, 1.0f };	/* Cubuk: Yavas, Normal, Yuksek, Cok yuksek */
-	static const float KatAtk[4] = { 0.35f, 0.6f, 1.0f, 1.0f };	/* Yukselis yumusatma */
-	const uint8_t  Sp    = (SPEC_Speed < 4U) ? SPEC_Speed : 2U;
+	static const float KatBar[3] = { 0.4f, 0.8f, 1.0f };		/* Cubuk: Yavas, Normal, Yuksek	*/
+	static const float KatAtk[3] = { 0.6f, 1.0f, 1.0f };		/* Yukselis yumusatma			*/
+	const uint8_t  Sp    = (SPEC_Speed < 3U) ? SPEC_Speed : 2U;
 	const float    Kb    = (Mode == SPEC_MODE_CLASSIC) ? KatBar[Sp] : 1.0f;
 	const float    Ka    = (Mode == SPEC_MODE_CLASSIC) ? KatAtk[Sp] : 1.0f;
 	const float    Fall  = CFG_BAR_FALL_PX_S * RDT * Kb;
@@ -537,7 +542,7 @@ static void UpdateBars(void)
    Tum gorunum SPEC_Cls ayarlarindan: genislik 1..4 px, tip (duz/neon),
    sekil, yerlesim, renk, tepe.
    ========================================================================== */
-uint8_t SPEC_Speed = 2, SPEC_React = 1, SPEC_ShowNo = 0;
+uint8_t SPEC_Speed = 1, SPEC_React = 1, SPEC_ShowNo = 0;
 uint8_t SPEC_LineSel = 0;						/* Isik Cizgisi renk ailesi (Settings.c yazar)	*/
 
 SPEC_ClsCfg SPEC_Cls = { 3, 0, 0, 1, 0, 1, 0, 0, 0x00FF00UL, 0xFFFFFFUL };
@@ -3592,6 +3597,25 @@ static void SnAyir(void)
 	}
 }
 
+/* Kayan yildiz kuyrugu: dusen damla gibi -- basin hemen arkasinda 3 px genis (yanlar dikine, hareket
+   cogunlukla yatay), uca dogru yavas yavas incelir ve soner; ani kuculme yok. Ix/Iy[0] = bas. */
+static void KyKuyruk(const int16_t *Ix, const int16_t *Iy, uint32_t n, uint32_t N, uint32_t Tepe)
+{
+	int i;
+	for(i = (int)n - 1; i > 0; i--)
+	{
+		const uint32_t k = N - (uint32_t)i;								/* Basa yakin buyuk */
+		const uint32_t v = Tepe * k * k / (N * N);						/* Orta cizgi */
+		const uint32_t Yan = (k * 4U > N * 2U) ? v * (k * 4U - N * 2U) / (N * 2U) * 3U / 5U : 0U;	/* Yanlar: bastan yariya kadar incelir */
+		Add(Ix[i], Iy[i], (uint8_t)v, (uint8_t)((v * 240U) >> 8), (uint8_t)((v * 210U) >> 8));
+		if(Yan)
+		{
+			Add(Ix[i], Iy[i] - 1, (uint8_t)Yan, (uint8_t)((Yan * 240U) >> 8), (uint8_t)((Yan * 210U) >> 8));
+			Add(Ix[i], Iy[i] + 1, (uint8_t)Yan, (uint8_t)((Yan * 240U) >> 8), (uint8_t)((Yan * 210U) >> 8));
+		}
+	}
+}
+
 /* Kayan yildiz: ust kosenin birinden girer, yay cizerek (yercekimi gibi) karsi
    kenarin alt tarafina iner; parlak bas + sonen kuyruk. */
 static void SnMeteor(float Gdt)
@@ -3624,11 +3648,7 @@ static void SnMeteor(float Gdt)
 		U.Sn.MSonra = 6.0f + 6.0f * RandF();
 		return;
 	}
-	for(i = (int)U.Sn.MIz - 1; i > 0; i--)							/* Kuyruk: 1 px, basa yakin parlak, ucta soner */
-	{
-		const uint32_t k = (uint32_t)(SN_IZ - i), v = 130U * k * k / ((uint32_t)SN_IZ * SN_IZ);
-		Add(U.Sn.Ix[i], U.Sn.Iy[i], (uint8_t)v, (uint8_t)((v * 240U) >> 8), (uint8_t)((v * 210U) >> 8));
-	}
+	KyKuyruk(U.Sn.Ix, U.Sn.Iy, U.Sn.MIz, SN_IZ, 130U);
 	{																/* Bas: 3x3 yumusak, ara piksel */
 		const float fx = U.Sn.Mx - 1.0f, fy = U.Sn.My - 1.0f;		/* Desen merkezi Mx, My */
 		const int   X0 = (int)floorf(fx), Y0 = (int)floorf(fy);
@@ -3971,14 +3991,14 @@ static uint8_t  YmLamba = 1U;								/* Direkler var mi (saat kenarlara tasarsa 
 #define YM_KADEME	4										/* Hava huzmesi: 0 (sonuk) + 3 kademe		*/
 static uint8_t  YmHz[YM_KADEME][3];							/* Kademe renkleri: panel cikisinda saat rengiyle ayni oran */
 
-/* Hava huzmesinin kademeleri: panel (CIE + bitplane) cikisinda en parlak kanal 10, 17, 24 basamak (ust
+/* Hava huzmesinin kademeleri: panel (CIE + bitplane) cikisinda en parlak kanal 8, 13, 19 basamak (ust
    bitplane'lere tasinir: 1 basamak yuvarlama tonu belirgin kaydirmaz, sonukte esitlenen alt bitler belirleyici olmaz);
    diger kanallar ayni oranda yuvarlanir. Orani tutmayan kademe (kanal sifira duser) sonuk kalir:
    dusuk degerlerde kanallar farkli basamaga yuvarlanip yesil / kirmizi piksel cikmasin. */
 static void YmHzKur(void)
 {
 	static const uint8_t *const T[3] = { CIE_RED, CIE_GREEN, CIE_BLUE };
-	static const uint8_t Lv[YM_KADEME] = { 0, 10, 17, 24 };			/* En parlak kanalin cikis basamagi */
+	static const uint8_t Lv[YM_KADEME] = { 0, 8, 13, 19 };			/* En parlak kanalin cikis basamagi */
 	const uint32_t Ka = 8U - HUB75_BITPLANES;
 	const uint32_t I[3] = { YmIr, YmIg, YmIb };
 	uint32_t m = I[0], k, ch;
@@ -4182,6 +4202,46 @@ static inline int32_t YmH(int j, int x)
 	return U.Ym.Dl[U.Ym.Ak][j][x];
 }
 
+/* Yagmur: nadir, kucuk kayan yildiz. Uzakta (yavas, kisa), gokyuzunun ustunde dogar ve YM_KY_ALT
+   satirina inmeden soner; suya / alt bolgeye asla gitmez. 25-50 sn'de bir, ~0.5-0.9 sn yasar. */
+static void YmKayan(float Gdt)
+{
+	int i;
+	float f, e;
+	if(!U.Ym.KyOn)
+	{
+		U.Ym.KySonra -= Gdt;
+		if(U.Ym.KySonra > 0.0f) return;
+		{
+			const float d = (Rand() & 1U) ? 1.0f : -1.0f;
+			U.Ym.KyX = 24.0f + RandF() * 80.0f;
+			U.Ym.KyY = 0.5f + RandF() * 2.0f;
+			U.Ym.KyVx = d * (45.0f + 20.0f * RandF());
+			U.Ym.KyVy = 3.0f + 4.0f * RandF();
+			U.Ym.KyYas = 0.0f; U.Ym.KyOmur = 0.5f + 0.4f * RandF();
+			U.Ym.KyIz = 0; U.Ym.KyOn = 1U;
+		}
+	}
+	if(U.Ym.KyIz < YM_KY_IZ) U.Ym.KyIz++;
+	for(i = (int)U.Ym.KyIz - 1; i > 0; i--) { U.Ym.KyIx[i] = U.Ym.KyIx[i - 1]; U.Ym.KyIy[i] = U.Ym.KyIy[i - 1]; }
+	U.Ym.KyX += U.Ym.KyVx * Gdt; U.Ym.KyVy += 6.0f * Gdt; U.Ym.KyY += U.Ym.KyVy * Gdt; U.Ym.KyYas += Gdt;
+	U.Ym.KyIx[0] = (int16_t)U.Ym.KyX; U.Ym.KyIy[0] = (int16_t)U.Ym.KyY;
+	f = U.Ym.KyYas / U.Ym.KyOmur;
+	if(f >= 1.0f || U.Ym.KyY > (float)YM_KY_ALT - 1.0f || U.Ym.KyX < 0.0f || U.Ym.KyX >= (float)W)
+	{
+		U.Ym.KyOn = 0U;
+		U.Ym.KySonra = 25.0f + 25.0f * RandF();
+		return;
+	}
+	e = (f < 0.2f) ? f / 0.2f : (f > 0.6f) ? (1.0f - f) / 0.4f : 1.0f;	/* Yavasca belirir, soner */
+	KyKuyruk(U.Ym.KyIx, U.Ym.KyIy, U.Ym.KyIz, YM_KY_IZ, (uint32_t)(80.0f * e));
+	{																/* Bas: 2x2 yumusak, ara piksel */
+		const int X0 = (int)floorf(U.Ym.KyX), Y0 = (int)floorf(U.Ym.KyY);
+		const SnAg g = SnAgirlik((uint32_t)((U.Ym.KyX - (float)X0) * 256.0f), (uint32_t)((U.Ym.KyY - (float)Y0) * 256.0f));
+		SnNokta(X0, Y0, &g, (uint32_t)(120.0f * e));
+	}
+}
+
 static void ModeRain(void)
 {
 	static const uint8_t NUz[3] = { 30, 60, 90 }, NYa[3] = { 4, 9, 14 }, NIri[3] = { 2, 4, 6 };
@@ -4206,6 +4266,7 @@ static void ModeRain(void)
 		memset(U.Ym.Dl, 0, sizeof(U.Ym.Dl));
 		U.Ym.Ak = 0;
 		U.Ym.OtoS = U.Ym.OtoSH = 1.0f; U.Ym.OtoE = U.Ym.OtoEH = 40.0f; U.Ym.OtoSonra = 20.0f;
+		U.Ym.KyOn = 0U; U.Ym.KySonra = 10.0f + 20.0f * RandF();
 		U.Ym.Ready = 1;
 	}
 	if(Oto)
@@ -4262,6 +4323,8 @@ static void ModeRain(void)
 			const uint8_t *c = YmHz[(k < YM_KADEME) ? k : YM_KADEME - 1U];
 			Set(x, y, c[0], c[1], c[2]);
 		}
+
+	YmKayan(Gdt);													/* Ust gokyuzu, uzak yagmurun arkasinda */
 
 	/* Uzak yagmur: saatin arkasinda, suyun uzak kismina duser */
 	for(i = 0; i < nUz; i++)
@@ -4806,7 +4869,7 @@ void SPEC_DisplayInit(void)
 void SPEC_SetMode(SPEC_Mode NewMode)
 {
 	Mode = (SPEC_Mode)((uint32_t)NewMode % SPEC_MODE_COUNT);
-	SPEC_Speed = 2U;							/* Gorunum kendi degerini sonra yazar */
+	SPEC_Speed = 1U;							/* Normal; gorunum kendi degerini sonra yazar */
 	SPEC_React = 1U;
 	Nb   = (Mode == SPEC_MODE_CLASSIC) ? SPEC_ClsBands() : ModeBands[Mode];
 
@@ -4996,13 +5059,15 @@ void SPEC_Draw(void)
 	/* Hiz: tempo carpani (120 BPM = 1) x kademe. Sadece animasyon hareketi ve
 	   renk donmesi; cubuk/tepe dusus hizi gercek zamanli (UpdateBars).	*/
 	{
-		static const float Kat[4] = { 0.5f, 0.7f, 1.0f, 1.3f };	/* Animasyon: Yavas, Normal, Yuksek, Cok yuksek */
+		static const float Kat[3]   = { 0.7f, 1.0f, 1.3f };		/* Animasyon: Yavas, Normal, Yuksek	*/
+		static const float KatKar[3] = { 1.0f, 1.3f, 1.7f };		/* Kar (eski kademeler cok yavasti)	*/
 		static float Kt = 1.0f;
 		float Bpm = SPEC_GetBpm();
 		float k = (Bpm > 0.0f) ? Bpm / 120.0f : 1.0f;
 		k = (k < 0.75f) ? 0.75f : (k > 1.6f) ? 1.6f : k;
 		Kt += (k - Kt) * 0.02f;						/* tempo sicramasin	*/
-		SpdDT = Kt * Kat[(SPEC_Speed < 4U) ? SPEC_Speed : 2U] / CFG_FPS;
+		const uint8_t Hz = (SPEC_Speed < 3U) ? SPEC_Speed : 2U;		/* Eski "Cok yuksek" (3) -> Yuksek */
+		SpdDT = Kt * ((Mode == SPEC_MODE_SNOW) ? KatKar[Hz] : Kat[Hz]) / CFG_FPS;
 	}
 
 	/* Tepki: hangi vuruslar efekt tetikler */

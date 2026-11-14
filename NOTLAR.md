@@ -186,16 +186,13 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   hafif beyaz. Havai fişek: her patlamanın parçaları kendi tonunda (PtTonSec: arkadaki alevden 120-210 derece öte,
   bir öncekinden farklı; Frags.Ton), parçalar kendi renginde çizilir (PtParcaCiz), parlama da o renkte; hareket,
   şekil, boyut aynı. Kıvılcımlar rastgele gökkuşağı tonu. Android'deki Aurora bloğu (28AA6E,8C5AD2) aynı kaldı.
-- **YAPILACAKLAR (14 Kasım 15:46, Fatih "not al"; "yaz" deyince):**
-  Hız (SET_ID_SPEED) bütün modlarda 3 kademe: Yavaş | Normal | Yüksek ("Çok yüksek" kalkar).
-  Kar: eski Yavaş aşırı yavaş -> yeni Yavaş = eski Yüksek (1.0), Normal = 1.3, Yüksek = ~1.7 (mod başına çarpan).
-  Diğer modlar: öneri {0.7, 1.0, 1.3} (eski Normal/Yüksek/Çok yüksek; Fatih panelde bakıp onaylayacak).
-  Kat[] (SpecDisplay.c ~5000) mod başına tablo olur; kayıtlı 3 (Çok yüksek) değeri 2'ye sınırlanmalı.
-  Yağmur lamba hüzmesi: 10/17/24 fazla parlak, 6/10/14 de sönüktü -> arası: Lv { 0, 8, 13, 19 }.
-  Kar kayan yıldız: baş yuvarlak, kuyruk hemen incelip kayboluyor -> düşen su damlası şekli: baş yuvarlak, kuyruk
-     başın hemen arkasında hâlâ geniş, uca doğru YAVAŞ YAVAŞ incelir (ani küçülme yok).
-  Yağmur'a nadir kayan yıldız: Kar'dakinden küçük ve kısa, gökyüzünün üst/uzak kısmında kalır, suya ve alt
-     bölgeye asla inmez; seyrek (yağmurda boşluk az, sahne kalabalıklaşmasın).
+- 14 Kasım (21, kartta denenmedi): Hız 3 kademe (Yavaş|Normal|Yüksek, varsayılan Normal): animasyon Kat {0.7,1.0,1.3},
+  Kar KatKar {1.0,1.3,1.7}, Klasik çubuk KatBar {0.4,0.8,1.0} / KatAtk {0.6,1.0,1.0} (eski Normal/Yüksek/Çok yüksek);
+  SPEC_SetMode varsayılanı 1. Kayıtlı 3 -> 2'ye sınırlanır. NOT: kayıtlı eski değerler (Def CRC'ye girmez) bir kademe
+  hızlı kalabilir; Android'den yeniden seçilir. Yağmur hüzmesi Lv {0,8,13,19}. Kar kayan yıldız kuyruğu damla
+  (KyKuyruk: baş tarafında 3 px, yarıya kadar yavaşça incelir). Yağmur'a nadir küçük kayan yıldız (YmKayan: 25-50 sn,
+  ~0.5-0.9 sn, 12 px kuyruk, YM_KY_ALT 8. satırın altına inmez, uzak yağmurun arkasında). Önizlemede 0-16 aynı;
+  17-20 farkı Kar hızı ve rastgele sayı sırasından (Kar hızı eşitlenince Şömine de bayt bayt aynı).
 - **BEKLİYOR (Fatih "şimdilik dursun", 13 Kasım):** Kısık parlaklıkta Kar/saat saniyede birkaç kez parlayıp sönüyor.
   Sebep: SPEC_Draw sonundaki vuruş pompası (CFG_BEAT_BRIGHT_BOOST %25 * BeatEnv) Ortam modlarında da çalışıyor;
   müziksizken giriş gürültüsü vuruş sayılıyor, düşük parlaklıkta OE birkaç tik olduğu için küçük artış büyük

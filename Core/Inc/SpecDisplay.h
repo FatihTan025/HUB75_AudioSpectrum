@@ -62,7 +62,7 @@ extern SPEC_ClsCfg SPEC_Cls;
 
 
 /* Hareket (her gorunumun kendi degeri, Settings.c yazar)
-   SPEC_Speed: 0 yavas, 1 normal, 2 yuksek, 3 cok yuksek -- tempoya gore; cubuk dususunu etkilemez
+   SPEC_Speed: 0 yavas, 1 normal, 2 yuksek -- tempoya gore; animasyonda cubuk dususunu etkilemez
    SPEC_React: 0 sakin (sadece guclu bas), 1 normal, 2 hareketli (her vurus)
    SPEC_ShowNo: mod degisince sol ustte gosterilen numara (gorunum no)	*/
 extern uint8_t SPEC_Speed, SPEC_React, SPEC_ShowNo;

@@ -234,8 +234,8 @@ static const SET_Param Table[] =
 	  ApplyFire },
 
 	/* --- Tum gorunumler: hareket --- */
-	{ SET_ID_SPEED,			SET_TYPE_ENUM,	SET_FLAG_PER_MODE, ALL_MASK & ~(SM_MASK | YM_MASK | SH_MASK), 0, 3, 1, 2,
-	  "H\304\261z", "Hareket", "Yava\305\237|Normal|Y\303\274ksek|\303\207ok y\303\274ksek", ApplyMotion },	/* Hiz; hepsi tempoya gore */
+	{ SET_ID_SPEED,			SET_TYPE_ENUM,	SET_FLAG_PER_MODE, ALL_MASK & ~(SM_MASK | YM_MASK | SH_MASK), 0, 2, 1, 1,
+	  "H\304\261z", "Hareket", "Yava\305\237|Normal|Y\303\274ksek", ApplyMotion },	/* Hiz 3 kademe; carpanlar SpecDisplay.c Kat[] / KatKar[] */
 	{ SET_ID_REACT,			SET_TYPE_ENUM,	SET_FLAG_PER_MODE, REACT_MASK, 0, 2, 1, 1,
 	  "Tepki", "Hareket", "Sakin|Normal|Hareketli", ApplyMotion },
 	{ SET_ID_SENS_BAS,		SET_TYPE_INT,	SET_FLAG_PER_MODE, REACT_MASK, 0, 100, 5, (int32_t)CFG_SENS,
