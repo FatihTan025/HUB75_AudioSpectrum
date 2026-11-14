@@ -171,7 +171,7 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   1. Hüzme saat renginin ÇOK daha düşük tonu. Kademe kademe yumuşak geçiş (tek düz ton olmasın) ama her kademede
      R:G:B oranı saat rengiyle aynı. Bir kanal panelde gösterilemeyecek kadar küçük kalıyorsa piksel tamamen sönük
      (yeşil/kırmızı kaymış piksel çıkmasın; sebep: düşük değerlerde kanallar farklı basamağa yuvarlanıyor).
-  2. Sudaki ışık lekesi mavi suyla karışmasın: yalnız saat renginin tonu, dalga açık/koyusu parlaklık olarak kalsın.
+  2. Sudaki ışık lekesi ve yansıma DEĞİŞMESİN (Fatih: güzel görünüyor).
   3. Direkteki iki boğaz biraz koyu: (104,68,34) -> (80,52,26).
 - **BEKLİYOR (Fatih "şimdilik dursun", 13 Kasım):** Kısık parlaklıkta Kar/saat saniyede birkaç kez parlayıp sönüyor.
   Sebep: SPEC_Draw sonundaki vuruş pompası (CFG_BEAT_BRIGHT_BOOST %25 * BeatEnv) Ortam modlarında da çalışıyor;
