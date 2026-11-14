@@ -209,6 +209,9 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 - **YAPILACAK (14 Kasım 17:19, Fatih "not al"):** Şömine: alevin değdiği rakam kenarlarının köz gibi ısınıp renk
   değiştirmesi KALKSIN (saat rengine göre rakamı bozuyor). Rakamlar düz saat renginde; köz kodu (U.Sm.Koz, SmKozRenk,
   SmNefes'in köz kullanımı) tamamen silinsin, alev yine rakamlardan geçmez.
+  Şömine: rakamlar alev için ENGEL OLMASIN (ör. 2'nin alt çizgisinin üstünde alev kesiliyor). Alev hiçbir şeye
+  takılmadan yanar, saat alevin ÖNÜNDE düz renkte çizilir; rakamların iç boşluklarında (6'nın yuvarlağı) alev görünür.
+  SmEngel ve rakam hücresi örnekleme kodu tamamen silinsin (köz kaldırmayla birlikte).
   Yağmur: saatin suyun içindeki kısmı mavimsi tonlanıyor (ModeRain sonunda SaatCizRgb sonrası döngü: R*225, G*242,
   B+%11) -> saydam gibi görünüyor. Bu tonlama KALKSIN, rakamlar suda da üstteki gibi düz saat renginde.
 - **BEKLİYOR (Fatih "şimdilik dursun", 13 Kasım):** Kısık parlaklıkta Kar/saat saniyede birkaç kez parlayıp sönüyor.
