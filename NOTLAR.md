@@ -206,6 +206,9 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   Android: Rüzgâr | Oto satırı eşit bölündüğü için Rüzgâr seçenekleri sıkıştı, Oto ince uzun oldu. Oto küçük sabit
   genişlikli düğme (hoparlör SimgeDugme gibi, ~46dp) satırın en sağında; kısa seçim kalan genişliği alır
   (Bilesenler.kt AyarListesi, kısa seçim + BOOL çifti). Akşam: Android arayüzünde başka görsel düzeltmeler gelecek.
+- **YAPILACAK (14 Kasım 17:19, Fatih "not al"):** Şömine: alevin değdiği rakam kenarlarının köz gibi ısınıp renk
+  değiştirmesi KALKSIN (saat rengine göre rakamı bozuyor). Rakamlar düz saat renginde; köz kodu (U.Sm.Koz, SmKozRenk,
+  SmNefes'in köz kullanımı) tamamen silinsin, alev yine rakamlardan geçmez.
 - **BEKLİYOR (Fatih "şimdilik dursun", 13 Kasım):** Kısık parlaklıkta Kar/saat saniyede birkaç kez parlayıp sönüyor.
   Sebep: SPEC_Draw sonundaki vuruş pompası (CFG_BEAT_BRIGHT_BOOST %25 * BeatEnv) Ortam modlarında da çalışıyor;
   müziksizken giriş gürültüsü vuruş sayılıyor, düşük parlaklıkta OE birkaç tik olduğu için küçük artış büyük
