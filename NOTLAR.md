@@ -118,6 +118,9 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 - Telefon sesi ESP32'ye A2DP ile gelebilir (I2S → STM32); arayan bilgisi Android uygulamasından.
 
 ## Bekleyen işler
+- 14 Kasım (14, kartta denenmedi): Direk tek renk (58,36,18), yeşil kapak kalktı (kapak da direk renginde), yalnız
+  iki boğaz açık (104,68,34). Lamba ışığı (cam, koni, sudaki leke ve şerit) saat renginin tam tonu (YmIr/Ig/Ib,
+  her kare SPEC_SaatRgb'den; parlaklık ayarından bağımsız).
 - 14 Kasım (13, kartta denenmedi): Direk 3 px (gölge/orta/açık), ayak 3-6 px kavisli, bilezik 4 px, direk ucunda
   topuz, kol ve lamba 1 px içeride (YM_LX 8, cam x7-10). Yağmur fabrika saat rengi krem FFD9A0 %42 (gri-mavi suda
   seçilmiyordu); kayıtlı ayar varsa Android'de ↺ ile gelir.
