@@ -203,9 +203,10 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 - 14 Kasım (22, kartta denenmedi): Saydamlık: saatin ışığı düşmez (SaatSet: c + (max(c,zemin)-c)*s; koyu zeminde saat
   aynen, parlak zemin rakamın içinde görünür). Yağmur hüzmesi Lv {0,4,7,10}.
 - **YAPILACAK (14 Kasım 16:12, Fatih "not al, yazma"; akşam Android görsel düzenlemeleriyle birlikte):**
-  Android: Rüzgâr | Oto satırı eşit bölündüğü için Rüzgâr seçenekleri sıkıştı, Oto ince uzun oldu. Oto küçük sabit
-  genişlikli düğme (hoparlör SimgeDugme gibi, ~46dp) satırın en sağında; kısa seçim kalan genişliği alır
-  (Bilesenler.kt AyarListesi, kısa seçim + BOOL çifti). Akşam: Android arayüzünde başka görsel düzeltmeler gelecek.
+  Android: Rüzgâr | Oto satırı eşit bölündüğü için Rüzgâr seçenekleri sıkıştı, Oto ince uzun oldu; ayrıca çift satırda
+  (ust = true) ad üste çıkıp düğmeler altına iniyor -- İSTENMİYOR. Olması gereken: normal tek satır (ad solda, seçenekler
+  yanında, eskisi gibi) + satırın en sağında KÜÇÜK "Oto" düğmesi: şimdiki seçenek düğmesi boyunun YARISINDAN biraz küçük.
+  (Bilesenler.kt AyarListesi'ndeki "kısa seçim + BOOL" çift kuralı kalkar; yerine bu özel satır.) Akşam: Android arayüzünde başka görsel düzeltmeler gelecek.
 - **YAPILACAK (14 Kasım 17:19, Fatih "not al"):** Şömine: alevin değdiği rakam kenarlarının köz gibi ısınıp renk
   değiştirmesi KALKSIN (saat rengine göre rakamı bozuyor). Rakamlar düz saat renginde; köz kodu (U.Sm.Koz, SmKozRenk,
   SmNefes'in köz kullanımı) tamamen silinsin, alev yine rakamlardan geçmez.
