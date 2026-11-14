@@ -118,6 +118,27 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 - Telefon sesi ESP32'ye A2DP ile gelebilir (I2S → STM32); arayan bilgisi Android uygulamasından.
 
 ## Bekleyen işler
+- **YAPILACAKLAR (14 Kasım, Fatih onayı bekliyor; "yaz" deyince):**
+  Yağmur:
+  1. YÜK: su katmanındaki piksel başına 2 sinf kalksın (yağmur ağır çekim gibi yavaşladı). Tablo / tam sayı.
+  2. Saat bozulmasın: kırılma (sx kaydırma) kalksın; saatin suyun içindeki kısmı tam parlak, hafif mavimsi;
+     dalga tonu ve halkalar rakamların üstüne binmesin.
+  3. Su gibi görünsün: saatin ters, sönük, satır satır dalgalanan yansıması; Sahil'deki gibi kısa yatay açık
+     mavi ışık çizgileri (uzakta küçük/sık, yakında uzun/seyrek, yavaş kayar).
+  4. Halkalar uzun yaşasın, geniş yayılsın (20-30 px), birbirinin içinden geçsin; yüzey sürekli dalgalı
+     (sağanakta en hareketli). Doğru yol: su alanında (128x16) tam sayı dalga denklemi (yükseklik alanı);
+     damla iter, halka kendiliğinden yayılır, girişim (tepe+tepe güçlenir, tepe+çukur söner), perspektifle
+     uzakta basık. Yüzey eğimi yansımayı ve ışık çizgilerini bozar. Beyaz yok, yalnız su tonları.
+  5. Su kenarı sabit ve düzensiz kalsın (bu yapıldı).
+  Şömine:
+  6. Saydamlık 0'da iki nokta alev için engel sayılmasın (nokta sönünce orası simsiyah kalıyor).
+  7. Alevin ALT kısmı daha sarı (paletin sıcak ucu); üst kısım iyi, değişmesin.
+  Bütün modlar:
+  8. Saydamlıkta saat, alttaki zeminin rengiyle SÜZÜLMESİN (renkli cam gibi karartıyor: turuncu alev mavi
+     saatte kararıyor); saat rengiyle karıştırılarak gösterilsin, zemin parlaksa saat de parlak görünsün.
+  Kar: zemindeki kar örtüsü kaldırıldı, kar eski haline döndü (Fatih onayladı, öyle kalsın).
+  Not: PC'ye kopyalarken her seferinde dosya boyutunu kontrol et (aynı adla tekrar gönderilen dosya eski
+  kopya olarak gitti).
 - **BEKLİYOR (Fatih "şimdilik dursun", 13 Kasım):** Kısık parlaklıkta Kar/saat saniyede birkaç kez parlayıp sönüyor.
   Sebep: SPEC_Draw sonundaki vuruş pompası (CFG_BEAT_BRIGHT_BOOST %25 * BeatEnv) Ortam modlarında da çalışıyor;
   müziksizken giriş gürültüsü vuruş sayılıyor, düşük parlaklıkta OE birkaç tik olduğu için küçük artış büyük
