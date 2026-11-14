@@ -178,6 +178,8 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
      ~20-30 sn), geçişler çok yumuşak, hiçbir yerde ani renk değişimi yok; parlaklık ısıdan.
   5. Havaya savrulan şiddetli patlama parçaları bir renk, arkadaki alevler ondan belirgin farklı renk
      (ör. ton +120..180 derece kaydırılmış) -> aynı anda birkaç renk görünsün.
+  6. Hedef his: güzel bir havai fişek gösterisi gibi (her patlamanın parçaları kendi canlı tonunda, bir sonraki
+     patlama başka tonda). AMA şimdiki halinden çok değişmesin: hareket, şekil, boyut aynı kalsın, yalnız renk.
 - **BEKLİYOR (Fatih "şimdilik dursun", 13 Kasım):** Kısık parlaklıkta Kar/saat saniyede birkaç kez parlayıp sönüyor.
   Sebep: SPEC_Draw sonundaki vuruş pompası (CFG_BEAT_BRIGHT_BOOST %25 * BeatEnv) Ortam modlarında da çalışıyor;
   müziksizken giriş gürültüsü vuruş sayılıyor, düşük parlaklıkta OE birkaç tik olduğu için küçük artış büyük
