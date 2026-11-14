@@ -217,6 +217,8 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
      saat ortalanırken başlangıcı kayıyor, Yağmur'da direkler bir kaybolup bir çıkıyor (YmLamba kenar kontrolü).
      Çözüm: küçük saniye de sabit yuvalı (K fontunun en geniş rakamı), toplam genişlik sabit -> saat kaymaz.
      '1' çıkınca yanındaki rakamla arası fazla: '1' yuvasında komşusuna ~3 px yakın konsun (toplam genişlik değişmeden).
+  Yağmur ayar adları (Settings.c, Android karttan okur; Layout CRC'ye girmez): "Şiddet" adı -> "Yağmur";
+     seçenekler "Çisenti|Yağmur|Sağanak" -> "Hafif|Normal|Sağanak".
   Yağmur: kayan yıldız KALKSIN (beğenilmedi): YmKayan, U.Ym.Ky* alanları, YM_KY_IZ / YM_KY_ALT tamamen silinsin.
      KyKuyruk Kar'da kullanıldığı için kalır.
   Yağmur: saatin suyun içindeki kısmı mavimsi tonlanıyor (ModeRain sonunda SaatCizRgb sonrası döngü: R*225, G*242,
