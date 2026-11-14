@@ -212,6 +212,11 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   Şömine: rakamlar alev için ENGEL OLMASIN (ör. 2'nin alt çizgisinin üstünde alev kesiliyor). Alev hiçbir şeye
   takılmadan yanar, saat alevin ÖNÜNDE düz renkte çizilir; rakamların iç boşluklarında (6'nın yuvarlağı) alev görünür.
   SmEngel ve rakam hücresi örnekleme kodu tamamen silinsin (köz kaldırmayla birlikte).
+  Saat (tüm ortam modları), en büyük font + küçük saniye: küçük saniye rakamları kendi genişlikleriyle konuyor
+     (SaatHazirla: Kuc = ... SaatRakamGen(K, r[4]) + SaatRakamGen(K, r[5])) -> toplam genişlik her saniye değişiyor,
+     saat ortalanırken başlangıcı kayıyor, Yağmur'da direkler bir kaybolup bir çıkıyor (YmLamba kenar kontrolü).
+     Çözüm: küçük saniye de sabit yuvalı (K fontunun en geniş rakamı), toplam genişlik sabit -> saat kaymaz.
+     '1' çıkınca yanındaki rakamla arası fazla: '1' yuvasında komşusuna ~3 px yakın konsun (toplam genişlik değişmeden).
   Yağmur: kayan yıldız KALKSIN (beğenilmedi): YmKayan, U.Ym.Ky* alanları, YM_KY_IZ / YM_KY_ALT tamamen silinsin.
      KyKuyruk Kar'da kullanıldığı için kalır.
   Yağmur: saatin suyun içindeki kısmı mavimsi tonlanıyor (ModeRain sonunda SaatCizRgb sonrası döngü: R*225, G*242,
