@@ -208,7 +208,8 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   yanında, eskisi gibi) + satırın en sağında KÜÇÜK "Oto" düğmesi: şimdiki seçenek düğmesi boyunun YARISINDAN biraz küçük.
   (Bilesenler.kt AyarListesi'ndeki "kısa seçim + BOOL" çift kuralı kalkar; yerine bu özel satır.)
   ANDROID KURALI (Fatih): arayüzde simetri ve düzen bozulmayacak -- satırlar hizalı, aynı türden düğmeler aynı boyda,
-  ad sütunu ve kenar boşlukları her satırda aynı; değişiklikten sonra komşu satırlarla hizayı kontrol et. Akşam: Android arayüzünde başka görsel düzeltmeler gelecek.
+  ad sütunu ve kenar boşlukları her satırda aynı; değişiklikten sonra komşu satırlarla hizayı kontrol et. Düğme boyu içindeki
+  yazıdan çok büyük olmayacak: düğme yazıyı az bir iç boşlukla sarar (ör. "Oto" düğmesi yazısı kadar, ince kenar payı). Akşam: Android arayüzünde başka görsel düzeltmeler gelecek.
 - **YAPILACAK (14 Kasım 17:19, Fatih "not al"):** Şömine: alevin değdiği rakam kenarlarının köz gibi ısınıp renk
   değiştirmesi KALKSIN (saat rengine göre rakamı bozuyor). Rakamlar düz saat renginde; köz kodu (U.Sm.Koz, SmKozRenk,
   SmNefes'in köz kullanımı) tamamen silinsin, alev yine rakamlardan geçmez.
