@@ -118,6 +118,10 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 - Telefon sesi ESP32'ye A2DP ile gelebilir (I2S → STM32); arayan bilgisi Android uygulamasından.
 
 ## Bekleyen işler
+- 14 Kasım (12, kartta denenmedi): Lamba yenilendi (Fatih): lamba en üstte (yeşil bakır kapak y0-1, cam y2), kuğu
+  boynu kol, kahverengi döküm direk (koyu 34,20,10 / ışığa bakan yüz 72,44,22), y15 ve alttan 7. satırda bilezik,
+  dibi kavisle genişleyen ayak. Işık sıcak sarı (YM_ISIK 255/222/130, G yukarı yuvarlanır: sönükte kızıllaşmasın).
+  Koni geniş ~50 derece, içe 15 derece eğik, dış kenarı direğin dibine iner; hava 34, sudaki leke 95, şerit 75/28.
 - 14 Kasım (11, kartta denenmedi): Yağmur sokağa döndü (Fatih: su deniz gibiydi). Panelin en sol/sağında yarısı
   kesik lamba direkleri (YmDirek: direk x 0-1, kol y3, gövde y4 x5-9, cam y5 x6-8; sağ aynalı). Dar koni (YmKoni:
   ~26 derece, içe ~18 derece eğik, gün ışığı tonu YM_ISIK 255/245/230): havayı hafif aydınlatır (26), içinden geçen

@@ -3884,10 +3884,10 @@ static inline int32_t YmSin(int32_t v, int32_t Lo, int32_t Hi) { return (v < Lo)
 
 /* Sokak lambasi: lambanin isik cikan noktasi (sol; sag aynasi) ve gun isigi tonu */
 #define YM_LX		7							/* Lamba basi orta sutunu (solda)		*/
-#define YM_LY		5							/* Isik cikan satir					*/
-#define YM_ISIK(v)	(uint8_t)(v), (uint8_t)(((v) * 245U) >> 8), (uint8_t)(((v) * 230U) >> 8)	/* Gun isigi (hafif soguk beyaz) */
+#define YM_LY		2							/* Isik cikan satir (lamba en ustte)	*/
+#define YM_ISIK(v)	(uint8_t)(v), (uint8_t)(((v) * 222U + 255U) >> 8), (uint8_t)(((v) * 130U) >> 8)	/* Sicak sari (yesil yukari yuvarlanir: sonukte kizillasmasin) */
 
-/* Koni isigi 0..256: dar (~20 derece), ice dogru ~18 derece egik; kenari yumusak, uzakta azalir. Iki lamba. */
+/* Koni isigi 0..256: genis (~50 derece), ice ~15 derece egik: dis kenari diregin dibine kadar iner; kenari yumusak. Iki lamba. */
 static uint32_t YmKoni(int x, int y)
 {
 	const int dy = y - YM_LY;
@@ -3897,29 +3897,40 @@ static uint32_t YmKoni(int x, int y)
 	for(k = 0; k < 2; k++)
 	{
 		const int dx = k ? (int)W - 1 - YM_LX - x : x - YM_LX;			/* Sag lamba aynali */
-		const int32_t a = dx * 79 + dy * 243, c = dx * 243 - dy * 79;	/* Eksen boyunca / dik (x256); sin18, cos18 */
+		const int32_t a = dx * 66 + dy * 247, c = dx * 247 - dy * 66;	/* Eksen boyunca / dik (x256); sin15, cos15 */
 		int32_t e, v;
 		if(a <= 0) continue;
-		e = ((c < 0) ? -c : c) * 256 / (((a * 62) >> 8) + 256);			/* tan13 + ucta en az 1 px */
+		e = ((c < 0) ? -c : c) * 256 / (((a * 119) >> 8) + 384);			/* tan25 + ucta 1.5 px */
 		if(e >= 256) continue;
 		v = (e < 128) ? 256 - e / 2 : (256 - e) * 3 / 2;					/* Ici dolu, kenari yumusak */
-		v = (v * (256 - YmSin(a >> 6, 0, 120))) >> 8;					/* Uzakta azalir */
+		v = (v * (256 - YmSin(a >> 6, 0, 100))) >> 8;					/* Uzakta azalir */
 		if((uint32_t)v > En) En = (uint32_t)v;
 	}
 	return En;
 }
 
-/* Direk, kol ve lamba basi (yarisi panel disinda). Yakin: koyu siluet, isiga bakan yuzu hafif acik. */
+/* Suslu sokak lambasi (yarisi panel disinda, kesik fotograf gibi): kahverengi dokme direk, ortada ve
+   altta bilezik, dibi kavisle genisleyen ayak; ustte kugu boynu kol, en ustte yesil bakir kapak,
+   altinda isik cikan cam. Sag lamba aynali. */
 static void YmDirek(void)
 {
-	int k, y, x;
+	static const uint8_t Koyu[3] = { 34, 20, 10 }, Acik[3] = { 72, 44, 22 }, Bil[3] = { 96, 62, 30 }, Kap[3] = { 20, 62, 46 };
+	static const int8_t Ayak[5] = { 2, 2, 3, 3, 4 };				/* Alt 5 satirda ayak genisligi (kavisli) */
+	static const int8_t Kol[5][2] = { {1,4},{1,3},{2,2},{3,1},{4,1} };	/* Kugu boynu: direkten kapaga kivrilir */
+	int k, y, x, i;
 	for(k = 0; k < 2; k++)
 	{
 		#define YM_DX(x)	(k ? (int)W - 1 - (x) : (x))
-		for(y = 3; y < (int)H; y++) { Set(YM_DX(0), y, 16, 16, 19); Set(YM_DX(1), y, 34, 34, 38); }	/* Direk */
-		for(x = 2; x <= 5; x++) Set(YM_DX(x), 3, 30, 30, 34);										/* Kol */
-		for(x = 5; x <= 9; x++) Set(YM_DX(x), 4, 40, 40, 45);										/* Lamba govdesi */
-		for(x = 6; x <= 8; x++) Set(YM_DX(x), YM_LY, YM_ISIK((x == YM_LX) ? 230U : 150U));			/* Isik cikan cam */
+		#define YM_P(x, y, c)	Set(YM_DX(x), (y), (c)[0], (c)[1], (c)[2])
+		for(y = 4; y < (int)H; y++) { YM_P(0, y, Koyu); YM_P(1, y, Acik); }			/* Govde: isiga bakan yuzu acik */
+		for(i = 0; i < 5; i++)															/* Ayak: asagi dogru kavisle genisler */
+			for(x = 0; x < Ayak[i]; x++) YM_P(x, (int)H - 5 + i, (x == Ayak[i] - 1) ? Acik : Koyu);
+		for(x = 0; x < 3; x++) { YM_P(x, (int)H - 7, Bil); YM_P(x, 15, Bil); }			/* Bilezikler */
+		for(i = 0; i < 5; i++) YM_P(Kol[i][0], Kol[i][1], Acik);							/* Kugu boynu kol */
+		for(x = 5; x <= 10; x++) YM_P(x, 0, Kap);										/* Kapak */
+		for(x = 4; x <= 11; x++) YM_P(x, 1, Kap);
+		for(x = 6; x <= 9; x++) Set(YM_DX(x), YM_LY, YM_ISIK((x == YM_LX || x == YM_LX + 1) ? 255U : 190U));	/* Cam */
+		#undef YM_P
 		#undef YM_DX
 	}
 }
@@ -4086,7 +4097,7 @@ static void ModeRain(void)
 	for(y = 0; y < (int)H; y++)										/* Gece; koninin icindeki hava hafifce aydinlanir */
 		for(x = 0; x < (int)W; x++)
 		{
-			const uint32_t v = (YmKoni(x, y) * 26U) >> 8;
+			const uint32_t v = (YmKoni(x, y) * 34U) >> 8;
 			Set(x, y, YM_ISIK(v));
 		}
 
@@ -4147,16 +4158,16 @@ static void ModeRain(void)
 				}
 			}
 			{															/* Koninin yere vurdugu yer: dalgayla kirilan isik lekesi */
-				const int32_t v = (int32_t)((YmKoni(x + (int)YmSin(ex >> 7, -2, 2), y) * 70U) >> 8) * (256 + Ib * 8) >> 8;
-				if(v > 0) { r += v; g += (v * 245) >> 8; b += (v * 230) >> 8; }
+				const int32_t v = (int32_t)((YmKoni(x + (int)YmSin(ex >> 7, -2, 2), y) * 95U) >> 8) * (256 + Ib * 8) >> 8;
+				if(v > 0) { r += v; g += (v * 222 + 255) >> 8; b += (v * 130) >> 8; }
 			}
 			{															/* Lambanin dikey yansima seridi: titrer, yer yer kopar */
 				const int xs = x + (int)YmSin(ex >> 7, -2, 2) + Sy, dl = xs - YM_LX, dr = ((int)W - 1 - YM_LX) - xs;
 				const int d = (dl >= -1 && dl <= 1) ? dl : (dr >= -1 && dr <= 1) ? dr : 9;
 				if(d != 9 && ShDoku[((uint32_t)y * 13U + U.Ym.Kare / 3U + (uint32_t)(dl > 1) * 21U) & 63U] > 70U)
 				{
-					const int32_t v = (d == 0) ? 60 : 22;
-					r += v; g += (v * 245) >> 8; b += (v * 230) >> 8;
+					const int32_t v = (d == 0) ? 75 : 28;
+					r += v; g += (v * 222 + 255) >> 8; b += (v * 130) >> 8;
 				}
 			}
 			c = CV(y, x);
