@@ -170,18 +170,19 @@ void SPEC_SetRange(float FLo, float FHi)
 
 }
 
-/* Vurus hassasiyeti 0..100. Oranlar geometrik (her adim ayni yuzde),
-   dB sinirlari lineer; 50'de CFG degerleri aynen. 0 = secici, 100 = hassas. */
-void SPEC_SetSens(uint8_t Sens)
+/* Vurus hassasiyeti 0..100: Bas = kick algilayici, Tiz = genel vurus (zil, trampet).
+   Oranlar geometrik (her adim ayni yuzde), dB sinirlari lineer; 50'de CFG degerleri
+   aynen. 0 = secici, 100 = hassas. Mod basina ayar (Settings, Hareket grubu). */
+void SPEC_SetSens(uint8_t Bas, uint8_t Tiz)
 {
-	const float t = (float)((Sens > 100U) ? 100U : Sens) / 100.0f;
-	const float g = powf(4.0f / 9.0f, t);				/* 1 > 0.444; 50'de 0.667 */
+	const float t = (float)((Bas > 100U) ? 100U : Bas) / 100.0f;
+	const float u = (float)((Tiz > 100U) ? 100U : Tiz) / 100.0f;
 
-	SPEC_Sens   = (Sens > 100U) ? 100U : Sens;
-	KickRatio   = CFG_KICK_RATIO * 1.5f * g;				/* 3.0 > 2.0 > 1.33		*/
+	SPEC_Sens   = (Bas > 100U) ? 100U : Bas;
+	KickRatio   = CFG_KICK_RATIO * 1.5f * powf(4.0f / 9.0f, t);	/* 3.0 > 2.0 > 1.33		*/
 	KickDbBelow = CFG_KICK_DB_BELOW + 16.0f * (t - 0.5f);	/* 12 > 20 > 28 dB		*/
 	KickDom     = CFG_KICK_DOM * 2.0f * powf(0.25f, t);		/* 1.0 > 0.5 > 0.25		*/
-	HitRatio    = CFG_HIT_RATIO * 1.5f * g;					/* 2.7 > 1.8 > 1.2		*/
+	HitRatio    = CFG_HIT_RATIO * 1.5f * powf(4.0f / 9.0f, u);	/* 2.7 > 1.8 > 1.2		*/
 }
 
 void SPEC_Init(void)
@@ -213,7 +214,7 @@ void SPEC_Init(void)
 	MidHi = (uint16_t)(CFG_MID_FREQ_HIGH / BIN_HZ + 0.5f) + 1U;
 	if(MidLo < KickHi) MidLo = KickHi;
 	if(MidHi <= MidLo) MidHi = MidLo + 1U;
-	SPEC_SetSens(SPEC_Sens);
+	SPEC_SetSens(CFG_SENS, CFG_SENS);
 
 	/* 0 dB referansi: tam olcek sinus (genlik 2048), Hann kazanci 0.5 */
 	{

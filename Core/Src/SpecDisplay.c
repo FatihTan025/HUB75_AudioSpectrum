@@ -86,9 +86,9 @@ typedef struct { float X, Y, Vx, Vy, Lm, Age, Dur, P; uint32_t Last; uint8_t On;
 typedef struct
 {
 	uint8_t		M[H][W / 8];					/* Rakam pikseli maskesi			*/
-	int16_t		Ix, Iw;							/* Iki nokta (fontun ':' glifi): x, genislik	*/
+	int16_t		Ix, Iw, Ix2;					/* Iki nokta (fontun ':' glifi): x, genislik; ikincisi (saniye, yoksa -1)	*/
 	int16_t		Sag;							/* Saatin sag kenari (isi-nem yazisi bunu gecmez)	*/
-	uint8_t		Sa, Dk, Yazi, Yer, Alt, Isi, Hazir;
+	uint8_t		Sa, Dk, Sn, Yazi, Yer, Alt, Isi, Sani, Hazir;
 } SaatDurum;
 
 /* Kar tanesi: tam piksel konum + kesir (dusus Ac/Kd, yana Kx/4096) -> ara piksel cizim.
@@ -3070,7 +3070,7 @@ uint8_t SPEC_SaatYazi = 0U, SPEC_SaatYer = 1U;
 uint8_t SPEC_SmBoy = 1U;
 uint8_t SPEC_YmSiddet = 1U, SPEC_YmRuzgar = 1U;
 uint8_t SPEC_ShDalga = 1U, SPEC_ShIsik = 0U;
-uint8_t  SPEC_SaatAlt = 0U, SPEC_SaatIsi = 0U;							/* Saat: alta, isi-nem goster	*/
+uint8_t  SPEC_SaatAlt = 0U, SPEC_SaatIsi = 0U, SPEC_SaatSn = 0U;							/* Saat: alta, isi-nem goster	*/
 uint8_t  SPEC_SaatSaydam = 0U;									/* Saat saydamligi % (0 = kati)	*/
 uint32_t SPEC_SaatRgb = 0x0A0D13UL;						/* Saat rengi 0xRRGGBB (Settings: renk x parlaklik)	*/
 
@@ -3122,39 +3122,64 @@ static void SaatHazirla(SaatDurum *S)
 {
 	const uint8_t Yazi = (SPEC_SaatYazi < SAAT_YAZI_SAYISI) ? SPEC_SaatYazi : 0U;
 	const FONT_INFO *F = SaatYazilari[Yazi];
+	const FONT_INFO *K = &arialbd13FontInfo;					/* Sigmayan saniye icin kucuk font */
 	const int fh = (int)F->Height;
 	const uint8_t Ik = SaatGlif(F, ':');
 	const int Yv = SaatYuva(F), Wc = SaatRakamGen(F, Ik);
 	int16_t T; uint8_t N;
 	const uint8_t Isi = (uint8_t)(SPEC_SaatIsi && SAAT_SensorOku(&T, &N));
-	uint8_t Sa, Dk, Sn, r[4];
-	int tw, x0, y0, i, x;
+	uint8_t Sani = SPEC_SaatSn;
+	uint8_t Sa, Dk, Sn, r[6], Buyuk = 0;
+	int tw, x0, y0, i, x, n = 4;
 
 	SAAT_Get(&Sa, &Dk, &Sn);
-	if(S->Hazir && S->Sa == Sa && S->Dk == Dk && S->Yazi == Yazi && S->Yer == SPEC_SaatYer &&
-	   S->Alt == SPEC_SaatAlt && S->Isi == Isi) return;
-	S->Sa = Sa; S->Dk = Dk; S->Yazi = Yazi; S->Yer = SPEC_SaatYer; S->Alt = SPEC_SaatAlt; S->Isi = Isi; S->Hazir = 1U;
+	if(!Sani) Sn = 0;											/* Saniye kapaliysa dakikada bir kurulur */
+	if(S->Hazir && S->Sa == Sa && S->Dk == Dk && S->Sn == Sn && S->Yazi == Yazi && S->Yer == SPEC_SaatYer &&
+	   S->Alt == SPEC_SaatAlt && S->Isi == Isi && S->Sani == Sani) return;
+	S->Sa = Sa; S->Dk = Dk; S->Sn = Sn; S->Yazi = Yazi; S->Yer = SPEC_SaatYer; S->Alt = SPEC_SaatAlt;
+	S->Isi = Isi; S->Sani = Sani; S->Hazir = 1U;
 	memset(S->M, 0, sizeof(S->M));
 
 	r[0] = (uint8_t)(Sa / 10U); r[1] = (uint8_t)(Sa % 10U); r[2] = (uint8_t)(Dk / 10U); r[3] = (uint8_t)(Dk % 10U);
+	r[4] = (uint8_t)(Sn / 10U); r[5] = (uint8_t)(Sn % 10U);
 	tw = 4 * Yv + Wc + 4 * SAAT_ARA;
+	if(Sani)
+	{
+		const int Yer = (int)W - 1 - (Isi ? 35 : 0);				/* Isi-nem yazisina pay */
+		const int Buy = 6 * Yv + 2 * Wc + 7 * SAAT_ARA;
+		const int Kuc = tw + SAAT_ARA + SaatRakamGen(K, SaatGlif(K, (char)('0' + r[4]))) + 1 + SaatRakamGen(K, SaatGlif(K, (char)('0' + r[5])));
+		if(Buy <= Yer)      { tw = Buy; Buyuk = 1U; n = 6; }		/* Saniye ayni buyuk fontla */
+		else if(Kuc <= Yer) tw = Kuc;								/* Kucuk saniye */
+		else                Sani = 0;								/* Hic yer yok (genis font + isi-nem): saniye yok */
+	}
 
 	x0 = Isi ? 0 : (S->Yer == 0U) ? 1 : ((int)W - tw) / 2;			/* Isi-Nem: yer dar, en sola */
 	y0 = S->Alt ? (int)H - fh - 1 : ((int)H - fh) / 2;
 	if(y0 < 0) y0 = 0;
 	S->Sag = (int16_t)(x0 + tw);
+	S->Ix2 = -1;
 
 	x = x0;
-	for(i = 0; i < 4; i++)
+	for(i = 0; i < n; i++)
 	{
 		const uint8_t g = SaatGlif(F, (char)('0' + r[i]));
 		SaatRakamMaske(S, F, x + (Yv - SaatRakamGen(F, g)) / 2, y0, g);	/* Yuvada ortali */
 		x += Yv + SAAT_ARA;
-		if(i == 1)
+		if(i == 1 || (i == 3 && Buyuk))
 		{
 			SaatRakamMaske(S, F, x, y0, Ik);
-			S->Ix = (int16_t)x; S->Iw = (int16_t)Wc;
+			if(i == 1) { S->Ix = (int16_t)x; S->Iw = (int16_t)Wc; } else S->Ix2 = (int16_t)x;
 			x += Wc + SAAT_ARA;
+		}
+	}
+	if(Sani && !Buyuk)											/* Kucuk saniye: dakikanin sagina, alt hizada */
+	{
+		const int yk = y0 + fh - (int)K->Height;
+		for(i = 4; i < 6; i++)
+		{
+			const uint8_t g = SaatGlif(K, (char)('0' + r[i]));
+			SaatRakamMaske(S, K, x, yk, g);
+			x += SaatRakamGen(K, g) + 1;
 		}
 	}
 }
@@ -3185,7 +3210,10 @@ static void SaatSet(int x, int y, uint8_t R, uint8_t G, uint8_t B, uint8_t Kenar
 /* Cama vuran isik: sol ya da ust komsusu rakam disi olan piksel */
 static uint8_t SaatKenar(const SaatDurum *S, int x, int y) { return (uint8_t)(!SaatPx(S, x - 1, y) || !SaatPx(S, x, y - 1)); }
 
-static uint8_t SaatNokta(const SaatDurum *S, int x) { return (uint8_t)(x >= S->Ix && x < S->Ix + S->Iw); }
+static uint8_t SaatNokta(const SaatDurum *S, int x)
+{
+	return (uint8_t)((x >= S->Ix && x < S->Ix + S->Iw) || (S->Ix2 >= 0 && x >= S->Ix2 && x < S->Ix2 + S->Iw));
+}
 
 /* Oransal font ile yazi (1 px aralik); Ciz 0 ise yalnizca genisligi dondurur */
 static int FontYazi(const FONT_INFO *F, int X, int Y, const char *s, uint8_t R, uint8_t G, uint8_t B, uint8_t Ciz)

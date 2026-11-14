@@ -128,6 +128,12 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 - 14 Kasım: Fatih'in ilk saat fontu Arial Bold (arialbold24px.c/.h, HUB75 Aracı çıktısı, 24 px, oransal, 0-9 : C)
   eklendi; geçici font (Font_SaatGecici.h) silindi (PC'de dosya duruyorsa kullanılmıyor). Rakamlar en geniş rakam
   kadar yuvaya ortalanır (dakika değişince saat kaymasın). Saat Yazısı tek font olduğu için hâlâ gizli.
+- 14 Kasım (4): Saniye (0x0311, BOOL, Saat): sığarsa büyük fontla 21:47:35 (iki ':' birlikte yanıp söner),
+  sığmazsa Arial 13 ile dakikanın sağına alt hizada; hiç yer yoksa (Bahn Bold + Isı-Nem) gösterilmez.
+  Vuruş hassasiyeti: tek gizli SENS (0x0005) KALKTI -> mod başına Bas vuruşu (0x0122, kick) ve Tiz vuruşu
+  (0x0123, genel vuruş/HitRatio), REACT_MASK modlarında (Klasik ve ortam modlarında yok), grup Hareket.
+  Android mod ayarları kutuları: GÖRÜNÜM (mor) / RENK (erik, renk türleri) / HAREKET (mavi-mor) / SAAT (lacivert)
+  / PANEL (gri, parlaklık). Kural: Saat grubu > Hareket grubu > renk türü > geri kalan.
 - 14 Kasım (3): Fontlar: saat = Arial Bold 24, Bahn Bold 30, Bahn Cond 30 (ayar adı "Font", Android'de açık);
   ısı-nem = Arial 13 (iki satır), sadece sıcaklık = Bahn 16 (tek satır); glif sırası StartChar'a göre ('%'li
   fontlar). Derece = elle 3x3 halka; yer yoksa 'C' düşer. Yerleşim: "Sol|Orta" + Alt (BOOL) + Isı-Nem (BOOL);

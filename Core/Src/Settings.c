@@ -118,18 +118,13 @@ static void ApplyMotion(uint8_t Mode, int32_t Value)
 	(void)Mode; (void)Value;
 	SPEC_Speed = (uint8_t)SET_Global(SET_ID_SPEED);
 	SPEC_React = (uint8_t)SET_Global(SET_ID_REACT);
+	SPEC_SetSens((uint8_t)SET_Global(SET_ID_SENS_BAS), (uint8_t)SET_Global(SET_ID_SENS_TIZ));
 }
 
 static void ApplyRange(uint8_t Mode, int32_t Value)
 {
 	(void)Mode;  (void)Value;
 	SPEC_SetRange((float)SET_Global(SET_ID_FREQ_LO), (float)SET_Global(SET_ID_FREQ_HI));
-}
-
-static void ApplySens(uint8_t Mode, int32_t Value)
-{
-	(void)Mode;
-	SPEC_SetSens((uint8_t)Value);
 }
 
 static void ApplyLineColor(uint8_t Mode, int32_t Value)
@@ -148,6 +143,7 @@ static void ApplyOrtam(uint8_t Mode, int32_t Value)
 	SPEC_SaatYer  = (uint8_t)SET_Global(SET_ID_SAAT_YER);
 	SPEC_SaatAlt  = (uint8_t)SET_Global(SET_ID_SAAT_ALT);
 	SPEC_SaatIsi  = (uint8_t)SET_Global(SET_ID_SAAT_ISI);
+	SPEC_SaatSn   = (uint8_t)SET_Global(SET_ID_SAAT_SN);
 	SPEC_SaatSaydam = (uint8_t)SET_Global(SET_ID_SAAT_SAYDAM);
 	SPEC_SmBoy    = (uint8_t)SET_Global(SET_ID_SM_BOY);
 	SPEC_YmSiddet = (uint8_t)SET_Global(SET_ID_YM_SIDDET);
@@ -200,8 +196,6 @@ static const SET_Param Table[] =
 	  "Alt frekans", "Ses", "Hz", ApplyRange },
 	{ SET_ID_FREQ_HI,		SET_TYPE_INT,	A,		0U,		240, 20000, 10, (int32_t)CFG_FREQ_HIGH,	/* Ust >= 4 x alt (SPEC_SetRange) */
 	  "\303\234st frekans", "Ses", "Hz", ApplyRange },
-	{ SET_ID_SENS,			SET_TYPE_INT,	A,		0U,		0,	100, 5,	(int32_t)CFG_SENS,
-	  "Vuru\305\237 hassasiyeti", "Ses", "(50 = varsay\304\261lan)", ApplySens },
 
 	/* --- Klasik (her alanin okunur hali yaninda) --- */
 	{ SET_ID_CLS_WIDTH, SET_TYPE_INT, SET_FLAG_PER_MODE, CLS_MASK, 1, 4, 1, 3,
@@ -242,6 +236,10 @@ static const SET_Param Table[] =
 	  "H\304\261z", "Hareket", "Yava\305\237|Normal|Y\303\274ksek|\303\207ok y\303\274ksek", ApplyMotion },	/* Hiz; hepsi tempoya gore */
 	{ SET_ID_REACT,			SET_TYPE_ENUM,	SET_FLAG_PER_MODE, REACT_MASK, 0, 2, 1, 1,
 	  "Tepki", "Hareket", "Sakin|Normal|Hareketli", ApplyMotion },
+	{ SET_ID_SENS_BAS,		SET_TYPE_INT,	SET_FLAG_PER_MODE, REACT_MASK, 0, 100, 5, (int32_t)CFG_SENS,
+	  "Bas vuru\305\237u", "Hareket", "", ApplyMotion },
+	{ SET_ID_SENS_TIZ,		SET_TYPE_INT,	SET_FLAG_PER_MODE, REACT_MASK, 0, 100, 5, (int32_t)CFG_SENS,
+	  "Tiz vuru\305\237u", "Hareket", "", ApplyMotion },
 
 	/* --- Isik Cizgisi: cizgi rengi soldan saga iki renk arasinda gecer --- */
 	{ SET_ID_LL_COLOR, SET_TYPE_SWATCH, SET_FLAG_PER_MODE, (1UL << SPEC_MODE_LIGHTLINE), 0, 7, 1, 0,
@@ -276,6 +274,8 @@ static const SET_Param Table[] =
 	  "Alt", "Saat", "", ApplyOrtam },
 	{ SET_ID_SAAT_ISI,		SET_TYPE_BOOL,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 1, 1, 0,
 	  "Is\304\261-Nem", "Saat", "", ApplyOrtam },
+	{ SET_ID_SAAT_SN,		SET_TYPE_BOOL,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 1, 1, 0,
+	  "Saniye", "Saat", "", ApplyOrtam },
 	{ SET_ID_SAAT_RGB,		SET_TYPE_COLOR,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 0xFFFFFF, 1, 0x22283A,
 	  "Saat Rengi", "Saat", "", ApplyOrtam },
 	{ SET_ID_SAAT_ISIK,		SET_TYPE_INT,	SET_FLAG_PER_MODE, SAAT_MASK, 5, 100, 5, 25,

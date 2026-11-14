@@ -76,6 +76,8 @@ val SariAcik = Color(0xFFFFE680)
 val SariKenar = Color(0xFFC79A00)   // Kabarik dugmenin alt kenari
 val IzKoyu = Color(0xFF2A1A78)     // Kaydirma cubugunun bos tarafi (zeminden belirgin)
 val SaatZemin = Color(0xFF26306E)  // Saat ayarlari kutusu (lacivert)
+val RenkZemin = Color(0xFF8A47B5)  // Renk ayarlari kutusu (erik moru)
+val HareketZemin = Color(0xFF3D52C2) // Hareket ayarlari kutusu (mavi-mor)
 val PanelZemin = Color(0xFF34304A) // Panel (tum modlar) ayarlari kutusu (koyu gri)
 val DugmeYuz = Color(0xFF7A62E6)   // Basilmamis dugme yuzu
 val DugmeKenar = Color(0xFF3A2896) // Basilmamis dugmenin alt kenari
@@ -133,14 +135,24 @@ fun AyarKutusu(baslik: String, zemin: Color, not: String? = null, icerik: @Compo
     }
 }
 
-/** Mod ayarlari iki kutuda: animasyonun kendi ayarlari (mor) ve saat ayarlari (lacivert) */
+/** Mod ayarlari kutularda; her ayar tek kutuda: Saat grubu -> SAAT, Hareket grubu -> HAREKET,
+ *  renk turleri (renk secici, ton, renk bloklari) -> RENK, geri kalan -> GORUNUM. Bos kutu cikmaz. */
 @Composable
 fun AyarGruplari(liste: List<Tanim>, deger: (Tanim) -> Int, yaz: (Tanim, Int) -> Unit) {
-    val (saat, diger) = liste.partition { it.grup == "Saat" }
-    if (diger.isNotEmpty()) AyarKutusu("ANİMASYON", MorKart) { AyarListesi(diger, deger, yaz) }
-    if (saat.isNotEmpty()) {
-        if (diger.isNotEmpty()) Spacer(Modifier.height(10.dp))
-        AyarKutusu("SAAT", SaatZemin) { AyarListesi(saat, deger, yaz) }
+    fun kutu(t: Tanim) = when {
+        t.grup == "Saat" -> 3
+        t.grup == "Hareket" -> 2
+        t.tur == Tur.RENK || t.tur == Tur.TON || t.tur == Tur.BLOK -> 1
+        else -> 0
+    }
+    val adlar = listOf("GÖRÜNÜM" to MorKart, "RENK" to RenkZemin, "HAREKET" to HareketZemin, "SAAT" to SaatZemin)
+    val gruplar = liste.groupBy { kutu(it) }
+    var ilk = true
+    for (k in adlar.indices) {
+        val l = gruplar[k] ?: continue
+        if (!ilk) Spacer(Modifier.height(10.dp))
+        ilk = false
+        AyarKutusu(adlar[k].first, adlar[k].second) { AyarListesi(l, deger, yaz) }
     }
 }
 

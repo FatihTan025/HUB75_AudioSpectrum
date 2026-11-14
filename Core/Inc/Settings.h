@@ -50,7 +50,6 @@
 #define SET_ID_AUTO_SEC			0x0002U
 #define SET_ID_FREQ_LO			0x0003U	/* Alt frekans, Hz	*/
 #define SET_ID_FREQ_HI			0x0004U	/* Ust frekans, Hz	*/
-#define SET_ID_SENS				0x0005U	/* Vurus hassasiyeti 0..100	*/
 #define SET_ID_FAV				0x0006U	/* Favori modlar: bit n = mod n (gizli)	*/
 #define SET_ID_CLS_COLOR       0x0101U
 #define SET_ID_CLS_BAR_RGB     0x0102U
@@ -65,6 +64,8 @@
 #define SET_ID_CLS_PEAK_STYLE  0x0113U	/* Gizli: gorunumun sabit tepe sekli	*/
 #define SET_ID_SPEED           0x0120U
 #define SET_ID_REACT           0x0121U
+#define SET_ID_SENS_BAS        0x0122U	/* Bas vurusu (kick) hassasiyeti 0..100	*/
+#define SET_ID_SENS_TIZ        0x0123U	/* Tiz (genel) vurus hassasiyeti 0..100	*/
 #define SET_ID_FIRE_COLOR		0x0206U	/* Alev rengi: hazir paletlerden biri	*/
 #define SET_ID_LL_COLOR		0x0208U	/* Isik Cizgisi: renk ailesi (blok)	*/
 #define SET_ID_PAL		0x0209U	/* Katmanli Dag / Orgu Serit: renk ailesi (8)	*/
@@ -82,6 +83,7 @@
 #define SET_ID_SAAT_SAYDAM	0x030EU	/* Saatli modlar: saat saydamligi %		*/
 #define SET_ID_SAAT_ALT		0x030FU	/* Saatli modlar: alta yasli			*/
 #define SET_ID_SAAT_ISI		0x0310U	/* Saatli modlar: sicaklik / nem goster	*/
+#define SET_ID_SAAT_SN		0x0311U	/* Saatli modlar: saniye goster			*/
 
 typedef struct
 {
