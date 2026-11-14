@@ -166,6 +166,8 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   Kar: zemindeki kar örtüsü kaldırıldı, kar eski haline döndü (Fatih onayladı, öyle kalsın).
   Not: PC'ye kopyalarken her seferinde dosya boyutunu kontrol et (aynı adla tekrar gönderilen dosya eski
   kopya olarak gitti).
+- 14 Kasım (18): Android ayarYaz debounce (60 ms bekle + iptal) yerine akış: yolda en çok bir gönderim, arada gelenlerden
+  yalnız sonuncusu (bekleyen) cevap gelince gider. Kaydırırken panel hemen güncellenir (renk, parlaklık, frekans...).
 - 14 Kasım (17, kartta denenmedi): Lamba hava hüzmesi kademeli ve çok sönük (YM_KADEME 4: sönük + 3 kademe).
   Kademe renkleri her karede saat renginden (YmHzKur): panel çıkışında (CIE tablosu + bitplane) en parlak kanal
   1/2/3 basamak, diğerleri aynı oranda; önemli bir kanal sıfıra düşerse o kademe sönük (yeşil/kırmızı piksel yok).

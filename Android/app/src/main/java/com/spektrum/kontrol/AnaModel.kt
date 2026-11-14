@@ -239,6 +239,7 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
     }
 
     private val yazIs = HashMap<Pair<Int, Int>, Job>()
+    private val bekleyen = HashMap<Pair<Int, Int>, Int>()      // Gonderilmeyi bekleyen son deger (ana is parcacigi)
 
     /** Kaydirma cubuklari icin: son deger gecerli, 60 ms'de bir gonderilir. */
     /** Favoriler (kalp): kartta tek gizli ayar, bit n = mod n. Otomatik gecis yalniz bunlarda doner. */
@@ -248,19 +249,27 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
         ayarYaz(t, (genel[AyarId.FAV] ?: 0) xor (1 shl no), MOD_GENEL)
     }
 
+    /** Ayar yazma: akis halinde. Yolda en cok bir gonderim; o surerken gelenlerden yalniz sonuncusu saklanir
+     *  ve cevap gelince hemen gider. Kaydirirken panel baglantinin hizinda guncellenir, son deger hep en son gider. */
     fun ayarYaz(t: Tanim, deger: Int, mod: Int) {
         val m = if (t.modBasina) mod else MOD_GENEL
         if (m == MOD_GENEL) genel[t.id] = deger else modDeger[m] = (modDeger[m] ?: emptyMap()) + (t.id to deger)
         val anahtar = m to t.id
-        yazIs[anahtar]?.cancel()
+        bekleyen[anahtar] = deger
+        if (yazIs[anahtar]?.isActive == true) return
         yazIs[anahtar] = viewModelScope.launch {
-            delay(60)
-            try {
-                val uygulanan = cihaz.value?.yaz(t.id, deger, m) ?: return@launch
-                if (uygulanan != deger) {
-                    if (m == MOD_GENEL) genel[t.id] = uygulanan else modDeger[m] = (modDeger[m] ?: emptyMap()) + (t.id to uygulanan)
+            while (true) {
+                val v = bekleyen.remove(anahtar) ?: break
+                try {
+                    val uygulanan = cihaz.value?.yaz(t.id, v, m) ?: break
+                    if (uygulanan != v && !bekleyen.containsKey(anahtar)) {   // Kart sinirladiysa (yeni deger yoksa) onunkini goster
+                        if (m == MOD_GENEL) genel[t.id] = uygulanan else modDeger[m] = (modDeger[m] ?: emptyMap()) + (t.id to uygulanan)
+                    }
+                } catch (e: Exception) {
+                    if (e is kotlinx.coroutines.CancellationException) throw e
+                    hata(e)
                 }
-            } catch (e: Exception) { hata(e) }
+            }
         }
     }
 
