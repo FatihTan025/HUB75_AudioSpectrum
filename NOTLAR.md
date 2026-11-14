@@ -202,8 +202,11 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   Android: Rüzgâr | Oto satırı eşit bölündüğü için Rüzgâr seçenekleri sıkıştı, Oto ince uzun oldu. Oto küçük sabit
   genişlikli düğme (hoparlör SimgeDugme gibi, ~46dp) satırın en sağında; kısa seçim kalan genişliği alır
   (Bilesenler.kt AyarListesi, kısa seçim + BOOL çifti). Akşam: Android arayüzünde başka görsel düzeltmeler gelecek.
-  Yağmur lambası: ışık saat rengine BAĞLI OLMASIN (Fatih "o renkten olsun" demişti, bağla değil): sabit krem
-  FFD9A0 tonu (YmIr/Ig/Ib sabit), saat rengi değişince lamba değişmez.
+  Yağmur lambası: ışık saat rengine BAĞLI OLMASIN (Fatih "o renkten olsun" demişti, bağla değil): şu anki krem
+  ton sabit (YmIr/Ig/Ib = 255,217,160; YmHzKur bir kez), saat rengi değişince lamba değişmez.
+  SAYDAMLIK TAMAMEN KALKSIN (Fatih): SET_ID_SAAT_SAYDAM ayarı, SPEC_SaatSaydam, SaatSet'in saydam dalı (SaatSet -> Set),
+  SmEngel'deki saydam koşulu, Şömine'nin saydam dalı, Android SaatDuzeni'ndeki satır ve AyarId. Yeni tablo ->
+  kayıtlı ayarlar bir kez fabrikaya döner.
 - **BEKLİYOR (Fatih "şimdilik dursun", 13 Kasım):** Kısık parlaklıkta Kar/saat saniyede birkaç kez parlayıp sönüyor.
   Sebep: SPEC_Draw sonundaki vuruş pompası (CFG_BEAT_BRIGHT_BOOST %25 * BeatEnv) Ortam modlarında da çalışıyor;
   müziksizken giriş gürültüsü vuruş sayılıyor, düşük parlaklıkta OE birkaç tik olduğu için küçük artış büyük
