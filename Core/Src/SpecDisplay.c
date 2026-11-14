@@ -88,7 +88,7 @@ typedef struct
 	uint8_t		M[H][W / 8];					/* Rakam pikseli maskesi			*/
 	int16_t		Ix, Iw, Ix2;					/* Iki nokta (fontun ':' glifi): x, genislik; ikincisi (saniye, yoksa -1)	*/
 	int16_t		Sag;							/* Saatin sag kenari (isi-nem yazisi bunu gecmez)	*/
-	uint8_t		Sa, Dk, Sn, Yazi, Yer, Alt, Isi, Sani, Hazir;
+	uint8_t		Sa, Dk, Sn, Yazi, Yer, Alt, Isi, Sani, SnVar, Hazir;	/* SnVar: saniye gercekten cizildi */
 } SaatDurum;
 
 /* Kar tanesi: tam piksel konum + kesir (dusus Ac/Kd, yana Kx/4096) -> ara piksel cizim.
@@ -3076,7 +3076,7 @@ uint32_t SPEC_SaatRgb = 0x0A0D13UL;						/* Saat rengi 0xRRGGBB (Settings: renk 
 
 /* Saat fontlari: Fatih'in fontlari geldikce buraya eklenir (Settings.c SAAT_YAZI
    secenek listesi ve Max ile ayni sirada). Bicim: FONT_INFO, 0-9.		*/
-static const FONT_INFO *const SaatYazilari[] = { &arialbold24pxFontInfo, &bahnbd30FontInfo, &bahncond30FontInfo };
+static const FONT_INFO *const SaatYazilari[] = { &arialbold24pxFontInfo, &bahncond30FontInfo, &bahnbd30FontInfo };	/* Kucukten buyuge */
 #define SAAT_YAZI_SAYISI	(sizeof(SaatYazilari) / sizeof(SaatYazilari[0]))
 
 uint8_t SPEC_SaatYaziSayisi(void) { return (uint8_t)SAAT_YAZI_SAYISI; }
@@ -3158,6 +3158,7 @@ static void SaatHazirla(SaatDurum *S)
 	if(y0 < 0) y0 = 0;
 	S->Sag = (int16_t)(x0 + tw);
 	S->Ix2 = -1;
+	S->SnVar = Sani;
 
 	x = x0;
 	for(i = 0; i < n; i++)
@@ -3209,6 +3210,9 @@ static void SaatSet(int x, int y, uint8_t R, uint8_t G, uint8_t B, uint8_t Kenar
 
 /* Cama vuran isik: sol ya da ust komsusu rakam disi olan piksel */
 static uint8_t SaatKenar(const SaatDurum *S, int x, int y) { return (uint8_t)(!SaatPx(S, x - 1, y) || !SaatPx(S, x, y - 1)); }
+
+/* Iki nokta: saniye gosterilirken sabit, yoksa saniyede bir yanip soner */
+static uint8_t SaatNoktaYanik(const SaatDurum *S) { return (uint8_t)(S->SnVar || (HAL_GetTick() % 1000U) < 500U); }
 
 static uint8_t SaatNokta(const SaatDurum *S, int x)
 {
@@ -3486,7 +3490,7 @@ static void SnMeteor(float Gdt)
 /* Saatli modlarin ortak saat cizimi: maske tek renk + yanip sonen iki nokta */
 static void SaatCiz(const SaatDurum *S, uint8_t R, uint8_t G, uint8_t B)
 {
-	const uint8_t Yanik = (uint8_t)((HAL_GetTick() % 1000U) < 500U);	/* Iki nokta yanip soner */
+	const uint8_t Yanik = SaatNoktaYanik(S);
 	int x, y;
 	for(y = 0; y < (int)H; y++)
 		for(x = 0; x < (int)W; x++)
@@ -3699,18 +3703,15 @@ static void ModeHearth(void)
 		}
 
 	/* Rakamlar: ici saat rengi (okunur), alevin degdigi kenar koz gibi parlar.
-	   Iki nokta: saniyede bir nefes alan koz. */
-	{
-		const uint32_t kn = 90U + (uint32_t)(80.0f * (0.5f + 0.5f * sinf(6.2832f * (float)(HAL_GetTick() % 1000U) / 1000.0f)));
-		SmKozRenk(kn, &nr, &ng, &nb);
-	}
+	   Iki nokta: saat renginde, diger modlardaki gibi yanip soner (saniyede sabit). */
+	nr = (uint8_t)((SPEC_SaatRgb >> 16) & 0xFFU); ng = (uint8_t)((SPEC_SaatRgb >> 8) & 0xFFU); nb = (uint8_t)(SPEC_SaatRgb & 0xFFU);
 	for(y = 0; y < (int)H; y++)
 		for(x = 0; x < (int)W; x++)
 		{
 			uint32_t h = 0, k;
 			uint8_t r, g, b;
 			if(!SaatPx(S, x, y)) continue;
-			if(SaatNokta(S, x)) { SaatSet(x, y, nr, ng, nb, 0); continue; }
+			if(SaatNokta(S, x)) { if(SaatNoktaYanik(S)) SaatSet(x, y, nr, ng, nb, 0); continue; }
 			if(SPEC_SaatSaydam)									/* Saydam: kor yok, cam rengi */
 			{
 				SaatSet(x, y, (uint8_t)((SPEC_SaatRgb >> 16) & 0xFFU), (uint8_t)((SPEC_SaatRgb >> 8) & 0xFFU), (uint8_t)(SPEC_SaatRgb & 0xFFU), SaatKenar(S, x, y));
@@ -4096,7 +4097,11 @@ static void ModeShore(void)
 		ShSirtBaslat(1U);
 		U.Sh.Sonra = ShSure[Dl] * 0.62f * (0.85f + 0.35f * RandF());
 	}
-	if(RandF() < Gdt / 0.25f) ShSirtBaslat(0U);								/* Kucuk, kisa sirtlar */
+	{																		/* Kucuk, kisa sirtlar: rastgele + denizde hep en az 3 */
+		uint32_t k, Say = 0;
+		for(k = 0; k < SH_SIRT; k++) Say += (U.Sh.Sr[k].On && !U.Sh.Sr[k].Ana) ? 1U : 0U;
+		if(Say < 3U || RandF() < Gdt / 0.25f) ShSirtBaslat(0U);
+	}
 	if(RandF() < Gdt / 0.3f)												/* Kopuk tepecigi */
 		for(i = 0; i < SH_KOPUK; i++)
 			if(!U.Sh.Kt[i].Life)
@@ -4131,10 +4136,11 @@ static void ModeShore(void)
 	for(x = 0; x < (int)W; x++)
 	{
 		float Ke[SH_YALAMA], Su = SH_TABAN;									/* Her dalganin ucu, suyun bittigi satir */
+		int32_t Akis = 1;															/* Kumdaki su: +1 kiyiya akar, -1 cekilir */
 		for(i = 0; i < SH_YALAMA; i++)
 		{
 			Ke[i] = SH_TABAN + (U.Sh.Yl[i].Eris + U.Sh.Yl[i].Pr[x]) * Zf[i];
-			if(U.Sh.Yl[i].On && Ke[i] > Su) Su = Ke[i];
+			if(U.Sh.Yl[i].On && Ke[i] > Su) { Su = Ke[i]; Akis = (U.Sh.Yl[i].T < 0.4f * U.Sh.Yl[i].Sure) ? 1 : -1; }
 		}
 		for(y = 0; y < (int)H; y++)
 		{
@@ -4144,8 +4150,8 @@ static void ModeShore(void)
 				const uint32_t t = (uint32_t)((float)y * 256.0f / SH_TABAN);
 				r = R->Dz1[0]; g = R->Dz1[1]; b = R->Dz1[2];
 				ShRenkKat(&r, &g, &b, R->Dz2, t);
-				{													/* Surekli hafif kipirti: kiyiya akan yumusak bantlar, +-%10 */
-					const uint32_t m = 230U + ShDoku[((uint32_t)y * 6U + U.Sh.Of[x] + 64U - ((U.Sh.Kare >> 2) & 63U)) & 63U] / 5U;
+				{													/* Surekli kipirti: kiyiya akan yumusak bantlar */
+					const uint32_t m = 200U + (ShDoku[((uint32_t)y * 10U + U.Sh.Of[x] + 64U - ((U.Sh.Kare >> 2) & 63U)) & 63U] * 112U >> 8);	/* +-%22 */
 					r = (r * m) >> 8; g = (g * m) >> 8; b = (b * m) >> 8;
 					if((Rand() % 700U) == 0U) { r += r >> 1; g += g >> 1; b += b >> 1; }	/* Seyrek parilti */
 				}
@@ -4187,6 +4193,12 @@ static void ModeShore(void)
 				r = R->Dz2[0]; g = R->Dz2[1]; b = R->Dz2[2];
 				ShRenkKat(&r, &g, &b, R->Sig, t);							/* Ucuna dogru sig renge acilir */
 				if(Der < 4.0f) ShRenkKat(&r, &g, &b, R->Islak, (uint32_t)((4.0f - Der) * 48.0f));	/* Uc ince: kum gorunur */
+				{												/* Kivrimlar: ucun seklini izler, gelirken kiyiya, cekilirken denize akar */
+					const uint32_t d = ShDoku[((uint32_t)(Der * 9.0f) + U.Sh.Of[x] + (uint32_t)(Akis * (int32_t)(U.Sh.Kare >> 1)) + 1024U) & 63U];
+					const uint32_t m = 200U + (d * 112U >> 8);
+					r = (r * m) >> 8; g = (g * m) >> 8; b = (b * m) >> 8;
+					if(d > 235U && (Rand() % 6U) == 0U) ShRenkKat(&r, &g, &b, R->Kp, 90U);	/* Kopuk izi */
+				}
 				U.Sh.Islak[y][x] = 255U;
 				if((Rand() % 160U) == 0U) { r += r >> 1; g += g >> 1; b += b >> 1; }
 			}

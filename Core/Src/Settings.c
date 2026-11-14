@@ -267,7 +267,7 @@ static const SET_Param Table[] =
 	{ SET_ID_SH_ISIK,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SH_MASK, 0, 1, 1, 0,
 	  "I\305\237\304\261k", "Deniz", "Gece|G\303\274nd\303\274z", ApplyOrtam },
 	{ SET_ID_SAAT_YAZI,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 2, 1, 0,
-	  "Font", "Saat", "Arial Bold|Bahn Bold|Bahn Cond", ApplyOrtam },			/* SpecDisplay.c SaatYazilari[] sirasi */
+	  "Font", "Saat", "Arial Bold|Bahn Cond|Bahn Bold", ApplyOrtam },			/* SpecDisplay.c SaatYazilari[] sirasi */
 	{ SET_ID_SAAT_YER,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 1, 1, 1,
 	  "Yerle\305\237im", "Saat", "Sol|Orta", ApplyOrtam },
 	{ SET_ID_SAAT_ALT,		SET_TYPE_BOOL,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 1, 1, 0,

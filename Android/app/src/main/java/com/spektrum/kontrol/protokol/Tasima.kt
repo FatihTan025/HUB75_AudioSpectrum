@@ -21,7 +21,7 @@ interface Tasima {
 }
 
 /** ESP32 kopru: TCP 5000 (cihazin kendi agi 192.168.4.1 ya da ev agi). ag verilirse soket acikca o agda acilir. */
-class TcpTasima(private val adres: String, private val port: Int = 5000, private val kapsam: CoroutineScope,
+class TcpTasima(val adres: String, private val port: Int = 5000, private val kapsam: CoroutineScope,
                 private val ag: android.net.Network? = null) : Tasima {
     override val ad = "Wi-Fi"
     override var alici: ((ByteArray) -> Unit)? = null

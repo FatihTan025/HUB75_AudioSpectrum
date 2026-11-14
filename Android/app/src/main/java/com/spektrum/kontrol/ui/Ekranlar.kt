@@ -69,6 +69,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spektrum.kontrol.AnaModel
+import com.spektrum.kontrol.protokol.TcpTasima
+import com.spektrum.kontrol.protokol.BleTasima
 import com.spektrum.kontrol.Bulunan
 import com.spektrum.kontrol.KENDI_AG_IP
 import com.spektrum.kontrol.Sekme
@@ -225,8 +227,12 @@ private fun UstCubuk(m: AnaModel) {
     Column {
         Row(Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = { m.birak() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Cihazlar", tint = Color.White) }
-            Text(m.bilgi.value?.ad ?: "", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                Text(m.bilgi.value?.ad ?: "", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                val ts = m.cihaz.value?.tasima
+                val yol = when (ts) { is BleTasima -> 0; is TcpTasima -> if (ts.adres == KENDI_AG_IP) 2 else 1; else -> -1 }
+                if (yol >= 0) BaglantiSimgesi(yol, Soluk, Modifier.padding(start = 8.dp))
+            }
             IconButton(onClick = { m.gucDegistir() }) {
                 Box(Modifier.size(40.dp).clip(CircleShape).background(if (m.guc.value) Sari else MorKoyu), contentAlignment = Alignment.Center) {
                     GucSimgesi(if (m.guc.value) SariYazi else Soluk)
@@ -290,7 +296,7 @@ private fun ModSekmesi(m: AnaModel, muziksiz: Boolean, bosYazi: String) {
                 Box(Modifier.padding(3.dp).size(6.dp).clip(CircleShape).background(if (i == sayfa.currentPage) Sari else Color(0xFF8C77E8)))
             }
         }
-        Column(Modifier.padding(horizontal = 18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(Modifier.padding(horizontal = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             AyarGruplari(m.modAyarlari(mod), { t -> m.deger(t, mod) }) { t, v -> m.ayarYaz(t, v, mod) }
             m.tanimBul(AyarId.PARLAKLIK)?.let { t ->
                 AyarKutusu("PANEL", PanelZemin, "tüm modlar") {

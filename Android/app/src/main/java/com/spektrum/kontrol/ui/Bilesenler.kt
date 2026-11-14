@@ -94,14 +94,14 @@ fun Baslik(yazi: String) = Text(yazi, color = Color.White, fontSize = 14.sp, fon
 fun TekSatir(ad: String, alt: String? = null, ust: Boolean = false, denetim: @Composable () -> Unit) {
     if (ust) {                                  // Dar (yan yana iki ayar): ad ustte, denetim altta
         Column(Modifier.fillMaxWidth()) {
-            Text(ad, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
-            Box(Modifier.fillMaxWidth().padding(top = 4.dp), contentAlignment = Alignment.CenterStart) { denetim() }
+            Text(ad, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+            Box(Modifier.fillMaxWidth().padding(top = 2.dp), contentAlignment = Alignment.CenterStart) { denetim() }
         }
         return
     }
-    Row(Modifier.fillMaxWidth().heightIn(min = 52.dp), verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.width(96.dp)) {
-            Text(ad, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+    Row(Modifier.fillMaxWidth().heightIn(min = 38.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.width(80.dp)) {
+            Text(ad, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
             if (!alt.isNullOrEmpty()) Text(alt, color = Pasif, fontSize = 11.sp, maxLines = 1)
         }
         Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) { denetim() }
@@ -111,13 +111,13 @@ fun TekSatir(ad: String, alt: String? = null, ust: Boolean = false, denetim: @Co
 /** Acma-kapama: kapaliyken kabarik (alt kenar + golge, mor yuz), acikken basili (asagi inmis, sari yuz, ic golge) */
 @Composable
 fun BasmaDugme(yazi: String, acik: Boolean, degistir: (Boolean) -> Unit) {
-    val sekil = RoundedCornerShape(10.dp)
-    Box(Modifier.fillMaxWidth().height(46.dp).clickable { degistir(!acik) }) {
-        if (!acik) Box(Modifier.fillMaxWidth().height(42.dp).align(Alignment.BottomCenter).shadow(4.dp, sekil).clip(sekil).background(DugmeKenar))
-        Box(Modifier.fillMaxWidth().height(42.dp).offset(y = if (acik) 4.dp else 0.dp).clip(sekil)
+    val sekil = RoundedCornerShape(8.dp)
+    Box(Modifier.fillMaxWidth().height(33.dp).clickable { degistir(!acik) }) {
+        if (!acik) Box(Modifier.fillMaxWidth().height(30.dp).align(Alignment.BottomCenter).shadow(3.dp, sekil).clip(sekil).background(DugmeKenar))
+        Box(Modifier.fillMaxWidth().height(30.dp).offset(y = if (acik) 3.dp else 0.dp).clip(sekil)
             .background(if (acik) Brush.verticalGradient(listOf(SariKenar, Sari, Sari)) else Brush.verticalGradient(listOf(DugmeYuz, DugmeYuz))),
             contentAlignment = Alignment.Center) {
-            Text(yazi, color = if (acik) SariYazi else Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+            Text(yazi, color = if (acik) SariYazi else Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1)
         }
     }
 }
@@ -125,13 +125,13 @@ fun BasmaDugme(yazi: String, acik: Boolean, degistir: (Boolean) -> Unit) {
 /** Basliklii ayar kutusu: zemin rengi hangi tur ayar oldugunu anlatir */
 @Composable
 fun AyarKutusu(baslik: String, zemin: Color, not: String? = null, icerik: @Composable () -> Unit) {
-    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(zemin).padding(horizontal = 12.dp, vertical = 10.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(baslik, color = Soluk, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            if (not != null) Text("  ·  $not", color = Pasif, fontSize = 11.sp)
-        }
-        Spacer(Modifier.height(6.dp))
-        icerik()
+    Box(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(top = 7.dp).fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(zemin)
+            .padding(start = 10.dp, end = 10.dp, top = 10.dp, bottom = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) { icerik() }
+        // Cerceve basligi: kutunun ust kenarina oturur, ayri satir kaplamaz
+        Text(if (not != null) "$baslik · $not" else baslik, color = Soluk, fontSize = 10.sp, fontWeight = FontWeight.Bold,
+            modifier = Modifier.align(Alignment.TopCenter).clip(RoundedCornerShape(7.dp)).background(zemin)
+                .border(1.dp, Soluk.copy(alpha = 0.35f), RoundedCornerShape(7.dp)).padding(horizontal = 8.dp, vertical = 1.dp))
     }
 }
 
@@ -150,9 +150,11 @@ fun AyarGruplari(liste: List<Tanim>, deger: (Tanim) -> Int, yaz: (Tanim, Int) ->
     var ilk = true
     for (k in adlar.indices) {
         val l = gruplar[k] ?: continue
-        if (!ilk) Spacer(Modifier.height(10.dp))
+        if (!ilk) Spacer(Modifier.height(4.dp))
         ilk = false
-        AyarKutusu(adlar[k].first, adlar[k].second) { AyarListesi(l, deger, yaz) }
+        AyarKutusu(adlar[k].first, adlar[k].second) {
+            if (k == 3) SaatDuzeni(l, deger, yaz) else AyarListesi(l, deger, yaz)
+        }
     }
 }
 
@@ -171,7 +173,16 @@ fun FrekansCubugu(alt: Int, ust: Int, yaz: (Int, Int) -> Unit) {
             value = ar,
             onValueChange = { y -> if (frekans(y.endInclusive) >= 4 * frekans(y.start)) ar = y },
             onValueChangeFinished = { yaz(frekans(ar.start).coerceIn(60, 5000), frekans(ar.endInclusive).coerceIn(240, 20000)) },
-            colors = SliderDefaults.colors(thumbColor = Color.White, activeTrackColor = Sari, inactiveTrackColor = IzKoyu)
+            startThumb = { Tutamac() },
+            endThumb = { Tutamac() },
+            track = { _ ->                         // Diger cubuklar gibi: koyu iz, secili aralik sari
+                Canvas(Modifier.fillMaxWidth().height(6.dp)) {
+                    val r = androidx.compose.ui.geometry.CornerRadius(size.height / 2)
+                    drawRoundRect(IzKoyu, cornerRadius = r)
+                    drawRoundRect(Sari, topLeft = Offset(size.width * ar.start, 0f),
+                        size = androidx.compose.ui.geometry.Size(size.width * (ar.endInclusive - ar.start), size.height), cornerRadius = r)
+                }
+            }
         )
         Row(Modifier.fillMaxWidth()) {
             Text("60 Hz", color = Pasif, fontSize = 11.sp)
@@ -190,19 +201,53 @@ fun kisaAyar(t: Tanim) = t.tur == Tur.BOOL ||
 fun AyarListesi(liste: List<Tanim>, deger: (Tanim) -> Int, yaz: (Tanim, Int) -> Unit) {
     var i = 0
     while (i < liste.size) {
+        // Ayni satira: en cok 3 dugme (BOOL), ya da 2 kisa secim, ya da 2 kaydirma cubugu (yarim genislik)
         val a = liste[i]
-        val b = liste.getOrNull(i + 1)
-        if (b != null && kisaAyar(a) && kisaAyar(b)) {
-            Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Box(Modifier.weight(1f)) { AyarSatiri(a, deger(a), ust = true) { yaz(a, it) } }
-                Box(Modifier.weight(1f)) { AyarSatiri(b, deger(b), ust = true) { yaz(b, it) } }
-            }
-            i += 2
-        } else {
-            AyarSatiri(a, deger(a)) { yaz(a, it) }
-            i++
+        val n = when {
+            a.tur == Tur.BOOL -> { var k = 1; while (k < 3 && liste.getOrNull(i + k)?.tur == Tur.BOOL) k++; k }
+            kisaAyar(a) && liste.getOrNull(i + 1)?.let { kisaAyar(it) && it.tur != Tur.BOOL } == true -> 2
+            sayiAyar(a) && liste.getOrNull(i + 1)?.let { sayiAyar(it) } == true -> 2
+            else -> 1
         }
+        if (n == 1) AyarSatiri(a, deger(a)) { yaz(a, it) }
+        else Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Bottom) {
+            for (k in 0 until n) { val t = liste[i + k]; Box(Modifier.weight(1f)) { AyarSatiri(t, deger(t), ust = true) { yaz(t, it) } } }
+            if (a.tur == Tur.BOOL) repeat(3 - n) { Spacer(Modifier.weight(1f)) }		// Dugmeler hep ayni boyda
+        }
+        i += n
     }
+}
+
+/** Kaydirma cubuklu sayi ayari (iki tanesi yarim genislikte yan yana sigar) */
+fun sayiAyar(t: Tanim) = t.tur != Tur.BOOL && t.tur != Tur.ENUM && t.tur != Tur.BLOK && t.tur != Tur.TON && t.tur != Tur.RENK
+
+/** Saat kutusu: Font + Saniye / Sol Orta Alt / Isi-Nem / Renk / Parlaklik + Saydamlik. Bilinmeyen saat ayarlari altta. */
+@Composable
+fun SaatDuzeni(liste: List<Tanim>, deger: (Tanim) -> Int, yaz: (Tanim, Int) -> Unit) {
+    fun bul(id: Int) = liste.firstOrNull { it.id == id }
+    val font = bul(AyarId.SAAT_YAZI); val sn = bul(AyarId.SAAT_SN); val yer = bul(AyarId.SAAT_YER)
+    val alt = bul(AyarId.SAAT_ALT); val isi = bul(AyarId.SAAT_ISI); val rgb = bul(AyarId.SAAT_RGB)
+    val isik = bul(AyarId.SAAT_ISIK); val say = bul(AyarId.SAAT_SAYDAM)
+    val bilinen = setOfNotNull(font, sn, yer, alt, isi, rgb, isik, say)
+    if (font != null || sn != null) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        if (font != null) Box(Modifier.weight(2f)) {
+            SecmeliResim(font.secenekler, deger(font) - font.min, saniye = sn != null && deger(sn) != 0) { yaz(font, font.min + it) }
+        }
+        if (sn != null) Box(Modifier.weight(1f)) { BasmaDugme(sn.ad, deger(sn) != 0) { yaz(sn, if (it) 1 else 0) } }
+    }
+    if (yer != null || alt != null) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        yer?.secenekler?.forEachIndexed { k, s -> Box(Modifier.weight(1f)) { BasmaDugme(s, deger(yer) - yer.min == k) { yaz(yer, yer.min + k) } } }
+        if (alt != null) Box(Modifier.weight(1f)) { BasmaDugme(alt.ad, deger(alt) != 0) { yaz(alt, if (it) 1 else 0) } }
+    }
+    if (isi != null) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Box(Modifier.weight(1f)) { BasmaDugme(isi.ad, deger(isi) != 0) { yaz(isi, if (it) 1 else 0) } }
+        Spacer(Modifier.weight(2f))
+    }
+    if (rgb != null) AyarSatiri(rgb.copy(ad = "Renk"), deger(rgb)) { yaz(rgb, it) }
+    val cubuklar = listOfNotNull(isik?.copy(ad = "Parlaklık"), say)
+    if (cubuklar.isNotEmpty()) AyarListesi(cubuklar, { t -> deger(liste.first { it.id == t.id }) }) { t, v -> yaz(liste.first { it.id == t.id }, v) }
+    val kalan = liste.filter { it !in bilinen }
+    if (kalan.isNotEmpty()) AyarListesi(kalan, deger, yaz)
 }
 
 /**
@@ -227,7 +272,8 @@ fun AyarSatiri(t: Tanim, deger: Int, ust: Boolean = false, degisti: (Int) -> Uni
         Tur.RENK -> TekSatir(t.ad) {
             RenkCubugu(rgbKonum(deger), beyaz = true) { degisti(konumRgb(it)) }
         }
-        else -> TekSatir(t.ad) {   // INT (ve bilinmeyen turler: sayi gibi)
+        else -> if (ust) TekSatir("${t.ad}  $deger${t.secenek}", ust = true) { Cubuk(deger, t.min, t.max, t.adim, degisti) }
+        else TekSatir(t.ad) {   // INT (ve bilinmeyen turler: sayi gibi)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.weight(1f)) { Cubuk(deger, t.min, t.max, t.adim, degisti) }
                 Text("$deger ${t.secenek}".trim(), color = Soluk, fontSize = 12.sp, maxLines = 1,
@@ -299,7 +345,7 @@ fun Secmeli(secenekler: List<String>, secili: Int, sec: (Int) -> Unit) {
 
 /** Saat yazisi: secenekler o fontla yazilmis "12:34" resmi (assets/saatyazi/<ad>.png); resim yoksa ad yazilir */
 @Composable
-fun SecmeliResim(secenekler: List<String>, secili: Int, sec: (Int) -> Unit) {
+fun SecmeliResim(secenekler: List<String>, secili: Int, saniye: Boolean = false, sec: (Int) -> Unit) {
     val ctx = LocalContext.current
     Row(
         Modifier.clip(RoundedCornerShape(20.dp)).background(MorKoyu).padding(3.dp).horizontalScroll(rememberScrollState()),
@@ -307,15 +353,15 @@ fun SecmeliResim(secenekler: List<String>, secili: Int, sec: (Int) -> Unit) {
     ) {
         secenekler.forEachIndexed { i, s ->
             val on = i == secili
-            val resim = remember(s) {
-                runCatching { ctx.assets.open("saatyazi/${sadeAd(s)}.png").use { BitmapFactory.decodeStream(it)?.asImageBitmap() } }.getOrNull()
+            val resim = remember(s, saniye) {     // Saniye aciksa "12:34:56" ornegi (panelde nasilsa oyle)
+                runCatching { ctx.assets.open("saatyazi/${sadeAd(s)}${if (saniye) "_sn" else ""}.png").use { BitmapFactory.decodeStream(it)?.asImageBitmap() } }.getOrNull()
             }
             Box(
                 Modifier.clip(RoundedCornerShape(18.dp)).background(if (on) Sari else Color.Transparent)
-                    .clickable { sec(i) }.padding(horizontal = 12.dp, vertical = 6.dp),
+                    .clickable { sec(i) }.padding(horizontal = 8.dp, vertical = 5.dp),
                 contentAlignment = Alignment.Center
             ) {
-                if (resim != null) Image(resim, s, Modifier.height(20.dp), filterQuality = FilterQuality.None,
+                if (resim != null) Image(resim, s, Modifier.height(18.dp), filterQuality = FilterQuality.None,
                     colorFilter = ColorFilter.tint(if (on) SariYazi else Soluk))
                 else Text(s, color = if (on) SariYazi else Soluk, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
             }
@@ -386,6 +432,37 @@ fun GucSimgesi(renk: Color, modifier: Modifier = Modifier) {
             topLeft = Offset(w * 0.12f, w * 0.18f), size = androidx.compose.ui.geometry.Size(w * 0.76f, w * 0.76f),
             style = Stroke(s, cap = StrokeCap.Round))
         drawLine(renk, Offset(w / 2, w * 0.06f), Offset(w / 2, w * 0.5f), s, StrokeCap.Round)
+    }
+}
+
+/** Bagli yol simgesi (yazisiz): 0 Bluetooth, 1 ev agi (Wi-Fi + ev), 2 dogrudan Wi-Fi (panelin kendi agi) */
+@Composable
+fun BaglantiSimgesi(yol: Int, renk: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier.size(20.dp)) {
+        val w = size.width; val s = 1.8.dp.toPx()
+        val st = Stroke(s, cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round)
+        if (yol == 0) {                                   // Bluetooth runu
+            val p = androidx.compose.ui.graphics.Path().apply {
+                moveTo(w * 0.28f, w * 0.30f); lineTo(w * 0.70f, w * 0.68f); lineTo(w * 0.50f, w * 0.88f)
+                lineTo(w * 0.50f, w * 0.12f); lineTo(w * 0.70f, w * 0.32f); lineTo(w * 0.28f, w * 0.70f)
+            }
+            drawPath(p, renk, style = st)
+        } else {                                          // Wi-Fi yaylari
+            val mx = if (yol == 1) w * 0.40f else w * 0.5f
+            for (k in 1..3) {
+                val r = w * 0.13f * k
+                drawArc(renk, 225f, 90f, false, topLeft = Offset(mx - r, w * 0.72f - r),
+                    size = androidx.compose.ui.geometry.Size(r * 2, r * 2), style = st)
+            }
+            drawCircle(renk, s * 0.9f, Offset(mx, w * 0.72f))
+            if (yol == 1) {                               // Ev: sag altta kucuk ev
+                val e = androidx.compose.ui.graphics.Path().apply {
+                    moveTo(w * 0.66f, w * 0.96f); lineTo(w * 0.66f, w * 0.74f); lineTo(w * 0.80f, w * 0.60f)
+                    lineTo(w * 0.94f, w * 0.74f); lineTo(w * 0.94f, w * 0.96f); close()
+                }
+                drawPath(e, renk, style = Stroke(s * 0.8f, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+            }
+        }
     }
 }
 
