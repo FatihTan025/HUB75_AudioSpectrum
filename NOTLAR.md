@@ -137,6 +137,9 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   kabarmasından, asla düz değil. Uzak damla suyun üst (uzak) kısmına, yakın damla alta düşer; düştüğü yerde
   damla hızına göre hızı/boyu değişen elips halka (YmHalka, 28 adet), yakın damlada sıçrama. Saat suyun
   altında kırılarak, renklenerek görünür.
+  Yağmur (düzeltme): su kenarı sabit (kıpırdamaz, düz de değil), vuruşla kabarma kalktı; beyaz yok: halka ve
+  damlacıklar açık su tonunda, parıltı kalktı; su içinde katman katman dalga (uzakta sık, yakında geniş, iki
+  takım, tepe açık / çukur koyu su tonu).
   Kar örtüsü denendi, KALDIRILDI (Fatih: kar yumağı/tümsek görünmüyor, yalnız farklı tonda pikseller; zeminde
   kar olmasın). Kar eski haline döndü, kodu tamamen silindi.
 - 14 Kasım (8): "Müzikte geç" (0x0007, genel BOOL, Ayarlar > Genel): ortam modunda 4 sn müzik (SPEC_MusicLevel =

@@ -194,7 +194,6 @@ static union
 		YmDamla		Uz[YM_UZAK], Ya[YM_YAKIN];
 		YmZerre		Zr[YM_ZERRE];
 		YmHalka		Hl[YM_HALKA];
-		float		Kab[W];							/* Vurusla kabaran su kenari (px)	*/
 		uint8_t		Of[W];							/* Su kenarinin sutun kaymasi		*/
 		uint32_t	Kare;
 		uint8_t		Ready;
@@ -3939,13 +3938,6 @@ static void YmSicrat(const YmDamla *d, uint8_t Yakin)
 			h->Life = Yakin ? 255U : 150U;
 			break;
 		}
-	if(x >= 0.0f && x < (float)W)								/* Kenara yakin dustuyse kenar kabarir */
-	{
-		const int k = (int)x;
-		if(U.Ym.Kab[k] < 2.0f) U.Ym.Kab[k] += d->Iri ? 1.5f : 0.8f;
-		if(k > 0 && U.Ym.Kab[k - 1] < 2.0f)            U.Ym.Kab[k - 1] += 0.5f;
-		if(k < (int)W - 1 && U.Ym.Kab[k + 1] < 2.0f)   U.Ym.Kab[k + 1] += 0.5f;
-	}
 	if(!Yakin) return;
 	{
 		const uint32_t Adet = d->Iri ? 3U + Rand() % 3U : 1U + Rand() % 2U;
@@ -3962,6 +3954,8 @@ static void YmSicrat(const YmDamla *d, uint8_t Yakin)
 	}
 }
 
+#define YM_SU(v)	(uint8_t)(((v) * 70U) >> 8), (uint8_t)(((v) * 150U) >> 8), (uint8_t)(((v) * 210U) >> 8)	/* Acik su tonu (beyaz degil) */
+
 /* Elips halka: uzakta basik (perspektif), genisledikce soner */
 static void YmHalkaCiz(const YmHalka *h, float Ys0)
 {
@@ -3969,14 +3963,14 @@ static void YmHalkaCiz(const YmHalka *h, float Ys0)
 	                                  {-64,0},{-59,-24},{-45,-45},{-24,-59},{0,-64},{24,-59},{45,-45},{59,-24} };
 	const float z = (h->Y - Ys0) / ((float)H - Ys0 + 0.01f);		/* 0 uzak .. 1 yakin */
 	const float ry = h->R * (0.22f + 0.30f * z);
-	const uint32_t v = (uint32_t)h->Life * (h->Iri ? 120U : 80U) >> 8;
+	const uint32_t v = (uint32_t)h->Life * (h->Iri ? 90U : 60U) >> 8;
 	int k;
 	if(!v) return;
 	for(k = 0; k < 16; k++)
 	{
 		const int x = (int)(h->X + h->R * (float)Cs[k][0] / 64.0f);
 		const int y = (int)(h->Y + ry * (float)Cs[k][1] / 64.0f + 0.5f);
-		if(y >= (int)Ys0 - 1 && y < (int)H) Add(x, y, YM_RENK(v));
+		if(y >= (int)Ys0 - 1 && y < (int)H) Add(x, y, YM_SU(v));
 	}
 }
 
@@ -3995,7 +3989,6 @@ static void ModeRain(void)
 	if(!U.Ym.Ready)
 	{
 		OrtamKayma(U.Ym.Of, 64.0f);
-		memset(U.Ym.Kab, 0, sizeof(U.Ym.Kab));
 		for(i = 0; i < YM_UZAK; i++)  YmDog(&U.Ym.Uz[i], 0, 1);
 		for(i = 0; i < YM_YAKIN; i++) YmDog(&U.Ym.Ya[i], (i < NIri[2]) ? 2U : 1U, 1);
 		U.Ym.Ready = 1;
@@ -4003,14 +3996,10 @@ static void ModeRain(void)
 	U.Ym.Kare++;
 	SaatHazirla(&U.Ym.S);
 
-	/* Su kenari: kontrol noktali yavas dalga (+-2.5 px) + vurus kabarmasi; hicbir an duz degil */
+	/* Su kenari: sabit, duzensiz kiyi cizgisi (kipirdamaz, duz de degil) */
 	for(x = 0; x < (int)W; x++)
-	{
-		const float b = ((float)ShDoku[(U.Ym.Of[x] + (U.Ym.Kare / 6U)) & 63U] - 128.0f) * (2.5f / 128.0f)
-		              + ((float)ShDoku[(U.Ym.Of[(x * 5) & (W - 1)] / 2U + 32U - (U.Ym.Kare / 11U)) & 63U] - 128.0f) * (1.0f / 128.0f);
-		Ys[x] = Ys0 + b - U.Ym.Kab[x];
-		U.Ym.Kab[x] *= 0.90f;
-	}
+		Ys[x] = Ys0 + ((float)ShDoku[U.Ym.Of[x] & 63U] - 128.0f) * (1.5f / 128.0f)
+		            + ((float)ShDoku[(U.Ym.Of[(x * 5) & (W - 1)] / 2U + 32U) & 63U] - 128.0f) * (0.7f / 128.0f);
 
 	for(y = 0; y < (int)H; y++)
 		for(x = 0; x < (int)W; x++)
@@ -4034,21 +4023,27 @@ static void ModeRain(void)
 	{
 		uint8_t Sat[W][3];
 		const float z = ((float)y - Ys0) / ((float)H - Ys0);			/* 0 uzak .. 1 yakin */
-		const uint32_t tr = 6U + (uint32_t)(6.0f * z), tg = 14U + (uint32_t)(10.0f * z), tb = 28U + (uint32_t)(16.0f * z);
+		const float zz = (z > 0.0f) ? z : 0.0f;
+		const float Tr = 6.0f + 6.0f * zz, Tg = 14.0f + 10.0f * zz, Tb = 28.0f + 16.0f * zz;
+		const float Ka = 6.2832f * 2.6f * sqrtf(zz + 0.04f), Za = (float)U.Ym.Kare * Gdt;	/* Uzakta sik, yakinda genis */
 		if(y < 0) continue;
 		for(x = 0; x < (int)W; x++) { const uint8_t *c = CV(y, x); Sat[x][0] = c[0]; Sat[x][1] = c[1]; Sat[x][2] = c[2]; }
 		for(x = 0; x < (int)W; x++)
 		{
 			const float a = ((float)y + 1.0f - Ys[x]) * 0.5f;			/* Kenarda 0 -> 2 px'te 1 */
-			uint32_t A, r, g, b, m;
+			uint32_t A, r, g, b, m, tr, tg, tb;
+			float w;
 			int sx;
 			if(a <= 0.0f) continue;
 			A  = (a >= 1.0f) ? 256U : (uint32_t)(a * 256.0f);
 			sx = x + ((ShDoku[((uint32_t)y * 9U + U.Ym.Of[x] + U.Ym.Kare / 3U) & 63U] > 215U) ? 1 : 0);	/* Kirilma */
 			if(sx >= (int)W) sx = (int)W - 1;
 			m  = 150U + (ShDoku[((uint32_t)y * 13U + U.Ym.Of[x] / 2U + 64U - (U.Ym.Kare / 4U)) & 63U] >> 2);	/* Su ici kipirti */
+			/* Katman katman dalga: suyun kendi tonu (tepe acik, cukur koyu); iki takim, egik ve kivrimli */
+			w  = 0.45f * sinf(Ka + (float)U.Ym.Of[x] * 0.03f - 1.6f * Za)
+			   + 0.25f * sinf(Ka * 0.7f + (float)x * 0.09f + (float)U.Ym.Of[(x * 3) & (W - 1)] * 0.02f - 1.1f * Za);
+			tr = (uint32_t)(Tr * (1.0f + w * 0.8f)); tg = (uint32_t)(Tg * (1.0f + w)); tb = (uint32_t)(Tb * (1.0f + w));
 			r  = ((Sat[sx][0] * m) >> 8) + tr; g = ((Sat[sx][1] * m) >> 8) + tg; b = ((Sat[sx][2] * m) >> 8) + tb;
-			if((Rand() % 900U) == 0U) { r += 30U; g += 34U; b += 40U; }	/* Seyrek isik parlamasi */
 			{
 				uint8_t *c = CV(y, x);
 				c[0] = (uint8_t)((Sat[x][0] * (256U - A) + ((r > 255U) ? 255U : r) * A) >> 8);
@@ -4090,7 +4085,7 @@ static void ModeRain(void)
 		if(!z->L) continue;
 		z->X += z->Vx * Gdt; z->Y += z->Vy * Gdt; z->Vy += 260.0f * Gdt;
 		if((z->Vy > 0.0f && z->Y >= z->Hd) || z->X < 0.0f || z->X >= (float)W) { z->L = 0; continue; }
-		Add((int)z->X, (int)z->Y, YM_RENK(z->L));
+		Add((int)z->X, (int)z->Y, YM_SU((uint32_t)z->L * 3U / 4U));
 		z->L = (z->L > 2U) ? (uint8_t)(z->L - 2U) : 0U;
 	}
 }
