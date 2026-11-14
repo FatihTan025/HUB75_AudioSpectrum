@@ -4,12 +4,14 @@
 
    Baglanti yollari (hepsi ayni anda acik):
    - Kendi Wi-Fi agi (modem gerekmez):
-       Ag adi : Spektrum-XXXX   (XXXX = MAC son 4 hane)
+       Ag adi : SPA12832-XXXX   (model kodu STM32'den: SPA + panel genislik + yukseklik; XXXX = MAC son 4 hane)
        Sifre  : AP_SIFRE        Adres: 192.168.4.1:5000
    - Ev agi (bilgiler kayitliysa): ag icinde spektrum-xxxx.local:5000
-     mDNS hizmeti _spektrum._tcp, ornek adi Spektrum-XXXX (Bluetooth adiyla ayni; uygulama boyle eslestirir).
+     mDNS hizmeti _spektrum._tcp, ornek adi SPA12832-XXXX (Bluetooth adiyla ayni; uygulama boyle eslestirir).
      Bilgiler flash'ta (NVS) saklanir, koparsa kendiliginden yeniden baglanir.
-   - Bluetooth (BLE, Nordic UART servisi):  ad Spektrum-XXXX
+   - Bluetooth (BLE, Nordic UART servisi):  ad SPA12832-XXXX
+     Model kodu acilista STM32'ye CMD_INFO sorularak alinir (panel boyutu); 2 sn'de cevap
+     gelmezse "Spektrum" kullanilir. Kullanicinin verdigi ad uygulamada gorunur, radyo adi degismez.
        6E400002 = telefon -> kart (yaz), 6E400003 = kart -> telefon (bildirim)
 
    Kopru saydamdir: cerceveler STM32'ye aynen aktarilir, STM32'den gelenler
@@ -88,8 +90,8 @@ static Kaynak_t    Kay[K_ADET];
 static String      EvAd, EvSifre;
 static bool        MdnsAcik = false;
 static String      SeriSatir;
-static char        CihazAd[20];
-static char        MdnsAd[20];                /* kucuk harf: spektrum-xxxx      */
+static char        CihazAd[24];
+static char        MdnsAd[24];                /* kucuk harf: spektrum-xxxx      */
 
 /* BLE */
 static BLEServer         *BleSunucu;
@@ -391,6 +393,8 @@ static void SeriKomut(String s)
   }
 }
 
+static bool StmModel(char *Ad, size_t n);
+
 void setup()
 {
   Serial.begin(115200);
@@ -405,7 +409,9 @@ void setup()
   EvSifre = Ayar.getString("sifre", "");
 
   const uint64_t Mac = ESP.getEfuseMac();        /* Cipten okunur: AP baslamadan da gecerli */
-  snprintf(CihazAd, sizeof(CihazAd), "Spektrum-%02X%02X",
+  char Model[12];
+  if(!StmModel(Model, sizeof(Model))) strcpy(Model, "Spektrum");
+  snprintf(CihazAd, sizeof(CihazAd), "%s-%02X%02X", Model,
            (unsigned)((Mac >> 32) & 0xFF), (unsigned)((Mac >> 40) & 0xFF));
   for(uint8_t i = 0; i < sizeof(MdnsAd); i++) MdnsAd[i] = (char)tolower((unsigned char)CihazAd[i]);
 
@@ -432,6 +438,41 @@ void setup()
   Serial.printf("\n%s  sifre: %s  adres: 192.168.4.1:%d  surum %d.%d\n", CihazAd, AP_SIFRE, TCP_PORT,
                 KOPRU_SURUM >> 8, KOPRU_SURUM & 0xFF);
   Serial.printf("Ev agi: '%s'  (degistirmek icin: wifi AgAdi Sifre)\n", EvAd.c_str());
+}
+
+/* Acilista STM32'den model kodu: CMD_INFO sor, cevaptaki panel genislik/yuksekliginden
+   "SPA12832". Durum akisi da geldigi icin cerceveler ayiklanir; 2 sn'de cevap yoksa 0. */
+static bool StmModel(char *Ad, size_t n)
+{
+  const uint8_t Seq = 0xEE;
+  uint8_t f[CER_MAX], q[7] = { SOF, 0, 0, Seq, 0x01, 0, 0 };     /* CMD_INFO, yuk yok */
+  const uint16_t c = Crc16(&q[1], 4);
+  q[5] = c & 0xFF; q[6] = c >> 8;
+  uint32_t Bas = millis(), Son = 0;
+  uint16_t k = 0;
+
+  delay(300);                                    /* STM32 acilsin */
+  while(Serial2.available()) Serial2.read();
+  Serial2.write(q, sizeof(q));
+  while(millis() - Bas < 2000)
+  {
+    if(millis() - Son > 600) { Serial2.write(q, sizeof(q)); Son = millis(); }   /* Tekrar sor */
+    if(!Serial2.available()) { delay(2); continue; }
+    uint8_t b = Serial2.read();
+    if(k == 0 && b != SOF) continue;
+    f[k++] = b;
+    if(k < 5) continue;
+    uint16_t m = f[1] | (f[2] << 8);
+    if(m > MAX_YUK) { k = 0; continue; }
+    if(k < m + 7) continue;
+    k = 0;
+    if(f[3] != Seq || f[4] != (0x01 | 0x80) || m < 8) continue;
+    if((f[5 + m] | (f[6 + m] << 8)) != Crc16(&f[1], m + 4)) continue;
+    /* Yuk: st, protokol, fw(2), genislik(2), yukseklik(2), ... */
+    snprintf(Ad, n, "SPA%u%u", (unsigned)(f[9] | (f[10] << 8)), (unsigned)(f[11] | (f[12] << 8)));
+    return true;
+  }
+  return false;
 }
 
 void loop()

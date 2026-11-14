@@ -20,7 +20,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 
 /**
- * Ayni cihaz Bluetooth, ev agi ve kendi aginda ayni adla (Spektrum-XXXX) gorunur; tek satirda birlesir.
+ * Ayni cihaz Bluetooth, ev agi ve kendi aginda ayni adla (SPA12832-XXXX) gorunur; tek satirda birlesir.
  * ipler: ev agi adresi ve/veya 192.168.4.1 (kendi agi).
  */
 data class Bulunan(val ad: String, val ble: BluetoothDevice? = null, val ipler: List<String> = emptyList(), val rssi: Int? = null,
@@ -30,11 +30,13 @@ data class Bulunan(val ad: String, val ble: BluetoothDevice? = null, val ipler: 
 }
 
 const val KENDI_AG_IP = "192.168.4.1"
-const val KENDI_AG_ONEK = "Spektrum-"
+/** Cihazin kendi agi / Bluetooth adi: model kodu + MAC (SPA12832-1A2B); eski kopru surumu Spektrum-1A2B */
+private val KENDI_AG = Regex("^(Spektrum|SPA\\d+)-[0-9A-F]{4}$")
+fun kendiAgMi(ad: String?) = ad != null && KENDI_AG.matches(ad)
 
 /**
  * Bluetooth (NUS servisi) ve ev agi (mDNS _spektrum._tcp) birlikte taranir.
- * Telefon cihazin kendi agina (Spektrum-XXXX) bagliysa 192.168.4.1 de denenir.
+ * Telefon cihazin kendi agina (SPA12832-XXXX) bagliysa 192.168.4.1 de denenir.
  */
 @SuppressLint("MissingPermission")
 class Kesif(private val ctx: Context, private val kapsam: CoroutineScope, private val bildir: (Bulunan) -> Unit) {
@@ -47,7 +49,7 @@ class Kesif(private val ctx: Context, private val kapsam: CoroutineScope, privat
         override fun onScanResult(tip: Int, r: ScanResult) {
             val ad = r.scanRecord?.deviceName ?: r.device.name ?: return
             // Kopru BLE adi = kendi aginin adi: dogrudan Wi-Fi yolu da kullanilabilir
-            bildir(Bulunan(ad, ble = r.device, rssi = r.rssi, ssid = if (ad.startsWith(KENDI_AG_ONEK)) ad else null))
+            bildir(Bulunan(ad, ble = r.device, rssi = r.rssi, ssid = if (kendiAgMi(ad)) ad else null))
         }
     }
 
@@ -81,7 +83,7 @@ class Kesif(private val ctx: Context, private val kapsam: CoroutineScope, privat
             @Suppress("DEPRECATION") wm.startScan()
             wm.scanResults?.forEach { r ->
                 @Suppress("DEPRECATION") val s = r.SSID
-                if (s != null && s.startsWith(KENDI_AG_ONEK)) bildir(Bulunan(s, ssid = s))
+                if (s != null && kendiAgMi(s)) bildir(Bulunan(s, ssid = s))
             }
         } catch (_: Exception) { }
         // Telefon cihazin agina elle baglanmissa (internetsiz Wi-Fi): adini kopruden sor.

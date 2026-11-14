@@ -402,7 +402,20 @@ static void Defaults(SET_Store *s)
 	s->Magic  = SET_MAGIC;
 	s->Layout = Layout;
 	s->Mode   = (uint8_t)(CFG_START_MODE % LOOK_COUNT);
-	strcpy(s->Name, "Spektrum");
+	{														/* Fabrika adi: model kodu, panel boyutundan (SPA12832) */
+		static const char d[] = "0123456789";
+		char *n = s->Name;
+		uint32_t v, k;
+		*n++ = 'S'; *n++ = 'P'; *n++ = 'A';
+		for(k = 0; k < 2U; k++)
+		{
+			char t[6]; int j = 0;
+			v = (k == 0U) ? SPEC_WIDTH : SPEC_HEIGHT;
+			do { t[j++] = d[v % 10U]; v /= 10U; } while(v && j < 5);
+			while(j) *n++ = t[--j];
+		}
+		*n = 0;
+	}
 	for(uint16_t i = 0; i < SET_COUNT; i++)
 	{
 		if(Table[i].Flags & SET_FLAG_PER_MODE)

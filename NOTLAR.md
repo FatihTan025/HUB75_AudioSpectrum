@@ -128,6 +128,13 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 - 14 Kasım: Fatih'in ilk saat fontu Arial Bold (arialbold24px.c/.h, HUB75 Aracı çıktısı, 24 px, oransal, 0-9 : C)
   eklendi; geçici font (Font_SaatGecici.h) silindi (PC'de dosya duruyorsa kullanılmıyor). Rakamlar en geniş rakam
   kadar yuvaya ortalanır (dakika değişince saat kaymasın). Saat Yazısı tek font olduğu için hâlâ gizli.
+- 14 Kasım (6): Model adı SPA12832 (SPA + panel genişlik + yükseklik, tiresiz). STM32 fabrika cihaz adı bu.
+  ESP32 açılışta STM32'ye CMD_INFO sorar (2 sn, tekrarlı), Bluetooth/AP/mDNS adı SPA12832-1A2B (tire yalnız
+  MAC'ten önce); cevap yoksa Spektrum-1A2B. Kullanıcı adı sadece uygulamada, radyo adı değişmez. Android kendi
+  ağını ^(Spektrum|SPA\d+)-XXXX$ ile tanır (bu yüzden bir kez APK güncellemesi gerekti).
+  İLERİDE (bu cihaz tutarsa, yeni işlemci): kart kodu boyuttan bağımsız (sabitler W/H'den, bayt bayt
+  karşılaştırmayla), APK'yı karttan bağımsız yapma (font örneği karttan bitmap, düzen ipuçları ayar tanımında,
+  resmi olmayan modda ad/ikon). Önizleme resimleri temsili, çözünürlüğe göre ayrı set GEREKMEZ (Fatih).
 - 14 Kasım (5): Saniye görünürken iki nokta(lar) sabit (SnVar); Şömine ':' saat renginde, aynı kural. Font sırası
   küçükten büyüğe: Arial Bold | Bahn Cond | Bahn Bold. Sahil: kıpırtı ±%22 ve sık bant, denizde hep >= 3 küçük
   sırt, kumdaki suda ucun şeklini izleyen kıvrımlar (gelirken kıyıya, çekilirken denize akar) + köpük izleri.
