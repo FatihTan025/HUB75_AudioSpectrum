@@ -29,9 +29,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Slider
+import androidx.compose.material3.RangeSlider
 import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -74,6 +73,10 @@ val Pasif = Color(0xFFB9AEEB)
 val SariAcik = Color(0xFFFFE680)
 val SariKenar = Color(0xFFC79A00)   // Kabarik dugmenin alt kenari
 val IzKoyu = Color(0xFF2A1A78)     // Kaydirma cubugunun bos tarafi (zeminden belirgin)
+val SaatZemin = Color(0xFF26306E)  // Saat ayarlari kutusu (lacivert)
+val PanelZemin = Color(0xFF34304A) // Panel (tum modlar) ayarlari kutusu (koyu gri)
+val DugmeYuz = Color(0xFF7A62E6)   // Basilmamis dugme yuzu
+val DugmeKenar = Color(0xFF3A2896) // Basilmamis dugmenin alt kenari
 
 fun rgbRenk(v: Int) = Color(0xFF000000.toInt() or (v and 0xFFFFFF))
 fun tonRenk(h: Float) = Color(android.graphics.Color.HSVToColor(floatArrayOf(h.coerceIn(0f, 359.9f), 1f, 1f)))
@@ -98,6 +101,69 @@ fun TekSatir(ad: String, alt: String? = null, ust: Boolean = false, denetim: @Co
             if (!alt.isNullOrEmpty()) Text(alt, color = Pasif, fontSize = 11.sp, maxLines = 1)
         }
         Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) { denetim() }
+    }
+}
+
+/** Acma-kapama: kapaliyken kabarik (alt kenar + golge, mor yuz), acikken basili (asagi inmis, sari yuz, ic golge) */
+@Composable
+fun BasmaDugme(yazi: String, acik: Boolean, degistir: (Boolean) -> Unit) {
+    val sekil = RoundedCornerShape(10.dp)
+    Box(Modifier.fillMaxWidth().height(46.dp).clickable { degistir(!acik) }) {
+        if (!acik) Box(Modifier.fillMaxWidth().height(42.dp).align(Alignment.BottomCenter).shadow(4.dp, sekil).clip(sekil).background(DugmeKenar))
+        Box(Modifier.fillMaxWidth().height(42.dp).offset(y = if (acik) 4.dp else 0.dp).clip(sekil)
+            .background(if (acik) Brush.verticalGradient(listOf(SariKenar, Sari, Sari)) else Brush.verticalGradient(listOf(DugmeYuz, DugmeYuz))),
+            contentAlignment = Alignment.Center) {
+            Text(yazi, color = if (acik) SariYazi else Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+        }
+    }
+}
+
+/** Basliklii ayar kutusu: zemin rengi hangi tur ayar oldugunu anlatir */
+@Composable
+fun AyarKutusu(baslik: String, zemin: Color, not: String? = null, icerik: @Composable () -> Unit) {
+    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(zemin).padding(horizontal = 12.dp, vertical = 10.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(baslik, color = Soluk, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            if (not != null) Text("  ·  $not", color = Pasif, fontSize = 11.sp)
+        }
+        Spacer(Modifier.height(6.dp))
+        icerik()
+    }
+}
+
+/** Mod ayarlari iki kutuda: animasyonun kendi ayarlari (mor) ve saat ayarlari (lacivert) */
+@Composable
+fun AyarGruplari(liste: List<Tanim>, deger: (Tanim) -> Int, yaz: (Tanim, Int) -> Unit) {
+    val (saat, diger) = liste.partition { it.grup == "Saat" }
+    if (diger.isNotEmpty()) AyarKutusu("ANİMASYON", MorKart) { AyarListesi(diger, deger, yaz) }
+    if (saat.isNotEmpty()) {
+        if (diger.isNotEmpty()) Spacer(Modifier.height(10.dp))
+        AyarKutusu("SAAT", SaatZemin) { AyarListesi(saat, deger, yaz) }
+    }
+}
+
+/** Frekans araligi: tek cubukta iki tutamac (60 Hz - 20 kHz, logaritmik). Ust en az 4 x alt. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FrekansCubugu(alt: Int, ust: Int, yaz: (Int, Int) -> Unit) {
+    val oran = kotlin.math.ln(20000f / 60f)
+    fun konum(f: Int) = (kotlin.math.ln(f / 60f) / oran).coerceIn(0f, 1f)
+    fun frekans(k: Float) = ((60f * kotlin.math.exp(k * oran)) / 10f).roundToInt() * 10
+    fun yazi(f: Int) = if (f >= 1000) "%.1f kHz".format(f / 1000f).replace(".0 ", " ") else "$f Hz"
+    var ar by remember(alt, ust) { mutableStateOf(konum(alt)..konum(ust)) }
+    Column(Modifier.fillMaxWidth()) {
+        Text("${yazi(frekans(ar.start))}  –  ${yazi(frekans(ar.endInclusive))}", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+        RangeSlider(
+            value = ar,
+            onValueChange = { y -> if (frekans(y.endInclusive) >= 4 * frekans(y.start)) ar = y },
+            onValueChangeFinished = { yaz(frekans(ar.start).coerceIn(60, 5000), frekans(ar.endInclusive).coerceIn(240, 20000)) },
+            colors = SliderDefaults.colors(thumbColor = Color.White, activeTrackColor = Sari, inactiveTrackColor = IzKoyu)
+        )
+        Row(Modifier.fillMaxWidth()) {
+            Text("60 Hz", color = Pasif, fontSize = 11.sp)
+            Spacer(Modifier.weight(1f))
+            Text("20 kHz", color = Pasif, fontSize = 11.sp)
+        }
     }
 }
 
@@ -133,13 +199,7 @@ fun AyarListesi(liste: List<Tanim>, deger: (Tanim) -> Int, yaz: (Tanim, Int) -> 
 @Composable
 fun AyarSatiri(t: Tanim, deger: Int, ust: Boolean = false, degisti: (Int) -> Unit) {
     when (t.tur) {
-        Tur.BOOL -> TekSatir(t.ad, ust = ust) {
-            Box(Modifier.fillMaxWidth(), contentAlignment = if (ust) Alignment.CenterStart else Alignment.CenterEnd) {
-                Switch(checked = deger != 0, onCheckedChange = { degisti(if (it) 1 else 0) }, enabled = !t.saltOkunur,
-                    colors = SwitchDefaults.colors(checkedTrackColor = Sari, checkedThumbColor = Color.White,
-                        uncheckedTrackColor = MorKoyu, uncheckedThumbColor = Pasif, uncheckedBorderColor = MorKoyu))
-            }
-        }
+        Tur.BOOL -> BasmaDugme(t.ad, deger != 0) { if (!t.saltOkunur) degisti(if (it) 1 else 0) }
         Tur.ENUM -> TekSatir(t.ad, ust = ust) {
             if (t.id == AyarId.SAAT_YAZI) SecmeliResim(t.secenekler, deger - t.min) { degisti(t.min + it) }   // Font ornegi
             else Secmeli(t.secenekler, deger - t.min) { degisti(t.min + it) }

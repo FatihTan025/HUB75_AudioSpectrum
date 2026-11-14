@@ -18,6 +18,10 @@
 #include "Audio_ADC.h"
 #include "Saat.h"
 #include "arialbold24px.h"
+#include "bahnbd30.h"
+#include "bahncond30.h"
+#include "arialbd13.h"
+#include "bahnbd16.h"
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
@@ -83,8 +87,8 @@ typedef struct
 {
 	uint8_t		M[H][W / 8];					/* Rakam pikseli maskesi			*/
 	int16_t		Ix, Iw;							/* Iki nokta (fontun ':' glifi): x, genislik	*/
-	int16_t		Ty, Ny;							/* Sicaklik / nem satiri (saga yasli)	*/
-	uint8_t		Sa, Dk, Yazi, Yer, Isi, Hazir;
+	int16_t		Sag;							/* Saatin sag kenari (isi-nem yazisi bunu gecmez)	*/
+	uint8_t		Sa, Dk, Yazi, Yer, Alt, Isi, Hazir;
 } SaatDurum;
 
 /* Kar tanesi: tam piksel konum + kesir (dusus Ac/Kd, yana Kx/4096) -> ara piksel cizim.
@@ -200,6 +204,7 @@ static union
 		ShYalama	Yl[SH_YALAMA];
 		ShSirt		Sr[SH_SIRT];
 		ShKopuk		Kt[SH_KOPUK];
+		uint8_t		Of[W];							/* Kipirti bantlarinin sutun kaymasi	*/
 		float		Sonra;							/* Siradaki buyuk sirta kalan sure	*/
 		uint32_t	Kare;
 		uint8_t		Ready;
@@ -3061,36 +3066,38 @@ static void ModeAurora(void)
    duzenlerden secilir; sicaklik / nem CMD_SENSOR ile gelir (5x7 kucuk yazi).
    ========================================================================== */
 uint8_t SPEC_SnIsik = 60U, SPEC_SnYogun = 1U;
-uint8_t SPEC_SaatYazi = 0U, SPEC_SaatYer = 0U;
+uint8_t SPEC_SaatYazi = 0U, SPEC_SaatYer = 1U;
 uint8_t SPEC_SmBoy = 1U;
 uint8_t SPEC_YmSiddet = 1U, SPEC_YmRuzgar = 1U;
 uint8_t SPEC_ShDalga = 1U, SPEC_ShIsik = 0U;
+uint8_t  SPEC_SaatAlt = 0U, SPEC_SaatIsi = 0U;							/* Saat: alta, isi-nem goster	*/
 uint8_t  SPEC_SaatSaydam = 0U;									/* Saat saydamligi % (0 = kati)	*/
 uint32_t SPEC_SaatRgb = 0x0A0D13UL;						/* Saat rengi 0xRRGGBB (Settings: renk x parlaklik)	*/
 
 /* Saat fontlari: Fatih'in fontlari geldikce buraya eklenir (Settings.c SAAT_YAZI
    secenek listesi ve Max ile ayni sirada). Bicim: FONT_INFO, 0-9.		*/
-static const FONT_INFO *const SaatYazilari[] = { &arialbold24pxFontInfo };
+static const FONT_INFO *const SaatYazilari[] = { &arialbold24pxFontInfo, &bahnbd30FontInfo, &bahncond30FontInfo };
 #define SAAT_YAZI_SAYISI	(sizeof(SaatYazilari) / sizeof(SaatYazilari[0]))
 
 uint8_t SPEC_SaatYaziSayisi(void) { return (uint8_t)SAAT_YAZI_SAYISI; }
 
 #define SAAT_ARA		2					/* Rakam ve iki nokta arasi (px)	*/
 
-static const uint8_t *OsdGlif(uint16_t c);
 
 static inline uint8_t SaatPx(const SaatDurum *S, int x, int y)
 {
 	return (x >= 0 && x < (int)W && y >= 0 && y < (int)H) ? (uint8_t)(S->M[y][x >> 3] & (0x80U >> (x & 7))) : 0U;
 }
 
-static int SaatRakamGen(const FONT_INFO *F, uint8_t r) { return (int)F->Descriptors[r].Width; }
+/* Karakterin tanimlayici sirasi (fontun baslangic karakterine gore: '0' ya da '%' ...) */
+static uint8_t SaatGlif(const FONT_INFO *F, char c) { return (uint8_t)(c - F->StartChar); }
+static int SaatRakamGen(const FONT_INFO *F, uint8_t g) { return (int)F->Descriptors[g].Width; }
 
 /* Rakam yuvasi: en genis rakam kadar (oransal fontta dakika degisince saat kaymasin) */
 static int SaatYuva(const FONT_INFO *F)
 {
 	int r, g = 0;
-	for(r = 0; r < 10; r++) if(SaatRakamGen(F, (uint8_t)r) > g) g = SaatRakamGen(F, (uint8_t)r);
+	for(r = 0; r < 10; r++) if(SaatRakamGen(F, SaatGlif(F, (char)('0' + r))) > g) g = SaatRakamGen(F, SaatGlif(F, (char)('0' + r)));
 	return g;
 }
 
@@ -3109,41 +3116,39 @@ static void SaatRakamMaske(SaatDurum *S, const FONT_INFO *F, int X0, int Y0, uin
 
 /* Dakika, font ya da yerlesim degistiyse maskeyi ve konumlari yeniden kurar.
    Iki nokta fontun kendi ':' glifidir (her fontta tanimli).
-   Yerlesim: 0 orta, 1 sol, 2 alt, 3 saat solda + en sagda ustte sicaklik, altta nem. */
+   Yerlesim: Sol / Orta (yatay), Alt (dikey), Isi-Nem (saat solda, en sagda
+   sicaklik ve nem; sensor verisi yoksa uygulanmaz, saat Sol/Orta'ya gore durur). */
 static void SaatHazirla(SaatDurum *S)
 {
 	const uint8_t Yazi = (SPEC_SaatYazi < SAAT_YAZI_SAYISI) ? SPEC_SaatYazi : 0U;
 	const FONT_INFO *F = SaatYazilari[Yazi];
 	const int fh = (int)F->Height;
-	const uint8_t Ik = (uint8_t)(':' - F->StartChar);			/* Iki nokta glifi */
+	const uint8_t Ik = SaatGlif(F, ':');
 	const int Yv = SaatYuva(F), Wc = SaatRakamGen(F, Ik);
+	int16_t T; uint8_t N;
+	const uint8_t Isi = (uint8_t)(SPEC_SaatIsi && SAAT_SensorOku(&T, &N));
 	uint8_t Sa, Dk, Sn, r[4];
 	int tw, x0, y0, i, x;
 
 	SAAT_Get(&Sa, &Dk, &Sn);
-	if(S->Hazir && S->Sa == Sa && S->Dk == Dk && S->Yazi == Yazi && S->Yer == SPEC_SaatYer) return;
-	S->Sa = Sa; S->Dk = Dk; S->Yazi = Yazi; S->Yer = SPEC_SaatYer; S->Hazir = 1U;
+	if(S->Hazir && S->Sa == Sa && S->Dk == Dk && S->Yazi == Yazi && S->Yer == SPEC_SaatYer &&
+	   S->Alt == SPEC_SaatAlt && S->Isi == Isi) return;
+	S->Sa = Sa; S->Dk = Dk; S->Yazi = Yazi; S->Yer = SPEC_SaatYer; S->Alt = SPEC_SaatAlt; S->Isi = Isi; S->Hazir = 1U;
 	memset(S->M, 0, sizeof(S->M));
 
 	r[0] = (uint8_t)(Sa / 10U); r[1] = (uint8_t)(Sa % 10U); r[2] = (uint8_t)(Dk / 10U); r[3] = (uint8_t)(Dk % 10U);
 	tw = 4 * Yv + Wc + 4 * SAAT_ARA;
 
-	S->Isi = (S->Yer == 3U) ? 1U : 0U;
-	y0 = ((int)H - fh) / 2;
-	switch(S->Yer)
-	{
-	case 1:  x0 = 1;                                                        break;	/* Sol		*/
-	case 2:  x0 = ((int)W - tw) / 2; y0 = (int)H - fh - 1;                 break;	/* Alt		*/
-	case 3:  x0 = 1;                                                                /* Isi-Nem	*/
-	         S->Ty = (int16_t)((int)H / 2 - 9); S->Ny = (int16_t)((int)H / 2 + 2); break;
-	default: x0 = ((int)W - tw) / 2;                                        break;	/* Orta		*/
-	}
+	x0 = Isi ? 0 : (S->Yer == 0U) ? 1 : ((int)W - tw) / 2;			/* Isi-Nem: yer dar, en sola */
+	y0 = S->Alt ? (int)H - fh - 1 : ((int)H - fh) / 2;
 	if(y0 < 0) y0 = 0;
+	S->Sag = (int16_t)(x0 + tw);
 
 	x = x0;
 	for(i = 0; i < 4; i++)
 	{
-		SaatRakamMaske(S, F, x + (Yv - SaatRakamGen(F, r[i])) / 2, y0, r[i]);	/* Yuvada ortali */
+		const uint8_t g = SaatGlif(F, (char)('0' + r[i]));
+		SaatRakamMaske(S, F, x + (Yv - SaatRakamGen(F, g)) / 2, y0, g);	/* Yuvada ortali */
 		x += Yv + SAAT_ARA;
 		if(i == 1)
 		{
@@ -3154,53 +3159,92 @@ static void SaatHazirla(SaatDurum *S)
 	}
 }
 
-/* Saat pikseli: Saydamlik ayari kadar arka plan gorunur */
-static void SaatSet(int x, int y, uint8_t R, uint8_t G, uint8_t B)
+/* Saat pikseli. Saydamlik 0: kati. Saydamlikta renkli cam: arka plan saat renginin
+   tonundan gecer gibi boyanir (iki renk ust uste binip yeni renk olur), kati renk
+   azalir; Kenar (sol / ust kenar) cama vuran ince isik. */
+static void SaatSet(int x, int y, uint8_t R, uint8_t G, uint8_t B, uint8_t Kenar)
 {
-	const uint32_t a = (uint32_t)SPEC_SaatSaydam * 256U / 100U;	/* Arka planin payi */
+	const uint32_t s = (uint32_t)SPEC_SaatSaydam * 256U / 100U;	/* 0..205 */
+	uint32_t m, k, r, g, b;
 	uint8_t *p;
-	if(!a) { Set(x, y, R, G, B); return; }
+	if(!s) { Set(x, y, R, G, B); return; }
 	if((unsigned)x >= W || (unsigned)y >= H) return;
 	p = CV(y, x);
-	p[0] = (uint8_t)((p[0] * a + R * (256U - a)) >> 8);
-	p[1] = (uint8_t)((p[1] * a + G * (256U - a)) >> 8);
-	p[2] = (uint8_t)((p[2] * a + B * (256U - a)) >> 8);
+	m = R; if(G > m) m = G; if(B > m) m = B;
+	if(!m) m = 1;
+	k = (s * 2U > 256U) ? 256U : s * 2U;							/* Camin gecirgenligi */
+	r = (R * (256U - s) >> 8) + ((p[0] * R / m) * k >> 8);
+	g = (G * (256U - s) >> 8) + ((p[1] * G / m) * k >> 8);
+	b = (B * (256U - s) >> 8) + ((p[2] * B / m) * k >> 8);
+	if(Kenar) { const uint32_t i = s / 4U; r += i; g += i; b += i; }
+	p[0] = (uint8_t)((r > 255U) ? 255U : r);
+	p[1] = (uint8_t)((g > 255U) ? 255U : g);
+	p[2] = (uint8_t)((b > 255U) ? 255U : b);
 }
+
+/* Cama vuran isik: sol ya da ust komsusu rakam disi olan piksel */
+static uint8_t SaatKenar(const SaatDurum *S, int x, int y) { return (uint8_t)(!SaatPx(S, x - 1, y) || !SaatPx(S, x, y - 1)); }
 
 static uint8_t SaatNokta(const SaatDurum *S, int x) { return (uint8_t)(x >= S->Ix && x < S->Ix + S->Iw); }
 
-/* 5x7 kucuk yazi (OSD fontu), 6 px aralik. Bayt 0xB0 = derece isareti. */
-static void Yazi57(int X0, int Y0, const char *s, uint8_t R, uint8_t G, uint8_t B)
+/* Oransal font ile yazi (1 px aralik); Ciz 0 ise yalnizca genisligi dondurur */
+static int FontYazi(const FONT_INFO *F, int X, int Y, const char *s, uint8_t R, uint8_t G, uint8_t B, uint8_t Ciz)
 {
-	int x, y;
-	for(; *s; s++, X0 += 6)
+	int w = 0;
+	for(; *s; s++)
 	{
-		const uint8_t *g = OsdGlif(((uint8_t)*s == 0xB0U) ? 0x00B0U : (uint16_t)(uint8_t)*s);
-		for(y = 0; y < 7; y++)
-			for(x = 0; x < 5; x++)
-				if(g[y] & (0x10U >> x)) Set(X0 + x, Y0 + y, R, G, B);
+		if(*s == '\x01')											/* Derece halkasi 3x3 */
+		{
+			static const uint8_t Hl[3] = { 2, 5, 2 };
+			int a, c;
+			if(Ciz) for(a = 0; a < 3; a++) for(c = 0; c < 3; c++) if(Hl[a] & (4U >> c)) Set(X + w + c, Y + 1 + a, R, G, B);
+			w += 4; continue;
+		}
+		if(*s == '-')												/* Eksi: fontlarda yok, kisa cizgi */
+		{
+			int c;
+			if(Ciz) for(c = 0; c < 3; c++) Set(X + w + c, Y + (int)F->Height / 2, R, G, B);
+			w += 4; continue;
+		}
+		if(*s < (char)F->StartChar || *s > (char)F->EndChar) continue;
+		{
+			const FONT_CHAR_INFO *d = &F->Descriptors[(uint8_t)(*s - F->StartChar)];
+			const uint8_t *b = &F->Bitmap[d->OffSet];
+			int x, y;
+			if(Ciz)
+				for(y = 0; y < (int)d->Height; y++)
+					for(x = 0; x < (int)d->Width; x++)
+						if(b[y * d->BWidth + (x >> 3)] & (0x80U >> (x & 7))) Set(X + w + x, Y + y, R, G, B);
+			w += (int)d->Width + 1;
+		}
 	}
+	return (w > 0) ? w - 1 : 0;
 }
 
-/* Sicaklik ve nem (yerlesim 3): sensor yoksa "--" */
+/* Sicaklik ve nem: en sagda. Nem varsa iki satir (Arial 13), yalniz sicaklik
+   varsa tek satir, daha buyuk (Bahnschrift 16). Saate yer kalmazsa 'C' dusurulur. */
 static void SaatIsiCiz(const SaatDurum *S, uint8_t R, uint8_t G, uint8_t B)
 {
-	char t[8], n[6];
+	char t[10], n[6];
 	int16_t T; uint8_t N;
+	int v, k = 0;
+	const FONT_INFO *F;
 
-	if(!S->Isi) return;
-	if(SAAT_SensorOku(&T, &N))
+	if(!S->Isi || !SAAT_SensorOku(&T, &N)) return;
+	v = (T >= 0) ? (T + 5) / 10 : (T - 5) / 10;
+	if(v < 0) { t[k++] = '-'; v = -v; }
+	if(v >= 10) t[k++] = (char)('0' + v / 10 % 10);
+	t[k++] = (char)('0' + v % 10); t[k++] = '\x01'; t[k++] = 'C'; t[k] = 0;
+
+	F = (N <= 100U) ? &arialbd13FontInfo : &bahnbd16FontInfo;
+	if((int)W - FontYazi(F, 0, 0, t, 0, 0, 0, 0) < S->Sag + 2) t[--k] = 0;	/* Sigmazsa 'C' yok */
+	if(N <= 100U)
 	{
-		int v = (T >= 0) ? (T + 5) / 10 : (T - 5) / 10, k = 0;
-		if(v < 0) { t[k++] = '-'; v = -v; }
-		if(v >= 10) t[k++] = (char)('0' + v / 10 % 10);
-		t[k++] = (char)('0' + v % 10); t[k++] = (char)0xB0; t[k] = 0;
 		n[0] = '%'; n[1] = (char)('0' + N / 10 % 10); n[2] = (char)('0' + N % 10); n[3] = 0;	/* Turkce: %45 */
-		if(N >= 100U) { n[1] = '9'; n[2] = '9'; }
+		FontYazi(F, (int)W - FontYazi(F, 0, 0, t, 0, 0, 0, 0), 2, t, R, G, B, 1);
+		FontYazi(F, (int)W - FontYazi(F, 0, 0, n, 0, 0, 0, 0), 17, n, R, G, B, 1);
 	}
-	else { t[0] = '-'; t[1] = '-'; t[2] = (char)0xB0; t[3] = 0; n[0] = '%'; n[1] = '-'; n[2] = '-'; n[3] = 0; }
-	Yazi57((int)W + 1 - 6 * (int)strlen(t), S->Ty, t, R, G, B);	/* En saga yasli */
-	Yazi57((int)W + 1 - 6 * (int)strlen(n), S->Ny, n, R, G, B);
+	else FontYazi(F, (int)W - FontYazi(F, 0, 0, t, 0, 0, 0, 0), ((int)H - (int)F->Height) / 2, t, R, G, B, 1);
 }
 
 /* ==========================================================================
@@ -3418,7 +3462,7 @@ static void SaatCiz(const SaatDurum *S, uint8_t R, uint8_t G, uint8_t B)
 	int x, y;
 	for(y = 0; y < (int)H; y++)
 		for(x = 0; x < (int)W; x++)
-			if(SaatPx(S, x, y) && (Yanik || !SaatNokta(S, x))) SaatSet(x, y, R, G, B);
+			if(SaatPx(S, x, y) && (Yanik || !SaatNokta(S, x))) SaatSet(x, y, R, G, B, SaatKenar(S, x, y));
 }
 
 /* Saat secilen renkte; sicaklik / nem biraz daha acik */
@@ -3535,6 +3579,9 @@ static void SmKozRenk(uint32_t k, uint8_t *r, uint8_t *g, uint8_t *b)
 	else         { *r = 235U + (uint8_t)((k - 160U) / 5U); *g = (uint8_t)(59U + (k - 160U)); *b = (uint8_t)(4U + (k - 160U) / 3U); }
 }
 
+/* Rakamlar alev icin engel; Saydamlik acikken alev rakamlarin icinden de yanar */
+static inline uint8_t SmEngel(const SaatDurum *S, int x, int y) { return (uint8_t)(SPEC_SaatSaydam == 0U && SaatPx(S, x, y)); }
+
 static void ModeHearth(void)
 {
 	static const float Boy[3] = { 0.38f, 0.48f, 0.60f };	/* Yuksek = eski Alcak */
@@ -3592,7 +3639,7 @@ static void ModeHearth(void)
 			for(x = 0; x < (int)W; x++)
 			{
 				int sx = x - Shift, xl, xr, Sum, c;
-				if(SaatPx(S, x, y)) { U.Sm.Heat[y][x] = 0; continue; }
+				if(SmEngel(S, x, y)) { U.Sm.Heat[y][x] = 0; continue; }
 				if(sx < 0) sx = 0;
 				if(sx >= (int)W) sx = W - 1;
 				xl = (sx > 0) ? sx - 1 : sx;
@@ -3601,12 +3648,12 @@ static void ModeHearth(void)
 				{
 					int Ag = 0;
 					Sum = 0;
-					if(!SaatPx(S, xl, y + 1)) { Sum += U.Sm.Heat[y + 1][xl];     Ag += 1; }
-					if(!SaatPx(S, sx, y + 1)) { Sum += U.Sm.Heat[y + 1][sx] * 2; Ag += 2; }
-					if(!SaatPx(S, xr, y + 1)) { Sum += U.Sm.Heat[y + 1][xr];     Ag += 1; }
-					if(!SaatPx(S, sx, y + 2)) { Sum += U.Sm.Heat[y + 2][sx] * 2; Ag += 2; }
-					if(!SaatPx(S, x - 1, y))  { Sum += U.Sm.Heat[y][(x > 0) ? x - 1 : x];          Ag += 1; }	/* Yandan da beslenir */
-					if(!SaatPx(S, x + 1, y))  { Sum += U.Sm.Heat[y][(x < (int)W - 1) ? x + 1 : x]; Ag += 1; }
+					if(!SmEngel(S, xl, y + 1)) { Sum += U.Sm.Heat[y + 1][xl];     Ag += 1; }
+					if(!SmEngel(S, sx, y + 1)) { Sum += U.Sm.Heat[y + 1][sx] * 2; Ag += 2; }
+					if(!SmEngel(S, xr, y + 1)) { Sum += U.Sm.Heat[y + 1][xr];     Ag += 1; }
+					if(!SmEngel(S, sx, y + 2)) { Sum += U.Sm.Heat[y + 2][sx] * 2; Ag += 2; }
+					if(!SmEngel(S, x - 1, y))  { Sum += U.Sm.Heat[y][(x > 0) ? x - 1 : x];          Ag += 1; }	/* Yandan da beslenir */
+					if(!SmEngel(S, x + 1, y))  { Sum += U.Sm.Heat[y][(x < (int)W - 1) ? x + 1 : x]; Ag += 1; }
 					Sum = Ag ? Sum * 6 / Ag : 0;
 				}
 				c = (CoolMap[(y + CoolOffset) % H][x] * Cool) >> 7;
@@ -3635,7 +3682,12 @@ static void ModeHearth(void)
 			uint32_t h = 0, k;
 			uint8_t r, g, b;
 			if(!SaatPx(S, x, y)) continue;
-			if(SaatNokta(S, x)) { SaatSet(x, y, nr, ng, nb); continue; }
+			if(SaatNokta(S, x)) { SaatSet(x, y, nr, ng, nb, 0); continue; }
+			if(SPEC_SaatSaydam)									/* Saydam: kor yok, cam rengi */
+			{
+				SaatSet(x, y, (uint8_t)((SPEC_SaatRgb >> 16) & 0xFFU), (uint8_t)((SPEC_SaatRgb >> 8) & 0xFFU), (uint8_t)(SPEC_SaatRgb & 0xFFU), SaatKenar(S, x, y));
+				continue;
+			}
 			if(y > 0          && U.Sm.Heat[y - 1][x] > h) h = U.Sm.Heat[y - 1][x];
 			if(y < (int)H - 1 && U.Sm.Heat[y + 1][x] > h) h = U.Sm.Heat[y + 1][x];
 			if(x > 0          && U.Sm.Heat[y][x - 1] > h) h = U.Sm.Heat[y][x - 1];
@@ -3653,7 +3705,7 @@ static void ModeHearth(void)
 				g = (uint8_t)((sg * (255U - a) + g * a) / 255U);
 				b = (uint8_t)((sb * (255U - a) + b * a) / 255U);
 			}
-			SaatSet(x, y, r, g, b);
+			SaatSet(x, y, r, g, b, 0);
 		}
 
 	SaatIsiCiz(S, (uint8_t)((SPEC_SaatRgb >> 16) & 0xFFU), (uint8_t)((SPEC_SaatRgb >> 8) & 0xFFU), (uint8_t)(SPEC_SaatRgb & 0xFFU));
@@ -3882,6 +3934,13 @@ static const ShRenk ShRenkler[2] =
 static const float ShSure[3] = { 3.4f, 2.8f, 2.2f };		/* Kiyiya vuran dalganin omru (s)		*/
 static const float ShEris[3] = { 11.0f, 14.0f, 16.0f };		/* Kumun uzerinde en cok kac satir		*/
 
+/* Kipirti bandi: 64 adimli yumusak dalga, 0..255 */
+static const uint8_t ShDoku[64] =
+{
+	128,140,153,165,177,188,199,209,218,226,234,240,245,250,253,254,255,254,253,250,245,240,234,226,218,209,199,188,177,165,153,140,
+	128,115,102, 90, 78, 67, 56, 46, 37, 29, 21, 15, 10,  5,  2,  1,  0,  1,  2,  5, 10, 15, 21, 29, 37, 46, 56, 67, 78, 90,102,115
+};
+
 static void ShRenkKat(uint32_t *r, uint32_t *g, uint32_t *b, const uint8_t *c, uint32_t a)	/* a: 0..256 */
 {
 	*r = (*r * (256U - a) + c[0] * a) >> 8;
@@ -3946,7 +4005,7 @@ static void ShSirtBaslat(uint8_t Ana)
 		s->On   = 1U; s->Ana = Ana; s->T = 0.0f;
 		s->Y    = -3.0f;
 		s->V    = Ana ? 10.0f + 4.0f * RandF() : 11.0f + 9.0f * RandF();	/* px/s */
-		s->A    = Ana ? 1.0f : 0.55f + 0.3f * RandF();
+		s->A    = Ana ? 1.0f : 0.35f + 0.25f * RandF();
 		s->Xm   = RandF() * (float)W;
 		s->Yari = Ana ? 40.0f + 40.0f * RandF() : 8.0f + 18.0f * RandF();
 		s->Egim = (RandF() - 0.5f) * (Ana ? 8.0f : 5.0f);					/* Uclar arasi satir farki / 2 */
@@ -3985,6 +4044,16 @@ static void ModeShore(void)
 	if(!U.Sh.Ready)
 	{
 		memset(U.Sh.Islak, 0, sizeof(U.Sh.Islak));
+		{													/* Bantlar paralel olmasin: 16 px'de bir kontrol noktasi */
+			float c[W / 16U + 2U];
+			uint32_t k;
+			for(k = 0; k < W / 16U + 2U; k++) c[k] = RandF() * 40.0f;
+			for(x = 0; x < (int)W; x++)
+			{
+				const float u = (float)(x & 15) / 16.0f, sm = u * u * (3.0f - 2.0f * u);
+				U.Sh.Of[x] = (uint8_t)(c[x >> 4] + (c[(x >> 4) + 1] - c[x >> 4]) * sm);
+			}
+		}
 		ShYalamaBaslat(Dl, 0);
 		U.Sh.Sonra = 0.3f;
 		U.Sh.Ready = 1;
@@ -4047,6 +4116,11 @@ static void ModeShore(void)
 				const uint32_t t = (uint32_t)((float)y * 256.0f / SH_TABAN);
 				r = R->Dz1[0]; g = R->Dz1[1]; b = R->Dz1[2];
 				ShRenkKat(&r, &g, &b, R->Dz2, t);
+				{													/* Surekli hafif kipirti: kiyiya akan yumusak bantlar, +-%10 */
+					const uint32_t m = 230U + ShDoku[((uint32_t)y * 6U + U.Sh.Of[x] + 64U - ((U.Sh.Kare >> 2) & 63U)) & 63U] / 5U;
+					r = (r * m) >> 8; g = (g * m) >> 8; b = (b * m) >> 8;
+					if((Rand() % 700U) == 0U) { r += r >> 1; g += g >> 1; b += b >> 1; }	/* Seyrek parilti */
+				}
 				for(i = 0; i < SH_SIRT; i++)
 				{
 					const ShSirt *s = &U.Sh.Sr[i];
@@ -4060,17 +4134,9 @@ static void ModeShore(void)
 					}
 					if(d > -1.3f && d < 1.3f)
 					{
-						const float Ya = 1.0f - fabsf(d) / 1.3f;
-						uint32_t a = (uint32_t)(Gu * Ya * 240.0f);
-						if(a > 256U) a = 256U;
-						ShRenkKat(&r, &g, &b, R->Sirt, a);
-						if(s->Ana && Ya > 0.4f)								/* Tepesi beyazlasir; kiyiya yaklastikca artar */
-						{
-							uint32_t w = (uint32_t)(Gu * (Ya - 0.4f) * (0.5f + 0.5f * (float)t / 256.0f) * 330.0f);
-							if(s->Y > SH_TABAN - 3.0f) w += 80U;				/* Kirilmak uzere */
-							if((Rand() % 12U) == 0U)   w += 90U;				/* Kopuk tepecigi */
-							ShRenkKat(&r, &g, &b, R->Kp, (w > 256U) ? 256U : w);
-						}
+						uint32_t a = (uint32_t)(Gu * (1.0f - fabsf(d) / 1.3f) * 200.0f);
+						if(s->Ana && s->Y > SH_TABAN - 3.0f) { ShRenkKat(&r, &g, &b, R->Kp, a); }	/* Kirilmak uzere: kopuklenir */
+						else                                 { ShRenkKat(&r, &g, &b, R->Sirt, a); }
 						if((Rand() % 90U) == 0U) { r += r >> 1; g += g >> 1; b += b >> 1; }			/* Isik kipirtisi */
 					}
 					else if(d >= 1.3f && d < 3.0f)							/* Sirtin onu: hafif cukur golgesi */

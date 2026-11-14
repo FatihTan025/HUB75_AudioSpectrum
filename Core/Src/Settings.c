@@ -146,6 +146,8 @@ static void ApplyOrtam(uint8_t Mode, int32_t Value)
 	SPEC_SnYogun  = (uint8_t)SET_Global(SET_ID_SN_YOGUN);
 	SPEC_SaatYazi = (uint8_t)SET_Global(SET_ID_SAAT_YAZI);
 	SPEC_SaatYer  = (uint8_t)SET_Global(SET_ID_SAAT_YER);
+	SPEC_SaatAlt  = (uint8_t)SET_Global(SET_ID_SAAT_ALT);
+	SPEC_SaatIsi  = (uint8_t)SET_Global(SET_ID_SAAT_ISI);
 	SPEC_SaatSaydam = (uint8_t)SET_Global(SET_ID_SAAT_SAYDAM);
 	SPEC_SmBoy    = (uint8_t)SET_Global(SET_ID_SM_BOY);
 	SPEC_YmSiddet = (uint8_t)SET_Global(SET_ID_YM_SIDDET);
@@ -194,9 +196,9 @@ static const SET_Param Table[] =
 	{ SET_ID_FAV,			SET_TYPE_INT,	SET_FLAG_HIDDEN, 0U, 0, (int32_t)((1UL << LOOK_COUNT) - 1U), 1, 0,
 	  "Favoriler", "Mod", "", 0 },											/* Uygulamadaki kalpler */
 
-	{ SET_ID_FREQ_LO,		SET_TYPE_INT,	A,		0U,		60,	500, 10, (int32_t)CFG_FREQ_LOW,
+	{ SET_ID_FREQ_LO,		SET_TYPE_INT,	A,		0U,		60,	5000, 10, (int32_t)CFG_FREQ_LOW,	/* Android: cift tutamacli cubuk */
 	  "Alt frekans", "Ses", "Hz", ApplyRange },
-	{ SET_ID_FREQ_HI,		SET_TYPE_INT,	A,		0U,		2000, 16000, 500, (int32_t)CFG_FREQ_HIGH,
+	{ SET_ID_FREQ_HI,		SET_TYPE_INT,	A,		0U,		240, 20000, 10, (int32_t)CFG_FREQ_HIGH,	/* Ust >= 4 x alt (SPEC_SetRange) */
 	  "\303\234st frekans", "Ses", "Hz", ApplyRange },
 	{ SET_ID_SENS,			SET_TYPE_INT,	A,		0U,		0,	100, 5,	(int32_t)CFG_SENS,
 	  "Vuru\305\237 hassasiyeti", "Ses", "(50 = varsay\304\261lan)", ApplySens },
@@ -266,10 +268,14 @@ static const SET_Param Table[] =
 	  "Dalga", "Deniz", "Sakin|Normal|Dalgal\304\261", ApplyOrtam },
 	{ SET_ID_SH_ISIK,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SH_MASK, 0, 1, 1, 0,
 	  "I\305\237\304\261k", "Deniz", "Gece|G\303\274nd\303\274z", ApplyOrtam },
-	{ SET_ID_SAAT_YAZI,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE | H, SAAT_MASK, 0, 0, 1, 0,	/* Tek font varken gizli */
-	  "Saat Yaz\304\261s\304\261", "Saat", "Arial Bold", ApplyOrtam },				/* Fatih'in fontlari geldikce: Max + secenek */
-	{ SET_ID_SAAT_YER,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 3, 1, 0,
-	  "Yerle\305\237im", "Saat", "Orta|Sol|Alt|Is\304\261-Nem", ApplyOrtam },
+	{ SET_ID_SAAT_YAZI,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 2, 1, 0,
+	  "Font", "Saat", "Arial Bold|Bahn Bold|Bahn Cond", ApplyOrtam },			/* SpecDisplay.c SaatYazilari[] sirasi */
+	{ SET_ID_SAAT_YER,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 1, 1, 1,
+	  "Yerle\305\237im", "Saat", "Sol|Orta", ApplyOrtam },
+	{ SET_ID_SAAT_ALT,		SET_TYPE_BOOL,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 1, 1, 0,
+	  "Alt", "Saat", "", ApplyOrtam },
+	{ SET_ID_SAAT_ISI,		SET_TYPE_BOOL,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 1, 1, 0,
+	  "Is\304\261-Nem", "Saat", "", ApplyOrtam },
 	{ SET_ID_SAAT_RGB,		SET_TYPE_COLOR,	SET_FLAG_PER_MODE, SAAT_MASK, 0, 0xFFFFFF, 1, 0x22283A,
 	  "Saat Rengi", "Saat", "", ApplyOrtam },
 	{ SET_ID_SAAT_ISIK,		SET_TYPE_INT,	SET_FLAG_PER_MODE, SAAT_MASK, 5, 100, 5, 25,

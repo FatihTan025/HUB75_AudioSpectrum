@@ -71,7 +71,7 @@
 #define SET_ID_SN_ISIK		0x0301U	/* Kar: tane parlakligi %			*/
 #define SET_ID_SN_YOGUN		0x0302U	/* Kar: tane sayisi (Az/Orta/Cok)	*/
 #define SET_ID_SAAT_YAZI	0x0304U	/* Saatli modlar: saat fontu		*/
-#define SET_ID_SAAT_YER		0x0305U	/* Saatli modlar: hazir yerlesim	*/
+#define SET_ID_SAAT_YER		0x0305U	/* Saatli modlar: Sol / Orta		*/
 #define SET_ID_SM_BOY		0x0306U	/* Somine: alev boyu				*/
 #define SET_ID_YM_SIDDET	0x0308U	/* Yagmur: siddet					*/
 #define SET_ID_YM_RUZGAR	0x0309U	/* Yagmur: ruzgar (egim)			*/
@@ -80,6 +80,8 @@
 #define SET_ID_SAAT_RGB		0x030CU	/* Saatli modlar: saat rengi (mod basina)	*/
 #define SET_ID_SAAT_ISIK	0x030DU	/* Saatli modlar: saat parlakligi %		*/
 #define SET_ID_SAAT_SAYDAM	0x030EU	/* Saatli modlar: saat saydamligi %		*/
+#define SET_ID_SAAT_ALT		0x030FU	/* Saatli modlar: alta yasli			*/
+#define SET_ID_SAAT_ISI		0x0310U	/* Saatli modlar: sicaklik / nem goster	*/
 
 typedef struct
 {

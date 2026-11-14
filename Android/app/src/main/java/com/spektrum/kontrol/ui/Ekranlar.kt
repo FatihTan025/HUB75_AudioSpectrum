@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -83,7 +84,10 @@ fun Uygulama(m: AnaModel) {
         if (mesaj != null) { snack.showSnackbar(mesaj); m.mesaj.value = null }
     }
     Box(Modifier.fillMaxSize().background(Mor)) {
-        if (m.cihaz.value == null) BaglanEkrani(m) else AnaEkran(m)
+        // Telefonun durum ve gezinme cubuklarinin altinda kalmasin (+ alta biraz pay)
+        Box(Modifier.fillMaxSize().systemBarsPadding().padding(bottom = 16.dp)) {
+            if (m.cihaz.value == null) BaglanEkrani(m) else AnaEkran(m)
+        }
         SnackbarHost(snack, Modifier.align(Alignment.BottomCenter).padding(bottom = 80.dp))
     }
 }
@@ -147,6 +151,8 @@ fun BaglanEkrani(m: AnaModel) {
         ) {
             Text(if (m.baglaniyor.value != null) "BAĞLANIYOR..." else "BAĞLAN", fontSize = 17.sp, fontWeight = FontWeight.Bold)
         }
+        Text("Paneli ev ağına bağlamak için: bağlan → Ayarlar → Bağlantı → Ev ağı (Wi-Fi)",
+            color = Soluk, fontSize = 12.sp, modifier = Modifier.fillMaxWidth())
     }
 }
 
@@ -285,12 +291,14 @@ private fun ModSekmesi(m: AnaModel, muziksiz: Boolean, bosYazi: String) {
             }
         }
         Column(Modifier.padding(horizontal = 18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            AyarListesi(m.modAyarlari(mod), { t -> m.deger(t, mod) }) { t, v -> m.ayarYaz(t, v, mod) }
+            AyarGruplari(m.modAyarlari(mod), { t -> m.deger(t, mod) }) { t, v -> m.ayarYaz(t, v, mod) }
             m.tanimBul(AyarId.PARLAKLIK)?.let { t ->
-                TekSatir("Parlaklık") {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.weight(1f)) { Cubuk(m.deger(t, MOD_GENEL), t.min, t.max, t.adim) { m.ayarYaz(t, it, MOD_GENEL) } }
-                        Text("%${m.deger(t, MOD_GENEL)}", color = Soluk, fontSize = 12.sp, modifier = Modifier.padding(start = 6.dp))
+                AyarKutusu("PANEL", PanelZemin, "tüm modlar") {
+                    TekSatir("Parlaklık") {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(Modifier.weight(1f)) { Cubuk(m.deger(t, MOD_GENEL), t.min, t.max, t.adim) { m.ayarYaz(t, it, MOD_GENEL) } }
+                            Text("%${m.deger(t, MOD_GENEL)}", color = Soluk, fontSize = 12.sp, modifier = Modifier.padding(start = 6.dp))
+                        }
                     }
                 }
             }
@@ -338,8 +346,20 @@ private fun AyarlarSekmesi(m: AnaModel) {
                 AyarListesi(genel, { t -> m.deger(t, MOD_GENEL) }) { t, v -> m.ayarYaz(t, v, MOD_GENEL) }
             }
         }
+        val fa = m.tanimBul(AyarId.FREQ_LO)
+        val fu = m.tanimBul(AyarId.FREQ_HI)
+        if (fa != null && fu != null) Grup("SES") {
+            Column(Modifier.padding(horizontal = 14.dp, vertical = 6.dp)) {
+                Text("Frekans aralığı", color = Color.White, fontSize = 15.sp)
+                FrekansCubugu(m.deger(fa, MOD_GENEL), m.deger(fu, MOD_GENEL)) { a, u ->
+                    m.ayarYaz(fa, a, MOD_GENEL); m.ayarYaz(fu, u, MOD_GENEL)
+                }
+            }
+        }
         Grup("BAĞLANTI") {
-            if (m.kopru.value != null) Satir("Ev ağı (Wi-Fi)", "") { m.wifiDurumSor(); agPencere = true }
+            Satir("Ev ağı (Wi-Fi)", if (m.kopru.value != null) "" else (m.kopruHata.value ?: "Köprü bilgisi yok") + " · dokun") {
+                if (m.kopru.value != null) { m.wifiDurumSor(); agPencere = true } else m.kopruYenidenSor { agPencere = true }
+            }
             Satir("Yazılım sürümü", "Panel ${b?.fw ?: "-"}" + (m.kopru.value?.let { " · Köprü ${it.surum}" } ?: ""))
         }
         Grup("BAKIM") {

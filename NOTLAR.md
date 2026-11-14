@@ -33,7 +33,8 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 - ESP32 UART: PA9/PA10 (USART1, 115200, DMA2 St2/St7).
 - ESP32 I2S ses (plan): PC10 CK, PA15 WS, PC12 SD (I2S3).
 - Butonlar: PB3 (+), PB4 (−). Encoder (plan): PB6/PB7 TIM4 + buton PB5; IR → PC9 (TIM8) ya da EXTI.
-- I2C sensör (AHT20/SHT31): PB8/PB9. SPI flash: PB13–PB15, CS PC8. LSE: PC14/PC15.
+- HUB75 D satırı: PB10 (HUB75_Config.h) — boş DEĞİL.
+- I2C sensör (AHT20/SHT31): PB8/PB9 (gpio.c PB9'u CubeMX artığı çıkış yapıyor, sensörle kaldırılacak). SPI flash: PB13–PB15, CS PC8. LSE: PC14/PC15.
 - Ses girişi: 4.7µ → 10k/10k bölücü → 1k → PA5, PA5–GND 10n.
 
 ## Yazılım yapısı
@@ -127,6 +128,19 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 - 14 Kasım: Fatih'in ilk saat fontu Arial Bold (arialbold24px.c/.h, HUB75 Aracı çıktısı, 24 px, oransal, 0-9 : C)
   eklendi; geçici font (Font_SaatGecici.h) silindi (PC'de dosya duruyorsa kullanılmıyor). Rakamlar en geniş rakam
   kadar yuvaya ortalanır (dakika değişince saat kaymasın). Saat Yazısı tek font olduğu için hâlâ gizli.
+- 14 Kasım (3): Fontlar: saat = Arial Bold 24, Bahn Bold 30, Bahn Cond 30 (ayar adı "Font", Android'de açık);
+  ısı-nem = Arial 13 (iki satır), sadece sıcaklık = Bahn 16 (tek satır); glif sırası StartChar'a göre ('%'li
+  fontlar). Derece = elle 3x3 halka; yer yoksa 'C' düşer. Yerleşim: "Sol|Orta" + Alt (BOOL) + Isı-Nem (BOOL);
+  Isı-Nem sensör verisi yoksa uygulanmaz. Saydamlık = renkli cam (arka plan saat tonundan geçer) + sol/üst
+  kenarda ince ışık; Şömine'de saydamken alev rakamdan geçer (SmEngel). Mercek: 3 px çizgide anlamsız, YOK.
+  Sahil: deniz hep hafif kıpırdar (ShDoku bantları, sütun kayması), sırt beyazlığı geri alındı, kavis kaldı.
+  Frekans: LO 60–5000, HI 240–20000 (fabrika 60–16000), Android'de çift tutamaçlı log çubuk (Ayarlar > SES).
+  Android: ayarlar ANİMASYON / SAAT (lacivert) / PANEL (gri, tüm modlar) kutularında; BOOL = basılı/kabarık
+  düğme; ev ağı satırı hep görünür, köprü cevap vermezse sebebini yazar, dokununca 3 sn bekleyip yeniden sorar;
+  uygulama telefonun gezinme çubuğunun üstünde (systemBarsPadding + 16dp).
+  BEKLİYOR: sensör okuma (AHT20/SHT3x PB8/PB9 bit-bang I2C; DS18B20 için PA2 USART2 tek tel mi? Fatih karar
+  verecek). İLERİDE: otomatik frekans aralığı (hızlı genişle, yavaş daral), font yükleme (flash 16 KB bölüm,
+  HUB75 Aracı / telefon fontu).
 - 14 Kasım (2): Kar: salınım TAMAMEN kalktı (Fatih: zikzak istemiyor, "oyundaki gibi") -> serbest kayma: Vx hedefe
   yavaşça döner, 1.6-4.8 s'de bir yeni hedef (bazen düz); 3x3 taneler dibinde doğmaz (SnDolu), 4 px'e yaklaşınca
   ayrılır (SnAyir); orta {15,25,35}. Şömine: eski kıvılcım (yükselip söner), 6 karede bir, SM_KIV 16 (yaylı

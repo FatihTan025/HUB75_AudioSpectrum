@@ -49,6 +49,8 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
     val bilgi = mutableStateOf<Bilgi?>(null)
     val surumUyari = mutableStateOf(false)
     val kopru = mutableStateOf<KopruBilgi?>(null)
+    /** Kopru bilgisi alinamadiysa sebebi (Ayarlar > Baglanti'da gosterilir) */
+    val kopruHata = mutableStateOf<String?>(null)
 
     // --- Icerik (cihazdan) ---
     val modlar = mutableStateListOf<Mod>()
@@ -172,7 +174,7 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
                 tercih.edit().putString("ad_${b.ad}", bl.ad).putString("son_cihaz", b.ad).apply()
                 cihaz.value = c
                 modDegerYukle(bl.mod)
-                kopru.value = try { c.kopruBilgi() } catch (_: Exception) { null }   // UART'tan bagliysa kopru yok
+                kopruSorgu(c, 1500)
             } catch (e: Exception) {
                 c.kapat()
                 hata(e, "Bağlanılamadı: ")
@@ -337,6 +339,27 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
         viewModelScope.launch {
             try { aglar.clear(); aglar.addAll(c.wifiTara()) } catch (e: Exception) { hata(e, "Taranamadı: ") }
         }
+    }
+
+    /** ESP32 kopru bilgisini sorar; alinamazsa sebebini kopruHata'ya yazar */
+    private suspend fun kopruSorgu(c: Cihaz, zamanMs: Long): Boolean {
+        kopru.value = try { c.kopruBilgi(zamanMs) } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            kopruHata.value = when (e) {
+                is java.util.concurrent.TimeoutException -> "Köprü cevap vermedi"
+                is HataYanit -> "Köprü hata verdi (${e.message})"
+                else -> e.message ?: "Köprüye ulaşılamadı"
+            }
+            null
+        }
+        if (kopru.value != null) kopruHata.value = null
+        return kopru.value != null
+    }
+
+    /** Ev agi satirina dokununca: kopru bilinmiyorsa uzun bekleyerek yeniden sor */
+    fun kopruYenidenSor(sonra: () -> Unit) {
+        val c = cihaz.value ?: return
+        viewModelScope.launch { if (kopruSorgu(c, 3000)) { wifiDurumSor(); sonra() } else hata(IllegalStateException(kopruHata.value ?: "Köprü yok")) }
     }
 
     fun wifiDurumSor() {
