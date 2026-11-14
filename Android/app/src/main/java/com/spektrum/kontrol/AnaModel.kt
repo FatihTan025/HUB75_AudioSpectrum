@@ -13,6 +13,7 @@ import com.spektrum.kontrol.protokol.AyarId
 import com.spektrum.kontrol.protokol.BleTasima
 import com.spektrum.kontrol.protokol.Bilgi
 import com.spektrum.kontrol.protokol.Cihaz
+import com.spektrum.kontrol.protokol.HataYanit
 import com.spektrum.kontrol.protokol.KopruBilgi
 import com.spektrum.kontrol.protokol.MOD_GENEL
 import com.spektrum.kontrol.protokol.Mod
