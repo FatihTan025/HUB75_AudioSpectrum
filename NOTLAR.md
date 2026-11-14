@@ -128,6 +128,13 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 - 14 Kasım: Fatih'in ilk saat fontu Arial Bold (arialbold24px.c/.h, HUB75 Aracı çıktısı, 24 px, oransal, 0-9 : C)
   eklendi; geçici font (Font_SaatGecici.h) silindi (PC'de dosya duruyorsa kullanılmıyor). Rakamlar en geniş rakam
   kadar yuvaya ortalanır (dakika değişince saat kaymasın). Saat Yazısı tek font olduğu için hâlâ gizli.
+- 14 Kasım (5): Saniye görünürken iki nokta(lar) sabit (SnVar); Şömine ':' saat renginde, aynı kural. Font sırası
+  küçükten büyüğe: Arial Bold | Bahn Cond | Bahn Bold. Sahil: kıpırtı ±%22 ve sık bant, denizde hep >= 3 küçük
+  sırt, kumdaki suda ucun şeklini izleyen kıvrımlar (gelirken kıyıya, çekilirken denize akar) + köpük izleri.
+  Android: sıkı düzen (düğme 30dp, satır 38dp, kutu başlığı çerçeve üstünde), 3 düğme / 2 seçim / 2 çubuk yan
+  yana; Saat kutusu sabit düzen: [Font örnekleri][Saniye] / [Sol][Orta][Alt] / [Isı-Nem] / Renk / Parlaklık +
+  Saydamlık; Saniye açıkken font örnekleri "12:34:56" (assets/saatyazi/<ad>_sn.png); frekans çubuğu özel
+  tutamaç; üst çubukta yazısız bağlantı simgesi (Bluetooth / ev ağı / doğrudan Wi-Fi).
 - 14 Kasım (4): Saniye (0x0311, BOOL, Saat): sığarsa büyük fontla 21:47:35 (iki ':' birlikte yanıp söner),
   sığmazsa Arial 13 ile dakikanın sağına alt hizada; hiç yer yoksa (Bahn Bold + Isı-Nem) gösterilmez.
   Vuruş hassasiyeti: tek gizli SENS (0x0005) KALKTI -> mod başına Bas vuruşu (0x0122, kick) ve Tiz vuruşu
