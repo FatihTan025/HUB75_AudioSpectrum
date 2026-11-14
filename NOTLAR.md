@@ -118,6 +118,11 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 - Telefon sesi ESP32'ye A2DP ile gelebilir (I2S → STM32); arayan bilgisi Android uygulamasından.
 
 ## Bekleyen işler
+- 14 Kasım (11, kartta denenmedi): Yağmur sokağa döndü (Fatih: su deniz gibiydi). Panelin en sol/sağında yarısı
+  kesik lamba direkleri (YmDirek: direk x 0-1, kol y3, gövde y4 x5-9, cam y5 x6-8; sağ aynalı). Dar koni (YmKoni:
+  ~26 derece, içe ~18 derece eğik, gün ışığı tonu YM_ISIK 255/245/230): havayı hafif aydınlatır (26), içinden geçen
+  damla 4 kata kadar parlar, suda dalgayla kırılan ışık lekesi (70) + lambanın altında titreyen dikey yansıma
+  şeridi (orta 60, yan 22). Su sığlaştı: Hafif 6, Normal 8, Sağanak 10 px. Direk saatin arkasında.
 - 14 Kasım (10, kartta denenmedi): YAPILACAKLAR listesi yazıldı.
   Yağmur: su artık 128x16 tam sayı dalga denklemi (U.Ym.Dl[2][16][128] int16, Ym union'ı ~11.5 KB -> union
   ~3 KB büyüdü). Dalga 2 karede bir adım (YmDalga), yatay YM_KX 64, dikey uzakta ~%35 (basık halka), sönüm >>7,

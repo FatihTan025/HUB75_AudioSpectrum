@@ -3861,7 +3861,12 @@ static void ModeHearth(void)
      yakin: saatin onunde. Iri damlalar: 3 px yuvarlak bas (ortasi tam,
             yanlari yari isikli, alt ucu burun) + 1 px sonen kuyruk.
             Kucukler: 1 px bas + kisa kuyruk.
-   Altta su (gol): 10-12 px, Saganakta 15. Ust kenari sabit ve duzensiz.
+   Sokak: panelin en solunda ve en saginda yarisi kesik lamba direkleri
+   (kesik fotograf gibi); kolun ucundaki lambadan dar (~20 derece), hafif
+   ice egik gun isigi tonunda koni iner: havayi hafifce aydinlatir, icinden
+   gecen damlalar parlar, yere vurdugu yerde suda dalgayla kirilan isik
+   lekesi ve lambanin altinda titreyen dikey yansima seridi olur.
+   Altta yolda birikmis su: 6-8 px, Saganakta 10. Ust kenari sabit, duzensiz.
    Su yuzeyi 128x16 tam sayi dalga denklemiyle (yukseklik alani) yasar:
    damla suya degdigi yeri iter, halka kendiliginden yayilir, halkalar
    birbirinin icinden gecer (tepe+tepe guclenir, tepe+cukur soner); uzakta
@@ -3872,8 +3877,52 @@ static void ModeHearth(void)
    hafif mavimsi; dalga rakamlarin ustune binmez. Piksel basina sinf yok.
    Ruzgar egimi ayarli, simsek yok. Konum 8.8 sabit nokta. Durum U.Ym.
    ========================================================================== */
-#define YM_DERIN(Si)	(((Si) == 2U) ? 15U : ((Si) == 0U) ? 10U : 12U)	/* Su derinligi (satir) */
+#define YM_DERIN(Si)	(((Si) == 2U) ? 10U : ((Si) == 0U) ? 6U : 8U)	/* Su derinligi (satir): yolda birikinti */
 #define YM_RENK(v)	(uint8_t)(((v) * 200U) >> 8), (uint8_t)(((v) * 215U) >> 8), (uint8_t)(v)	/* Soguk gri-mavi */
+
+static inline int32_t YmSin(int32_t v, int32_t Lo, int32_t Hi) { return (v < Lo) ? Lo : (v > Hi) ? Hi : v; }
+
+/* Sokak lambasi: lambanin isik cikan noktasi (sol; sag aynasi) ve gun isigi tonu */
+#define YM_LX		7							/* Lamba basi orta sutunu (solda)		*/
+#define YM_LY		5							/* Isik cikan satir					*/
+#define YM_ISIK(v)	(uint8_t)(v), (uint8_t)(((v) * 245U) >> 8), (uint8_t)(((v) * 230U) >> 8)	/* Gun isigi (hafif soguk beyaz) */
+
+/* Koni isigi 0..256: dar (~20 derece), ice dogru ~18 derece egik; kenari yumusak, uzakta azalir. Iki lamba. */
+static uint32_t YmKoni(int x, int y)
+{
+	const int dy = y - YM_LY;
+	uint32_t En = 0U;
+	int k;
+	if(dy <= 0) return 0U;
+	for(k = 0; k < 2; k++)
+	{
+		const int dx = k ? (int)W - 1 - YM_LX - x : x - YM_LX;			/* Sag lamba aynali */
+		const int32_t a = dx * 79 + dy * 243, c = dx * 243 - dy * 79;	/* Eksen boyunca / dik (x256); sin18, cos18 */
+		int32_t e, v;
+		if(a <= 0) continue;
+		e = ((c < 0) ? -c : c) * 256 / (((a * 62) >> 8) + 256);			/* tan13 + ucta en az 1 px */
+		if(e >= 256) continue;
+		v = (e < 128) ? 256 - e / 2 : (256 - e) * 3 / 2;					/* Ici dolu, kenari yumusak */
+		v = (v * (256 - YmSin(a >> 6, 0, 120))) >> 8;					/* Uzakta azalir */
+		if((uint32_t)v > En) En = (uint32_t)v;
+	}
+	return En;
+}
+
+/* Direk, kol ve lamba basi (yarisi panel disinda). Yakin: koyu siluet, isiga bakan yuzu hafif acik. */
+static void YmDirek(void)
+{
+	int k, y, x;
+	for(k = 0; k < 2; k++)
+	{
+		#define YM_DX(x)	(k ? (int)W - 1 - (x) : (x))
+		for(y = 3; y < (int)H; y++) { Set(YM_DX(0), y, 16, 16, 19); Set(YM_DX(1), y, 34, 34, 38); }	/* Direk */
+		for(x = 2; x <= 5; x++) Set(YM_DX(x), 3, 30, 30, 34);										/* Kol */
+		for(x = 5; x <= 9; x++) Set(YM_DX(x), 4, 40, 40, 45);										/* Lamba govdesi */
+		for(x = 6; x <= 8; x++) Set(YM_DX(x), YM_LY, YM_ISIK((x == YM_LX) ? 230U : 150U));			/* Isik cikan cam */
+		#undef YM_DX
+	}
+}
 
 /* Damla: X,Y 8.8 (Y = burun satiri); Vy px/kare*256; Uz = kuyruk; L = isik */
 static void YmDog(YmDamla *d, uint8_t Tur, uint8_t Basta)	/* Tur: 0 uzak, 1 yakin kucuk, 2 yakin iri */
@@ -3897,7 +3946,8 @@ static void YmDog(YmDamla *d, uint8_t Tur, uint8_t Basta)	/* Tur: 0 uzak, 1 yaki
 static void YmCiz(const YmDamla *d, int32_t Vx)
 {
 	const int x0 = (int)(d->X >> 8), y0 = (int)(d->Y >> 8);
-	const uint32_t L = d->L;
+	const uint32_t Lh = d->L + ((d->L * YmKoni(x0, y0) * 3U) >> 8);		/* Koninin icinde parlar */
+	const uint32_t L = (Lh > 255U) ? 255U : Lh;
 	int k, n;
 	#define YM_X(k)	(x0 - (int)(Vx * (k) / d->Vy))					/* Egim: kuyruk ruzgarin tersine kayar */
 	if(d->Iri)
@@ -3998,8 +4048,6 @@ static inline int32_t YmH(int j, int x)
 	return U.Ym.Dl[U.Ym.Ak][j][x];
 }
 
-static inline int32_t YmSin(int32_t v, int32_t Lo, int32_t Hi) { return (v < Lo) ? Lo : (v > Hi) ? Hi : v; }
-
 static void ModeRain(void)
 {
 	static const uint8_t NUz[3] = { 30, 60, 90 }, NYa[3] = { 4, 9, 14 }, NIri[3] = { 2, 4, 6 };
@@ -4035,9 +4083,12 @@ static void ModeRain(void)
 	}
 	if(yu < (int)H - YM_SU_H) yu = (int)H - YM_SU_H;
 
-	for(y = 0; y < (int)H; y++)
+	for(y = 0; y < (int)H; y++)										/* Gece; koninin icindeki hava hafifce aydinlanir */
 		for(x = 0; x < (int)W; x++)
-			Set(x, y, 0, 0, 0);
+		{
+			const uint32_t v = (YmKoni(x, y) * 26U) >> 8;
+			Set(x, y, YM_ISIK(v));
+		}
 
 	/* Uzak yagmur: saatin arkasinda, suyun uzak kismina duser */
 	for(i = 0; i < NUz[Si]; i++)
@@ -4095,6 +4146,19 @@ static void ModeRain(void)
 					r += (v * 45) >> 8; g += (v * 190) >> 8; b += v;
 				}
 			}
+			{															/* Koninin yere vurdugu yer: dalgayla kirilan isik lekesi */
+				const int32_t v = (int32_t)((YmKoni(x + (int)YmSin(ex >> 7, -2, 2), y) * 70U) >> 8) * (256 + Ib * 8) >> 8;
+				if(v > 0) { r += v; g += (v * 245) >> 8; b += (v * 230) >> 8; }
+			}
+			{															/* Lambanin dikey yansima seridi: titrer, yer yer kopar */
+				const int xs = x + (int)YmSin(ex >> 7, -2, 2) + Sy, dl = xs - YM_LX, dr = ((int)W - 1 - YM_LX) - xs;
+				const int d = (dl >= -1 && dl <= 1) ? dl : (dr >= -1 && dr <= 1) ? dr : 9;
+				if(d != 9 && ShDoku[((uint32_t)y * 13U + U.Ym.Kare / 3U + (uint32_t)(dl > 1) * 21U) & 63U] > 70U)
+				{
+					const int32_t v = (d == 0) ? 60 : 22;
+					r += v; g += (v * 245) >> 8; b += (v * 230) >> 8;
+				}
+			}
 			c = CV(y, x);
 			r = YmSin(r, 0, 255); g = YmSin(g, 0, 255); b = YmSin(b, 0, 255);
 			c[0] = (uint8_t)(((int32_t)c[0] * (256 - A) + r * A) >> 8);
@@ -4102,6 +4166,8 @@ static void ModeRain(void)
 			c[2] = (uint8_t)(((int32_t)c[2] * (256 - A) + b * A) >> 8);
 		}
 	}
+
+	YmDirek();
 
 	/* Saat suyun onunde: dalga rakamlarin ustune binmez; suyun icindeki kismi hafif mavimsi */
 	SaatCizRgb(&U.Ym.S);
