@@ -176,6 +176,7 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
                 cihaz.value = c
                 modDegerYukle(bl.mod)
                 kopruSorgu(c, 1500)
+                try { saatGonder(c) } catch (e: Exception) { if (e is kotlinx.coroutines.CancellationException) throw e }	// Her baglanista sessizce
             } catch (e: Exception) {
                 c.kapat()
                 hata(e, "Bağlanılamadı: ")
@@ -303,17 +304,25 @@ class AnaModel(uyg: Application) : AndroidViewModel(uyg) {
         ayarYaz(t, sure, MOD_GENEL)
     }
 
-    /** "Saati ayarla": telefonun saati ve tarihi karta gider (otomatik gonderilmez) */
+    /** "Saati ayarla" dugmesi: telefonun saati ve tarihi karta gider */
     fun saatAyarla() {
         val c = cihaz.value ?: return
         viewModelScope.launch {
-            try {
-                val z = java.util.Calendar.getInstance()
-                c.saatAyarla(z.get(java.util.Calendar.HOUR_OF_DAY), z.get(java.util.Calendar.MINUTE), z.get(java.util.Calendar.SECOND),
-                    z.get(java.util.Calendar.DAY_OF_MONTH), z.get(java.util.Calendar.MONTH) + 1, z.get(java.util.Calendar.YEAR))
-                mesaj.value = "Saat ayarlandı"
-            } catch (e: Exception) { hata(e) }
+            try { saatGonder(c); mesaj.value = "Saat ayarlandı" } catch (e: Exception) { hata(e) }
         }
+    }
+
+    /** Telefonun saati tam saniye basinda gonderilir (yarim saniyelik yuvarlama kaymayi bozmasin).
+     *  Telefonun otomatik (ag) saati aciksa guvenilir sayilir: kart kaymasini ogrenir. */
+    private suspend fun saatGonder(c: Cihaz) {
+        val bekle = 1000L - System.currentTimeMillis() % 1000L
+        if (bekle in 1..999) kotlinx.coroutines.delay(bekle)
+        val z = java.util.Calendar.getInstance()
+        val ag = try {
+            android.provider.Settings.Global.getInt(getApplication<Application>().contentResolver, android.provider.Settings.Global.AUTO_TIME) == 1
+        } catch (e: Exception) { false }
+        c.saatAyarla(z.get(java.util.Calendar.HOUR_OF_DAY), z.get(java.util.Calendar.MINUTE), z.get(java.util.Calendar.SECOND),
+            z.get(java.util.Calendar.DAY_OF_MONTH), z.get(java.util.Calendar.MONTH) + 1, z.get(java.util.Calendar.YEAR), guvenilir = ag)
     }
 
     fun adVer(ad: String) {

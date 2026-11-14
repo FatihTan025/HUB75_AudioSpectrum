@@ -98,9 +98,11 @@ class Cihaz(val tasima: Tasima) {
 
     suspend fun fabrika() { komut(Kom.FACTORY_RESET) }
 
-    /** Cihaz saatini ayarlar (eski firmware "desteklenmiyor" der; cagiran yok sayar). */
-    suspend fun saatAyarla(sa: Int, dk: Int, sn: Int, gun: Int, ay: Int, yil: Int) {
-        komut(Kom.TIME, byteArrayOf(sa.toByte(), dk.toByte(), sn.toByte(), gun.toByte(), ay.toByte(), (yil - 2000).toByte()))
+    /** Cihaz saatini ayarlar (eski firmware "desteklenmiyor" der; cagiran yok sayar).
+     *  guvenilir: telefonun saati agdan geliyor -> kart kaymasini olcup ince ayarini duzeltir. */
+    suspend fun saatAyarla(sa: Int, dk: Int, sn: Int, gun: Int, ay: Int, yil: Int, guvenilir: Boolean = false) {
+        komut(Kom.TIME, byteArrayOf(sa.toByte(), dk.toByte(), sn.toByte(), gun.toByte(), ay.toByte(), (yil - 2000).toByte(),
+            if (guvenilir) 1 else 0))
     }
 
     // --- ESP32 kopru (0x7F, STM32'ye gitmez) -----------------------------------

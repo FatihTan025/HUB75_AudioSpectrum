@@ -293,14 +293,17 @@ static void Handle(uint8_t Seq, uint8_t Cmd, const uint8_t *In, uint16_t Len)
 		CntKick = CntHit = CntBeat = 0;
 		break;
 
-	case CMD_TIME:											/* Sa Dk Sn [Gun Ay Yil-2000]	*/
-	{
+	case CMD_TIME:											/* Sa Dk Sn [Gun Ay Yil-2000 [Guvenilir]]	*/
+	{														/* Guvenilir 1: telefonun ag saati (kayma ogrenilir) */
 		uint8_t Sa, Dk, Sn, Gun, Ay;
 		uint16_t Yil;
 
-		if(Len >= 3U && !SAAT_Set(In[0], In[1], In[2]))
-			St = PROTO_ERR_RANGE;
-		else if(Len >= 6U && !SAAT_TarihSet(In[3], In[4], (uint16_t)(2000U + In[5])))
+		if(Len >= 6U)
+		{
+			if(!SAAT_Esitle(In[0], In[1], In[2], In[3], In[4], (uint16_t)(2000U + In[5]), (uint8_t)(Len >= 7U && In[6] == 1U)))
+				St = PROTO_ERR_RANGE;
+		}
+		else if(Len >= 3U && !SAAT_Set(In[0], In[1], In[2]))
 			St = PROTO_ERR_RANGE;
 		SAAT_Get(&Sa, &Dk, &Sn);
 		SAAT_TarihGet(&Gun, &Ay, &Yil);

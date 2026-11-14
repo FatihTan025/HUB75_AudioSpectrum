@@ -5,7 +5,9 @@
   ******************************************************************************
   * Kristal hazir olana kadar (en fazla ~2 s) ve kristal yoksa saat HAL_GetTick ile
   * yazilimda yurur; kristal hazir olunca RTC'ye gecer. Saat protokolle (CMD_TIME)
-  * ayarlanir: kullanici uygulamada "Saati ayarla" ile gonderir (otomatik gonderilmez).
+  * ayarlanir: Android uygulamasi her baglanista telefonun saatini gonderir.
+  * Guvenilir esitlemelerden saatin kaymasi olculup RTC ince ayari otomatik
+  * duzeltilir (ayrinti Saat.c basinda).
   ******************************************************************************
   */
 #ifndef __SAAT_H__
@@ -19,6 +21,8 @@ void SAAT_Get(uint8_t *Sa, uint8_t *Dk, uint8_t *Sn);
 void SAAT_TarihGet(uint8_t *Gun, uint8_t *Ay, uint16_t *Yil);
 uint8_t SAAT_Set(uint8_t Sa, uint8_t Dk, uint8_t Sn);					/* Gecersizse 0, tarih korunur	*/
 uint8_t SAAT_TarihSet(uint8_t Gun, uint8_t Ay, uint16_t Yil);			/* 2000-2099, saat korunur		*/
+uint8_t SAAT_Esitle(uint8_t Sa, uint8_t Dk, uint8_t Sn, uint8_t Gun, uint8_t Ay, uint16_t Yil, uint8_t Guvenilir);	/* Tam ayar; guvenilirse kayma ogrenilir */
+void    SAAT_KalDurum(int32_t *DuzPpb, uint32_t *Sayi, int32_t *Fark, uint32_t *Sure);	/* Ogrenilen duzeltme durumu */
 void    SAAT_SensorYaz(int16_t Sicaklik10, uint8_t Nem);				/* CMD_SENSOR: 0.1 C, %			*/
 uint8_t SAAT_SensorOku(int16_t *Sicaklik10, uint8_t *Nem);				/* Son 10 dk icinde geldiyse 1	*/
 

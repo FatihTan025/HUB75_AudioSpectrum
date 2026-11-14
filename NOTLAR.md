@@ -118,6 +118,17 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 - Telefon sesi ESP32'ye A2DP ile gelebilir (I2S → STM32); arayan bilgisi Android uygulamasından.
 
 ## Bekleyen işler
+- 14 Kasım (16, kartta denenmedi): SAAT KAYMA ÖĞRENME (Saat.c başında ayrıntı). Android her bağlanışta telefonun
+  saatini tam saniye başında sessizce gönderir (önceki "otomatik gönderilmez" kararının yerine, Fatih). CMD_TIME 7.
+  bayt Güvenilir (1 = telefonun otomatik ağ saati açık); yalnız güvenilir tam esitlemede (SAAT_Esitle) kayma
+  ölçülür. Referans (son öğrenme anı) + biriken fark RTC yedek yazmaçlarında (BKP0-7, sihir + sağlama; Settings'in
+  yedek SRAM'ine dokunmaz). Öğrenme: süre >= 6 sa ve birikim >= 3 sn; kayma <= 250 ppm; güven çarpanı fark/(fark+2);
+  adım <= 60 ppm, toplam <= 300 ppm; RTC CALR (~0.95 ppm adım), yazılım saati için ayrı değer. Ayar değişikliği
+  sayılan (öğrenilmez, referans yenilenir): tek esitlemede fark > 30 sn + süre x 250 ppm (en çok 30 dk), kaynak
+  RTC<->yazılım değişti, açılışta saat yeniden başladı, elle saat/tarih (PC aracı 6 bayt = güvenilmez).
+  PC'de sahte RTC ile denendi (+4.6/-23/+80/-150 ppm): 1-4 öğrenmede kalan ~1-2 ppm (günde ~0.1-0.2 sn).
+  Yan düzeltme: yazılım saati HAL_GetTick 49 günde taşınca geri sıçrıyordu -> 64 bit düzeltmeli ms sayacı.
+  BEKLİYOR: ESP32 NTP (ev ağı varsa) -- saat dilimi gerektirir, ayrıca konuşulacak.
 - 14 Kasım (15, kartta denenmedi): Direk en üste kadar, kol 2 px kalın kuğu boynu (direkle tümleşik), cam 4 px
   (orta 2 tam, yanlar ~%40). Koni dik, iki yana eşit ~30 derece (tan30), direk ışığın önünde (aydınlanmaz).
   Karışık renk düzeltmesi: sudaki leke ve şerit su rengini ışık rengine KARIŞTIRIR (eklemez), konideki damlalar
