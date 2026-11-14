@@ -191,6 +191,7 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   Kar: eski Yavaş aşırı yavaş -> yeni Yavaş = eski Yüksek (1.0), Normal = 1.3, Yüksek = ~1.7 (mod başına çarpan).
   Diğer modlar: öneri {0.7, 1.0, 1.3} (eski Normal/Yüksek/Çok yüksek; Fatih panelde bakıp onaylayacak).
   Kat[] (SpecDisplay.c ~5000) mod başına tablo olur; kayıtlı 3 (Çok yüksek) değeri 2'ye sınırlanmalı.
+  Yağmur lamba hüzmesi: 10/17/24 fazla parlak, 6/10/14 de sönüktü -> arası: Lv { 0, 8, 13, 19 }.
 - **BEKLİYOR (Fatih "şimdilik dursun", 13 Kasım):** Kısık parlaklıkta Kar/saat saniyede birkaç kez parlayıp sönüyor.
   Sebep: SPEC_Draw sonundaki vuruş pompası (CFG_BEAT_BRIGHT_BOOST %25 * BeatEnv) Ortam modlarında da çalışıyor;
   müziksizken giriş gürültüsü vuruş sayılıyor, düşük parlaklıkta OE birkaç tik olduğu için küçük artış büyük
