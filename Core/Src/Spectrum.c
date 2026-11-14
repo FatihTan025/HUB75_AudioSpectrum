@@ -770,6 +770,9 @@ void SPEC_Process(const uint16_t *Samples)
 }
 
 /* Olculen tempo, BPM. 0 = tempo yok (ritimsiz / sessiz) */
+/* Muzik var mi: sessizlik kapisi (0 sessiz .. 1 muzik). Mod gorunmese de hep guncellenir. */
+float SPEC_MusicLevel(void) { return SilenceGain; }
+
 float SPEC_GetBpm(void)
 {
 	return (BeatPeriod > 0.0f) ? 60.0f * CFG_FPS / BeatPeriod : 0.0f;

@@ -188,6 +188,8 @@ static const SET_Param Table[] =
 
 	{ SET_ID_AUTO_SEC,		SET_TYPE_INT,	0U,		0U,		0,	600, 5,	(int32_t)CFG_AUTO_MODE_SEC,
 	  "Otomatik mod ge\303\247i\305\237i", "Mod", "sn (0 = kapal\304\261)", 0 },	/* Otomatik mod gecisi, kapali */
+	{ SET_ID_MUZIK_GEC,		SET_TYPE_BOOL,	0U,		0U,		0,	1, 1,	0,
+	  "M\303\274zikte ge\303\247", "Mod", "", 0 },	/* main.c izler: ortamda 4 sn muzik -> spektrum, 1 dk sessiz -> geri */
 
 	{ SET_ID_FAV,			SET_TYPE_INT,	SET_FLAG_HIDDEN, 0U, 0, (int32_t)((1UL << LOOK_COUNT) - 1U), 1, 0,
 	  "Favoriler", "Mod", "", 0 },											/* Uygulamadaki kalpler */
@@ -515,6 +517,8 @@ uint8_t SET_LookCount(void)
 {
 	return (uint8_t)LOOK_COUNT;
 }
+
+uint8_t SET_LookKind(uint8_t Mode) { return (Mode < LOOK_COUNT) ? ModeInfo[Mode].Kind : 0U; }
 
 /* Otomatik gecis: siradaki muzikli mod; favori varsa yalniz favoriler arasinda.
    Uygun mod yoksa ayni mod kalir. */

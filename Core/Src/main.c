@@ -232,13 +232,51 @@ int main(void)
 			LastModeChange = HAL_GetTick();
 		}
 	}
+	/* Muzikte gec: ortam modundayken 4 sn kesintisiz muzik -> en son spektrum modu;
+	   muzik 1 dk susarsa onceki ortam moduna doner. Bu arada mod elle degisirse donus iptal. */
 	{
-		uint32_t AutoSec = (uint32_t)SET_Global(SET_ID_AUTO_SEC);
-		if(AutoSec && (HAL_GetTick() - LastModeChange) >= (AutoSec * 1000U))
+		static uint8_t  SonMuzik = 0xFFU, Oncesi = 0xFFU, Oto = 0xFFU;
+		static uint32_t Onceki = 0, MuzikMs = 0, SessizMs = 0;
+		const uint32_t  Simdi = HAL_GetTick(), dt = Simdi - Onceki;
+		const uint8_t   Cur = SET_GetCurMode(), Muzik = (uint8_t)(SPEC_MusicLevel() > 0.5f);
+		Onceki = Simdi;
+		if(SET_LookKind(Cur) == 0U) SonMuzik = Cur;
+		if(!SET_Global(SET_ID_MUZIK_GEC) || !SET_GetPower()) { Oncesi = 0xFFU; MuzikMs = SessizMs = 0; }
+		else if(SET_LookKind(Cur) == 1U)
 		{
-			LastModeChange = HAL_GetTick();
-			SET_SetCurMode(SET_NextAuto(SET_GetCurMode()));
-			PROTO_NotifyMode(SET_GetCurMode());
+			MuzikMs = Muzik ? MuzikMs + dt : 0U;
+			if(MuzikMs >= 4000U)
+			{
+				Oncesi = Cur; MuzikMs = SessizMs = 0;
+				Oto = (SonMuzik != 0xFFU) ? SonMuzik : SET_NextAuto(Cur);
+				SET_SetCurMode(Oto);
+				PROTO_NotifyMode(Oto);
+			}
+		}
+		else if(Oncesi != 0xFFU)
+		{
+			if(Cur != Oto) Oncesi = 0xFFU;							/* Elle degisti: donme */
+			else
+			{
+				SessizMs = Muzik ? 0U : SessizMs + dt;
+				if(SessizMs >= 60000U)
+				{
+					SET_SetCurMode(Oncesi);
+					PROTO_NotifyMode(Oncesi);
+					Oncesi = 0xFFU; SessizMs = 0;
+				}
+			}
+		}
+		/* Otomatik mod gecisi: yalniz muzikli modlarda (ortam modunda bekler) */
+		{
+			uint32_t AutoSec = (uint32_t)SET_Global(SET_ID_AUTO_SEC);
+			if(AutoSec && SET_LookKind(SET_GetCurMode()) == 0U && (Simdi - LastModeChange) >= (AutoSec * 1000U))
+			{
+				LastModeChange = Simdi;
+				SET_SetCurMode(SET_NextAuto(SET_GetCurMode()));
+				PROTO_NotifyMode(SET_GetCurMode());
+				if(Oncesi != 0xFFU) Oto = SET_GetCurMode();		/* Kendi gecisimiz: donus surer */
+			}
 		}
 	}
 

@@ -63,6 +63,7 @@ extern volatile uint32_t	SPEC_UpdateUs;
 
 void SPEC_Init(void);
 void SPEC_SetRange(float FLo, float FHi);	/* Frekans araligi, Hz */
+float SPEC_MusicLevel(void);				/* Muzik seviyesi 0 (sessiz) .. 1 (muzik) */
 void SPEC_SetSens(uint8_t Bas, uint8_t Tiz);	/* Vurus hassasiyeti 0..100 (50 = CFG degerleri): bas (kick), tiz (genel vurus) */
 extern uint8_t		SPEC_Sens;					/* Bas hassasiyeti */
 void SPEC_Process(const uint16_t *Samples);
