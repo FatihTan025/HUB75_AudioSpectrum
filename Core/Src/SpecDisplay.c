@@ -3883,7 +3883,7 @@ static void ModeHearth(void)
 static inline int32_t YmSin(int32_t v, int32_t Lo, int32_t Hi) { return (v < Lo) ? Lo : (v > Hi) ? Hi : v; }
 
 /* Sokak lambasi: lambanin isik cikan noktasi (sol; sag aynasi) ve gun isigi tonu */
-#define YM_LX		7							/* Lamba basi orta sutunu (solda)		*/
+#define YM_LX		8							/* Lamba basi orta sutunu (solda)		*/
 #define YM_LY		2							/* Isik cikan satir (lamba en ustte)	*/
 #define YM_ISIK(v)	(uint8_t)(v), (uint8_t)(((v) * 222U + 255U) >> 8), (uint8_t)(((v) * 130U) >> 8)	/* Sicak sari (yesil yukari yuvarlanir: sonukte kizillasmasin) */
 
@@ -3909,27 +3909,29 @@ static uint32_t YmKoni(int x, int y)
 	return En;
 }
 
-/* Suslu sokak lambasi (yarisi panel disinda, kesik fotograf gibi): kahverengi dokme direk, ortada ve
-   altta bilezik, dibi kavisle genisleyen ayak; ustte kugu boynu kol, en ustte yesil bakir kapak,
-   altinda isik cikan cam. Sag lamba aynali. */
+/* Suslu sokak lambasi (kenardan kesik fotograf gibi): 3 px kahverengi dokme direk (dis golge, orta,
+   isiga bakan acik yuz), ortada ve altta bilezik, dibi kavisle genisleyen ayak; ustte kugu boynu kol,
+   en ustte yesil bakir kapak, altinda isik cikan cam. Sag lamba aynali. */
 static void YmDirek(void)
 {
-	static const uint8_t Koyu[3] = { 34, 20, 10 }, Acik[3] = { 72, 44, 22 }, Bil[3] = { 96, 62, 30 }, Kap[3] = { 20, 62, 46 };
-	static const int8_t Ayak[5] = { 2, 2, 3, 3, 4 };				/* Alt 5 satirda ayak genisligi (kavisli) */
-	static const int8_t Kol[5][2] = { {1,4},{1,3},{2,2},{3,1},{4,1} };	/* Kugu boynu: direkten kapaga kivrilir */
+	static const uint8_t Golge[3] = { 26, 15, 8 }, Orta[3] = { 48, 29, 15 }, Acik[3] = { 78, 48, 24 };
+	static const uint8_t Bil[3] = { 104, 68, 34 }, Kap[3] = { 20, 62, 46 }, KapA[3] = { 34, 92, 68 };
+	static const int8_t Ayak[5] = { 3, 4, 4, 5, 6 };					/* Alt 5 satirda ayak genisligi (kavisli) */
+	static const int8_t Kol[6][2] = { {2,4},{2,3},{3,2},{4,2},{5,1},{6,1} };	/* Kugu boynu: direkten kapaga kivrilir */
 	int k, y, x, i;
 	for(k = 0; k < 2; k++)
 	{
 		#define YM_DX(x)	(k ? (int)W - 1 - (x) : (x))
 		#define YM_P(x, y, c)	Set(YM_DX(x), (y), (c)[0], (c)[1], (c)[2])
-		for(y = 4; y < (int)H; y++) { YM_P(0, y, Koyu); YM_P(1, y, Acik); }			/* Govde: isiga bakan yuzu acik */
-		for(i = 0; i < 5; i++)															/* Ayak: asagi dogru kavisle genisler */
-			for(x = 0; x < Ayak[i]; x++) YM_P(x, (int)H - 5 + i, (x == Ayak[i] - 1) ? Acik : Koyu);
-		for(x = 0; x < 3; x++) { YM_P(x, (int)H - 7, Bil); YM_P(x, 15, Bil); }			/* Bilezikler */
-		for(i = 0; i < 5; i++) YM_P(Kol[i][0], Kol[i][1], Acik);							/* Kugu boynu kol */
-		for(x = 5; x <= 10; x++) YM_P(x, 0, Kap);										/* Kapak */
-		for(x = 4; x <= 11; x++) YM_P(x, 1, Kap);
-		for(x = 6; x <= 9; x++) Set(YM_DX(x), YM_LY, YM_ISIK((x == YM_LX || x == YM_LX + 1) ? 255U : 190U));	/* Cam */
+		for(y = 3; y < (int)H; y++) { YM_P(0, y, Golge); YM_P(1, y, Orta); YM_P(2, y, Acik); }	/* Govde */
+		for(i = 0; i < 5; i++)																/* Ayak: asagi dogru kavisle genisler */
+			for(x = 0; x < Ayak[i]; x++) YM_P(x, (int)H - 5 + i, (x == Ayak[i] - 1) ? Acik : (x == 0) ? Golge : Orta);
+		for(x = 0; x < 4; x++) { YM_P(x, (int)H - 7, Bil); YM_P(x, 14, Bil); }				/* Bilezikler */
+		YM_P(1, 2, Bil);																	/* Direk ucu topuzu */
+		for(i = 0; i < 6; i++) YM_P(Kol[i][0], Kol[i][1], Acik);								/* Kugu boynu kol */
+		for(x = 7; x <= 10; x++) YM_P(x, 0, (x == 8 || x == 9) ? KapA : Kap);				/* Kapak (ortasi parlak) */
+		for(x = 6; x <= 11; x++) YM_P(x, 1, Kap);
+		for(x = 7; x <= 10; x++) Set(YM_DX(x), YM_LY, YM_ISIK((x == YM_LX || x == YM_LX + 1) ? 255U : 190U));	/* Cam */
 		#undef YM_P
 		#undef YM_DX
 	}

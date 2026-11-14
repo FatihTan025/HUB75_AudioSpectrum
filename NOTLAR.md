@@ -118,6 +118,9 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 - Telefon sesi ESP32'ye A2DP ile gelebilir (I2S → STM32); arayan bilgisi Android uygulamasından.
 
 ## Bekleyen işler
+- 14 Kasım (13, kartta denenmedi): Direk 3 px (gölge/orta/açık), ayak 3-6 px kavisli, bilezik 4 px, direk ucunda
+  topuz, kol ve lamba 1 px içeride (YM_LX 8, cam x7-10). Yağmur fabrika saat rengi krem FFD9A0 %42 (gri-mavi suda
+  seçilmiyordu); kayıtlı ayar varsa Android'de ↺ ile gelir.
 - 14 Kasım (12, kartta denenmedi): Lamba yenilendi (Fatih): lamba en üstte (yeşil bakır kapak y0-1, cam y2), kuğu
   boynu kol, kahverengi döküm direk (koyu 34,20,10 / ışığa bakan yüz 72,44,22), y15 ve alttan 7. satırda bilezik,
   dibi kavisle genişleyen ayak. Işık sıcak sarı (YM_ISIK 255/222/130, G yukarı yuvarlanır: sönükte kızıllaşmasın).

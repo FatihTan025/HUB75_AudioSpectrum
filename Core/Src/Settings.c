@@ -67,7 +67,7 @@ static const SET_ModeInfo ModeInfo[] =
 	/* Saat: renk tam tonda secilir, parlaklik ayri (gece los kalsin) */
 	ORTAM("Kar",							SPEC_MODE_SNOW,		{ SET_ID_SAAT_RGB, 0x96B0FF }, { SET_ID_SAAT_ISIK, 25 }),	/* Buz-mavi		*/
 	ORTAM("\305\236\303\266mine",						SPEC_MODE_HEARTH,	{ SET_ID_SAAT_RGB, 0xFFBA46 }, { SET_ID_SAAT_ISIK, 85 }),	/* Sicak acik sari	*/
-	ORTAM("Ya\304\237mur",						SPEC_MODE_RAIN,		{ SET_ID_SAAT_RGB, 0x99B8FF }, { SET_ID_SAAT_ISIK, 20 }),	/* Gri-mavi		*/
+	ORTAM("Ya\304\237mur",						SPEC_MODE_RAIN,		{ SET_ID_SAAT_RGB, 0xFFD9A0 }, { SET_ID_SAAT_ISIK, 42 }),	/* Krem (mavi suda ve kahverengi direkte secilsin) */
 	ORTAM("Sahil",							SPEC_MODE_SHORE,	{ SET_ID_SAAT_RGB, 0xFFE1B2 }, { SET_ID_SAAT_ISIK, 35 }),	/* Kum		*/
 };
 
