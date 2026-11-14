@@ -173,10 +173,10 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
      (yeşil/kırmızı kaymış piksel çıkmasın; sebep: düşük değerlerde kanallar farklı basamağa yuvarlanıyor).
   2. Sudaki ışık lekesi ve yansıma DEĞİŞMESİN (Fatih: güzel görünüyor).
   3. Direkteki iki boğaz biraz koyu: (104,68,34) -> (80,52,26).
-  Alev ailesi "Aurora" renk modu (özellikle 15 Orta Patlama; Fatih şimdiki halini beğenmedi):
+  Alev ailesi "Aurora" renk modu (Fatih "15. mod" dedi: 14 Patlama ya da 15 Orta Patlama; ikisinde de geçerli; şimdiki hali beğenilmedi):
   4. Soluk aurora yerine doygun gökkuşağı cümbüşü. Ton panel boyunca (x) ve zamanla yavaşça kayar (tam tur
      ~20-30 sn), geçişler çok yumuşak, hiçbir yerde ani renk değişimi yok; parlaklık ısıdan.
-  5. Uçtaki parlak patlama parçaları / kıvılcımlar bir renk, arkadaki gövde ondan belirgin farklı renk
+  5. Havaya savrulan şiddetli patlama parçaları bir renk, arkadaki alevler ondan belirgin farklı renk
      (ör. ton +120..180 derece kaydırılmış) -> aynı anda birkaç renk görünsün.
 - **BEKLİYOR (Fatih "şimdilik dursun", 13 Kasım):** Kısık parlaklıkta Kar/saat saniyede birkaç kez parlayıp sönüyor.
   Sebep: SPEC_Draw sonundaki vuruş pompası (CFG_BEAT_BRIGHT_BOOST %25 * BeatEnv) Ortam modlarında da çalışıyor;
