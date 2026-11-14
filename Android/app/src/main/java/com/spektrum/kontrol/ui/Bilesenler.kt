@@ -84,7 +84,14 @@ fun Baslik(yazi: String) = Text(yazi, color = Color.White, fontSize = 14.sp, fon
 
 /** Ayar satiri: ad solda (altinda secili deger kucuk), denetim sagda; tek satir, sayfa uzamasin. */
 @Composable
-fun TekSatir(ad: String, alt: String? = null, denetim: @Composable () -> Unit) {
+fun TekSatir(ad: String, alt: String? = null, ust: Boolean = false, denetim: @Composable () -> Unit) {
+    if (ust) {                                  // Dar (yan yana iki ayar): ad ustte, denetim altta
+        Column(Modifier.fillMaxWidth()) {
+            Text(ad, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+            Box(Modifier.fillMaxWidth().padding(top = 4.dp), contentAlignment = Alignment.CenterStart) { denetim() }
+        }
+        return
+    }
     Row(Modifier.fillMaxWidth().heightIn(min = 52.dp), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.width(96.dp)) {
             Text(ad, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
@@ -94,22 +101,46 @@ fun TekSatir(ad: String, alt: String? = null, denetim: @Composable () -> Unit) {
     }
 }
 
+/** Kisa ayar: anahtar ya da en cok 3 kisa secenekli secim -> iki tanesi yan yana sigar */
+fun kisaAyar(t: Tanim) = t.tur == Tur.BOOL ||
+    (t.tur == Tur.ENUM && t.id != AyarId.SAAT_YAZI && t.secenekler.size <= 3 && t.secenekler.sumOf { it.length } <= 12)
+
+/** Ayar listesi: art arda gelen iki kisa ayar ayni satirda, digerleri tam satir (sira degismez) */
+@Composable
+fun AyarListesi(liste: List<Tanim>, deger: (Tanim) -> Int, yaz: (Tanim, Int) -> Unit) {
+    var i = 0
+    while (i < liste.size) {
+        val a = liste[i]
+        val b = liste.getOrNull(i + 1)
+        if (b != null && kisaAyar(a) && kisaAyar(b)) {
+            Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Box(Modifier.weight(1f)) { AyarSatiri(a, deger(a), ust = true) { yaz(a, it) } }
+                Box(Modifier.weight(1f)) { AyarSatiri(b, deger(b), ust = true) { yaz(b, it) } }
+            }
+            i += 2
+        } else {
+            AyarSatiri(a, deger(a)) { yaz(a, it) }
+            i++
+        }
+    }
+}
+
 /**
  * Cihazdan gelen bir ayar tanimini turune gore cizer:
  * ton = ton cubugu, renk = beyaz + ton cubugu, blok = renk bloklari, enum = secmeli dugmeler,
  * bool = anahtar, int = kaydirma cubugu.
  */
 @Composable
-fun AyarSatiri(t: Tanim, deger: Int, degisti: (Int) -> Unit) {
+fun AyarSatiri(t: Tanim, deger: Int, ust: Boolean = false, degisti: (Int) -> Unit) {
     when (t.tur) {
-        Tur.BOOL -> TekSatir(t.ad) {
-            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+        Tur.BOOL -> TekSatir(t.ad, ust = ust) {
+            Box(Modifier.fillMaxWidth(), contentAlignment = if (ust) Alignment.CenterStart else Alignment.CenterEnd) {
                 Switch(checked = deger != 0, onCheckedChange = { degisti(if (it) 1 else 0) }, enabled = !t.saltOkunur,
                     colors = SwitchDefaults.colors(checkedTrackColor = Sari, checkedThumbColor = Color.White,
                         uncheckedTrackColor = MorKoyu, uncheckedThumbColor = Pasif, uncheckedBorderColor = MorKoyu))
             }
         }
-        Tur.ENUM -> TekSatir(t.ad) {
+        Tur.ENUM -> TekSatir(t.ad, ust = ust) {
             if (t.id == AyarId.SAAT_YAZI) SecmeliResim(t.secenekler, deger - t.min) { degisti(t.min + it) }   // Font ornegi
             else Secmeli(t.secenekler, deger - t.min) { degisti(t.min + it) }
         }

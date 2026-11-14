@@ -285,7 +285,7 @@ private fun ModSekmesi(m: AnaModel, muziksiz: Boolean, bosYazi: String) {
             }
         }
         Column(Modifier.padding(horizontal = 18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            m.modAyarlari(mod).forEach { t -> AyarSatiri(t, m.deger(t, mod)) { m.ayarYaz(t, it, mod) } }
+            AyarListesi(m.modAyarlari(mod), { t -> m.deger(t, mod) }) { t, v -> m.ayarYaz(t, v, mod) }
             m.tanimBul(AyarId.PARLAKLIK)?.let { t ->
                 TekSatir("Parlaklık") {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -334,7 +334,9 @@ private fun AyarlarSekmesi(m: AnaModel) {
         // Cihazin bildirdigi diger genel ayarlar (panel modeli, ses kaynagi... firmware ekledikce burada cikar)
         val genel = m.genelAyarlar()
         if (genel.isNotEmpty()) Grup("GENEL") {
-            genel.forEach { t -> Box(Modifier.padding(horizontal = 14.dp, vertical = 2.dp)) { AyarSatiri(t, m.deger(t, MOD_GENEL)) { m.ayarYaz(t, it, MOD_GENEL) } } }
+            Column(Modifier.padding(horizontal = 14.dp, vertical = 2.dp)) {
+                AyarListesi(genel, { t -> m.deger(t, MOD_GENEL) }) { t, v -> m.ayarYaz(t, v, MOD_GENEL) }
+            }
         }
         Grup("BAĞLANTI") {
             if (m.kopru.value != null) Satir("Ev ağı (Wi-Fi)", "") { m.wifiDurumSor(); agPencere = true }

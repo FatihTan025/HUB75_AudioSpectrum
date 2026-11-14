@@ -127,9 +127,13 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
 - 14 Kasım: Fatih'in ilk saat fontu Arial Bold (arialbold24px.c/.h, HUB75 Aracı çıktısı, 24 px, oransal, 0-9 : C)
   eklendi; geçici font (Font_SaatGecici.h) silindi (PC'de dosya duruyorsa kullanılmıyor). Rakamlar en geniş rakam
   kadar yuvaya ortalanır (dakika değişince saat kaymasın). Saat Yazısı tek font olduğu için hâlâ gizli.
-  BEKLİYOR ("yaz" denmedi): Kar salınım kalksın -> serbest kayma (birkaç sn'de bir yavaşça yön değiştirir) +
-  taneler birbirinden kaçsın / ayrı yerden doğsun, orta {15,25,35}; Şömine eski kıvılcıma dön (6 karede bir);
-  Yerleşim "Sol" eklenecek (Orta|Sol|Alt|Isı-Nem), Isı-Nem'de saat en sola, ısı-nem en sağa.
+- 14 Kasım (2): Kar: salınım TAMAMEN kalktı (Fatih: zikzak istemiyor, "oyundaki gibi") -> serbest kayma: Vx hedefe
+  yavaşça döner, 1.6-4.8 s'de bir yeni hedef (bazen düz); 3x3 taneler dibinde doğmaz (SnDolu), 4 px'e yaklaşınca
+  ayrılır (SnAyir); orta {15,25,35}. Şömine: eski kıvılcım (yükselip söner), 6 karede bir, SM_KIV 16 (yaylı
+  kıvılcımı beğenmedi). Saat: yerleşim Orta|Sol|Alt|Isı-Nem (Isı-Nem: saat x=1, ısı-nem sağa yaslı); iki nokta
+  her fontun kendi ':' glifi (elle çizim kalktı; Fatih'in fontlarında ':' hep olacak); 'C' derece için, şimdilik
+  kullanılmıyor. Saydamlık (0x030E, 0-80 %, mod başına). Sahil: denizdeki sırtlar 16 px kontrol noktalı kavis,
+  tepeleri beyazlaşır, küçükler 1.5x belirgin. Android: kısa ayarlar (anahtar, <=3 kısa seçenek) ikişer yan yana.
 - 13 Kasım gece (6. tur): Sahil köpüğü çekilmeye geçince tek karede yarıya iniyordu (Fatih: beyazlar bir anda
   kayboluyor) -> çekilme boyunca kademeli söner, delikler sabit desenle yavaşça büyür (tek kare kaybı 106 -> 15 px).
 - 13 Kasım gece (5. tur, kartta denenmedi): Kar: yakın taneler zikzak gibiydi (üçgen salınım, sert dönüş) ->
