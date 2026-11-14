@@ -138,6 +138,11 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   Bütün modlar:
   8. Saydamlıkta saat, alttaki zeminin rengiyle SÜZÜLMESİN (renkli cam gibi karartıyor: turuncu alev mavi
      saatte kararıyor); saat rengiyle karıştırılarak gösterilsin, zemin parlaksa saat de parlak görünsün.
+  Android:
+  9. Saat rengi için ikinci çubuk (renk çubuğunun altında): sol koyu ton, orta rengin kendisi, sağ açık/pastel
+     (beyaza doğru); Sahil'deki gibi ara tonlar. Kart değişmez (saat rengi zaten tek RGB); Android ilk çubuktan
+     tonu, ikinciden açıklığı alıp tek RGB gönderir (gelen RGB'den ikisini geri hesaplar). ↺ ikisini birden
+     fabrika rengine döndürür. Bir kez APK güncellemesi gerekir. Sahil'deki Gece/Gündüz yerinde kalır.
   Kar: zemindeki kar örtüsü kaldırıldı, kar eski haline döndü (Fatih onayladı, öyle kalsın).
   Not: PC'ye kopyalarken her seferinde dosya boyutunu kontrol et (aynı adla tekrar gönderilen dosya eski
   kopya olarak gitti).
