@@ -148,6 +148,7 @@ static void ApplyOrtam(uint8_t Mode, int32_t Value)
 	SPEC_SmBoy    = (uint8_t)SET_Global(SET_ID_SM_BOY);
 	SPEC_YmSiddet = (uint8_t)SET_Global(SET_ID_YM_SIDDET);
 	SPEC_YmRuzgar = (uint8_t)SET_Global(SET_ID_YM_RUZGAR);
+	SPEC_YmOto    = (uint8_t)SET_Global(SET_ID_YM_OTO);
 	SPEC_ShDalga  = (uint8_t)SET_Global(SET_ID_SH_DALGA);
 	SPEC_ShIsik   = (uint8_t)SET_Global(SET_ID_SH_ISIK);
 	{															/* Saat rengi x saat parlakligi */
@@ -260,10 +261,12 @@ static const SET_Param Table[] =
 	  "Yo\304\237unluk", "Kar", "Az|Orta|\303\207ok", ApplyOrtam },
 	{ SET_ID_SM_BOY,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SM_MASK, 0, 2, 1, 1,
 	  "Alev Boyu", "Alev", "Al\303\247ak|Orta|Y\303\274ksek", ApplyOrtam },
-	{ SET_ID_YM_SIDDET,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, YM_MASK, 0, 3, 1, 1,
-	  "\305\236iddet", "Ya\304\237mur", "\303\207isenti|Ya\304\237mur|Sa\304\237anak|Oto", ApplyOrtam },	/* Oto: siddet + ruzgar 20-30 sn'de bir degisir */
+	{ SET_ID_YM_SIDDET,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, YM_MASK, 0, 2, 1, 1,
+	  "\305\236iddet", "Ya\304\237mur", "\303\207isenti|Ya\304\237mur|Sa\304\237anak", ApplyOrtam },
 	{ SET_ID_YM_RUZGAR,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, YM_MASK, 0, 2, 1, 1,
 	  "R\303\274zg\303\242r", "Ya\304\237mur", "Yok|Hafif|Sert", ApplyOrtam },
+	{ SET_ID_YM_OTO,		SET_TYPE_BOOL,	SET_FLAG_PER_MODE, YM_MASK, 0, 1, 1, 0,
+	  "Oto", "Ya\304\237mur", "", ApplyOrtam },		/* Siddet + ruzgar 20-30 sn'de bir yumusakca degisir */
 	{ SET_ID_SH_DALGA,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SH_MASK, 0, 2, 1, 1,
 	  "Dalga", "Deniz", "Sakin|Normal|Dalgal\304\261", ApplyOrtam },
 	{ SET_ID_SH_ISIK,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SH_MASK, 0, 1, 1, 0,

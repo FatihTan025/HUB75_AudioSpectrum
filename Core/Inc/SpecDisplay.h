@@ -69,7 +69,7 @@ extern uint8_t SPEC_Speed, SPEC_React, SPEC_ShowNo;
 extern uint8_t SPEC_SnIsik, SPEC_SnYogun;				/* Kar: parlaklik %, yogunluk 0..2	*/
 extern uint8_t SPEC_SaatYazi, SPEC_SaatYer;			/* Saatli modlar: font, yerlesim	*/
 extern uint8_t SPEC_SmBoy;							/* Somine: alev boyu 0..2				*/
-extern uint8_t SPEC_YmSiddet, SPEC_YmRuzgar;		/* Yagmur: siddet 0..2, ruzgar 0..2		*/
+extern uint8_t SPEC_YmSiddet, SPEC_YmRuzgar, SPEC_YmOto;	/* Yagmur: siddet 0..2, ruzgar 0..2, oto	*/
 extern uint8_t SPEC_ShDalga, SPEC_ShIsik;			/* Sahil: dalga 0..2, isik 0 gece 1 gunduz	*/
 extern uint8_t  SPEC_SaatAlt, SPEC_SaatIsi, SPEC_SaatSn;	/* Saat: alta yasli, isi-nem, saniye	*/
 extern uint8_t  SPEC_SaatSaydam;						/* Saatli modlar: saydamlik % (0 kati)	*/

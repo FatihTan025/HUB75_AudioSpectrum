@@ -85,6 +85,7 @@
 #define SET_ID_SAAT_ALT		0x030FU	/* Saatli modlar: alta yasli			*/
 #define SET_ID_SAAT_ISI		0x0310U	/* Saatli modlar: sicaklik / nem goster	*/
 #define SET_ID_SAAT_SN		0x0311U	/* Saatli modlar: saniye goster			*/
+#define SET_ID_YM_OTO		0x0312U	/* Yagmur: siddet + ruzgar otomatik degisir	*/
 
 typedef struct
 {

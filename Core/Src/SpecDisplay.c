@@ -3181,7 +3181,7 @@ static void ModeAurora(void)
 uint8_t SPEC_SnIsik = 60U, SPEC_SnYogun = 1U;
 uint8_t SPEC_SaatYazi = 0U, SPEC_SaatYer = 1U;
 uint8_t SPEC_SmBoy = 1U;
-uint8_t SPEC_YmSiddet = 1U, SPEC_YmRuzgar = 1U;
+uint8_t SPEC_YmSiddet = 1U, SPEC_YmRuzgar = 1U, SPEC_YmOto = 0U;
 uint8_t SPEC_ShDalga = 1U, SPEC_ShIsik = 0U;
 uint8_t  SPEC_SaatAlt = 0U, SPEC_SaatIsi = 0U, SPEC_SaatSn = 0U;							/* Saat: alta, isi-nem goster	*/
 uint8_t  SPEC_SaatSaydam = 0U;									/* Saat saydamligi % (0 = kati)	*/
@@ -4080,7 +4080,7 @@ static void YmDog(YmDamla *d, uint8_t Tur, uint8_t Basta)	/* Tur: 0 uzak, 1 yaki
 	d->Y   = Basta ? (int32_t)(Rand() % H) * 256 : -(int32_t)(2U + Rand() % 12U) * 256;
 	d->Iri = (uint8_t)(Tur == 2U);
 	{														/* Dusecegi satir: uzak -> suyun ust (uzak) kismi, yakin -> alt kismi */
-		const uint32_t Ys = H - YM_DERIN(SPEC_YmSiddet);
+		const uint32_t Ys = H - YM_DERIN(SPEC_YmOto ? 1U : SPEC_YmSiddet);
 		const uint32_t D  = H - Ys;
 		d->Hd = (Tur == 0U) ? (uint8_t)(Ys + 1U + Rand() % (D * 2U / 5U)) : (uint8_t)(Ys + D / 2U + Rand() % (D - D / 2U));
 		if(d->Hd >= H) d->Hd = (uint8_t)(H - 1U);
@@ -4247,8 +4247,8 @@ static void ModeRain(void)
 	static const uint8_t NUz[3] = { 30, 60, 90 }, NYa[3] = { 4, 9, 14 }, NIri[3] = { 2, 4, 6 };
 	static const uint8_t Egim[3] = { 0, 40, 100 };				/* Vx = Vy * Egim / 256 */
 	const float   Gdt = 1.0f / CFG_FPS;
-	const uint8_t Oto = (uint8_t)(SPEC_YmSiddet == 3U);			/* Oto: siddet ve ruzgar 20-30 sn'de bir yumusakca degisir */
-	const uint8_t Si  = (SPEC_YmSiddet < 3U) ? SPEC_YmSiddet : 1U;	/* Oto'da su derinligi Yagmur'unki, sabit */
+	const uint8_t Oto = SPEC_YmOto;									/* Oto: siddet ve ruzgar 20-30 sn'de bir yumusakca degisir */
+	const uint8_t Si  = Oto ? 1U : (SPEC_YmSiddet < 3U) ? SPEC_YmSiddet : 1U;	/* Oto'da su derinligi Yagmur'unki, sabit */
 	const uint8_t Ru  = (SPEC_YmRuzgar < 3U) ? SPEC_YmRuzgar : 1U;
 	uint32_t nUz = NUz[Si], nYa = NYa[Si], nIri = NIri[Si], nIt = Si;
 	int32_t  Eg  = Egim[Ru];

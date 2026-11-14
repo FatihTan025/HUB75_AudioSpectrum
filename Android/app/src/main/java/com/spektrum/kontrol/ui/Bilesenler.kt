@@ -201,6 +201,7 @@ fun AyarListesi(liste: List<Tanim>, deger: (Tanim) -> Int, yaz: (Tanim, Int) -> 
         val n = when {
             a.tur == Tur.BOOL -> { var k = 1; while (k < 3 && liste.getOrNull(i + k)?.tur == Tur.BOOL) k++; k }
             kisaAyar(a) && liste.getOrNull(i + 1)?.let { kisaAyar(it) && it.tur != Tur.BOOL } == true -> 2
+            kisaAyar(a) && liste.getOrNull(i + 1)?.tur == Tur.BOOL -> 2      // Kisa secim + yaninda tek dugme (Ruzgar | Oto)
             sayiAyar(a) && liste.getOrNull(i + 1)?.let { sayiAyar(it) } == true -> 2
             else -> 1
         }

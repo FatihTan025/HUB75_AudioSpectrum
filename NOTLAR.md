@@ -193,6 +193,9 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   (KyKuyruk: baş tarafında 3 px, yarıya kadar yavaşça incelir). Yağmur'a nadir küçük kayan yıldız (YmKayan: 25-50 sn,
   ~0.5-0.9 sn, 12 px kuyruk, YM_KY_ALT 8. satırın altına inmez, uzak yağmurun arkasında). Önizlemede 0-16 aynı;
   17-20 farkı Kar hızı ve rastgele sayı sırasından (Kar hızı eşitlenince Şömine de bayt bayt aynı).
+- 14 Kasım (23, kartta denenmedi): Yağmur Oto ayrı BOOL ayar (SET_ID_YM_OTO 0x0312, "Oto"); Şiddet yine 3 seçenek.
+  Yeni ayar -> kayıtlı ayarlar bir kez fabrikaya döner (Fatih: sorun değil). Android: kısa seçim + yanındaki BOOL aynı
+  satırda (Rüzgâr | Oto), APK güncellemesi gerekir.
 - 14 Kasım (22, kartta denenmedi): Saydamlık: saatin ışığı düşmez (SaatSet: c + (max(c,zemin)-c)*s; koyu zeminde saat
   aynen, parlak zemin rakamın içinde görünür). Yağmur hüzmesi Lv {0,4,7,10}.
 - **BEKLİYOR (Fatih "şimdilik dursun", 13 Kasım):** Kısık parlaklıkta Kar/saat saniyede birkaç kez parlayıp sönüyor.
