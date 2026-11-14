@@ -166,6 +166,12 @@ Yazmadan önce cihazdaki dosyayı stage edip diff al (CubeIDE / başka oturum de
   Kar: zemindeki kar örtüsü kaldırıldı, kar eski haline döndü (Fatih onayladı, öyle kalsın).
   Not: PC'ye kopyalarken her seferinde dosya boyutunu kontrol et (aynı adla tekrar gönderilen dosya eski
   kopya olarak gitti).
+- 14 Kasım (20, kartta denenmedi): Saydamlık alfa karışımı (SaatSet; ekran karışımında parlak saatte etkisi
+  görünmüyordu). Yağmur hüzmesi kademeleri 10/17/24 (kenar soğuk beyaza kaymasın). Şiddet'e "Oto" seçeneği (max 3,
+  YENİ AYAR YOK: Layout CRC id/tip/bayrak/maske + ModeInfo varsayılanlarından; seçenek sayısı girmez): şiddet
+  (0..2 sürekli) ve rüzgâr eğimi (0..110) 20-30 sn'de bir yeni hedef, ~4 sn'de yumuşak geçiş; Oto'da Rüzgâr ayarı
+  yok sayılır, su derinliği Yağmur'unki. Önizlemede diğer bütün modların çıktısı bayt bayt aynı kaldı.
+  DİKKAT: ModeInfo varsayılanı (ör. fabrika saat rengi) değişirse Layout değişir, kayıtlı ayarlar fabrikaya döner.
 - 14 Kasım (19, kartta denenmedi): Yağmur hava hüzmesi biraz parlak: kademeler panel çıkışında en parlak kanal
   6/10/14 basamak (Lv; önce 1/2/3 idi, sönükte renk kayıyordu). Sudaki ışık aynı (suyu boğmasın, Fatih).
   Kök sebep (ileride, tüm modlar): düşük genel parlaklıkta alt bitplane'ler 1 tikte sabit (HUB75_DMA.c OnTicks).

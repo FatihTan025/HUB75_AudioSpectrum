@@ -260,8 +260,8 @@ static const SET_Param Table[] =
 	  "Yo\304\237unluk", "Kar", "Az|Orta|\303\207ok", ApplyOrtam },
 	{ SET_ID_SM_BOY,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SM_MASK, 0, 2, 1, 1,
 	  "Alev Boyu", "Alev", "Al\303\247ak|Orta|Y\303\274ksek", ApplyOrtam },
-	{ SET_ID_YM_SIDDET,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, YM_MASK, 0, 2, 1, 1,
-	  "\305\236iddet", "Ya\304\237mur", "\303\207isenti|Ya\304\237mur|Sa\304\237anak", ApplyOrtam },
+	{ SET_ID_YM_SIDDET,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, YM_MASK, 0, 3, 1, 1,
+	  "\305\236iddet", "Ya\304\237mur", "\303\207isenti|Ya\304\237mur|Sa\304\237anak|Oto", ApplyOrtam },	/* Oto: siddet + ruzgar 20-30 sn'de bir degisir */
 	{ SET_ID_YM_RUZGAR,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, YM_MASK, 0, 2, 1, 1,
 	  "R\303\274zg\303\242r", "Ya\304\237mur", "Yok|Hafif|Sert", ApplyOrtam },
 	{ SET_ID_SH_DALGA,		SET_TYPE_ENUM,	SET_FLAG_PER_MODE, SH_MASK, 0, 2, 1, 1,
